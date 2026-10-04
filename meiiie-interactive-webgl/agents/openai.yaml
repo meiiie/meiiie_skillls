@@ -1,0 +1,14 @@
+interface:
+  display_name: Meiiie Interactive WebGL
+  short_description: Build cinematic, accessible interactive 3D objects
+  default_prompt: Use $meiiie-interactive-webgl to build an inspectable 3D object
+    with reversible assembly and a tested visual effect.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true
