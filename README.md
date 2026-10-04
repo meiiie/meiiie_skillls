@@ -13,6 +13,8 @@ On Windows with Python 3.13.7 and Node 25.9.0, seven validation groups and fourt
 
 Primary-source ideas are attributed in [source-adaptations.md](contest-code-quality/references/source-adaptations.md). The linked third-party tools' implementation and binaries are not included. This entry makes no repository-wide license grant. Private command outputs and experiment bundles are excluded.
 
+The existing code-quality workflow now includes a [thin preventive typed-design gate](contest-code-quality/references/preventive-types.md). Its isolated TypeScript pilot checked invalid-state rejection, canonical exhaustiveness, runtime parsing and explicit escape/config controls, with two frozen independent scenarios. Results and limits are documented in that reference; runtime and UI checks remain separate. No pstack orchestration or installation is required.
+
 ## Explain clearly
 
 [Meiiie Explain Clearly](meiiie-explain-clearly/SKILL.md) frames the learning goal, preserves meaningful qualifications, and selects text, diagrams, interactive HTML or video when useful. It includes original Vietnamese/English worked examples and [clarity/source notes](meiiie-explain-clearly/references/clarity-and-sources.md) with official ASD/STEMG attribution.

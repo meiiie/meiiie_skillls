@@ -19,6 +19,12 @@ Choose the smallest risky behavior. Prioritize meaningful branches, unverified e
 
 For repeatable command records, optionally use [scripts/run_checks.py](scripts/run_checks.py) with [references/command-evidence.md](references/command-evidence.md). Its reviewed command arrays support existing runtime adapters, explicit assertion evidence, clean-baseline gates, finite budgets and hashes. Missing runtimes remain failures; no install is automatic. Keep syntax rejection, unknown nonzero exits and runtime failures separate from assertion detections. Use the project's actual interface oracle and retain private output locally.
 
+## Prevent defects in the representation
+
+Before editing a risky type or boundary, name the concrete invariant and its bad example. Use distinct states and exhaustive consumers when they rule out a real contradiction; parse external unknown data instead of asserting its type. Keep only the abstraction needed to express that rule.
+
+Read [references/preventive-types.md](references/preventive-types.md) for the thin preventive gate: positive/negative compilation, real consumer exhaustiveness, boundary tests, and review of unsafe assertions, suppressions, imports and effective compiler configuration. Use the project's existing toolchain and actual contract. Type evidence complements runtime/integration/UI checks and the feedback loop below; it does not replace them or prove every value invariant.
+
 ## Test whether the tests discriminate
 
 Use a bounded set of explicit faults justified by the contract, such as exclusive instead of inclusive boundaries, accepting an invalid sentinel, or treating valid empty input as missing. State the distinguishing input and observable consequence for each. Keep a pristine source and one private copy per fault. Validate that each patch matches exactly one intended site.

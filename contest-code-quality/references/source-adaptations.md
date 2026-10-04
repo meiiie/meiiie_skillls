@@ -10,3 +10,7 @@ Primary repository documentation was read on 2026-10-04. No upstream executable 
 | [uml-viewer](https://github.com/unclebob/uml-viewer) | Separates dependency topology from metric snapshots and labels proposed architecture. | Use a small source-backed dependency sketch when relevant, with measured evidence separate from proposed changes. No interactive viewer or agent companion was built or launched. |
 
 These are design choices inferred from the documentation, not proof that this small pilot reproduces upstream behavior or scales across languages.
+
+## Preventive typed-design addition
+
+The [pstack principles](https://github.com/cursor/plugins/tree/e43c7ee26e0038c6c1fa8380dd34ce86ff94cb2a/pstack) by Lauren Tan supplied additional design references for concrete type invariants, owned boundary parsing and reduced reader indirection. Current pinned manifest: 0.15.9; license: MIT. Our [preventive gate](preventive-types.md) is independently authored, uses project-native checks, and preserves static/runtime/escape-review limits. No pstack source implementation, substantial text or required orchestration is included. Attribution and the original license link are retained in that reference; this is not a license grant for the repository.
