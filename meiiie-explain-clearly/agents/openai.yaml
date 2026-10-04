@@ -1,0 +1,14 @@
+interface:
+  display_name: Meiiie Explain Clearly
+  short_description: Clear explanations with the right teaching medium
+  default_prompt: Use $meiiie-explain-clearly to explain this topic clearly and choose
+    the simplest useful teaching medium.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true
