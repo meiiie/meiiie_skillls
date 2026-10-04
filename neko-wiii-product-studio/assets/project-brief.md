@@ -1,0 +1,21 @@
+# Neko–Wiii project brief
+
+- User outcome and audience:
+- Deliverable and completion boundary:
+- Observable acceptance criteria:
+- In-scope products and behavior:
+- Explicit exclusions and capabilities to preserve:
+- Selected environment / repository locations, freshly verified:
+- Neko branch / HEAD / upstream / dirty state:
+- Wiii branch / HEAD / upstream / dirty state:
+- Source evidence and repository instructions:
+- Meiiie accountable owner:
+- Neko delivery lead and work package, if needed:
+- Wiii delivery lead and work package, if needed:
+- Integration acceptance owner:
+- Artifact/file ownership and dependency order:
+- Contract/version pair and planned compatibility:
+- Tests, independent review, and E2E evidence required:
+- Authorized actions, spending limits, and approval gates:
+- Deadline, assumptions, and decisions needed:
+- Release/recovery plan, if release is in scope:

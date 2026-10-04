@@ -8,6 +8,7 @@
 | [meiiie-explain-clearly](meiiie-explain-clearly/SKILL.md) | Available | Precise Vietnamese/English explanations and teaching media chosen by the learning need. |
 | [meiiie-interactive-webgl](meiiie-interactive-webgl/SKILL.md) | Available | Semantic 3D objects, reversible assembly, accessible controls and explicit render checks. |
 | [meiiie-operating-office](meiiie-operating-office/SKILL.md) | Available | Task-scoped coordination with one accountable lead, bounded specialist work and evidence-based review. |
+| [neko-wiii-product-studio](neko-wiii-product-studio/SKILL.md) | Available | Neko Core and Wiii ownership, shared contracts and integration acceptance. |
 
 Read [SKILL.md](contest-code-quality/SKILL.md) for the workflow and [command-evidence.md](contest-code-quality/references/command-evidence.md) before running a reviewed project manifest. The helper uses Python's standard library and already installed runtimes; no fixed model or agent team is required.
 
@@ -34,3 +35,9 @@ The package contains instructions, metadata, an icon and primary-source notes. I
 [Meiiie Operating Office](meiiie-operating-office/SKILL.md) coordinates substantial software/IT, academic research and procurement assignments through one accountable lead and the smallest useful team. It includes domain playbooks and templates for work briefs, results and proportionate review.
 
 This is an instruction and template layer. Installation does not establish persistent workers, background execution, independent identities, new permissions or demonstrated research effectiveness; actual tools and artifacts establish what happened. Its [operating rationale](meiiie-operating-office/references/operating-rationale.md) preserves source attribution and implementation limits.
+
+## Neko and Wiii Product Studio
+
+[Neko and Wiii Product Studio](neko-wiii-product-studio/SKILL.md) defines task-scoped ownership for Neko Core, Wiii and their integration. It includes a project brief, an integration contract checklist and a [dated orientation](neko-wiii-product-studio/references/project-baseline.md) with immutable source links.
+
+The accepted product direction and historical audit findings guide current inspection; they do not establish that current repositories conform, that their boundary is fully implemented, or that end-to-end integration has passed. This skill adds no persistent workers, permissions or release authority.

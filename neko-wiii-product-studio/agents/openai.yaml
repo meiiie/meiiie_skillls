@@ -1,0 +1,14 @@
+interface:
+  display_name: Neko and Wiii Product Studio
+  short_description: Coordinate Neko Core, Wiii, and integration delivery
+  default_prompt: Use $neko-wiii-product-studio to scope and deliver this Neko Core
+    and Wiii product assignment.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true
