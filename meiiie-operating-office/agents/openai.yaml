@@ -1,0 +1,14 @@
+interface:
+  display_name: Meiiie Operating Office
+  short_description: Accountable specialist teams with evidence-based review
+  default_prompt: Use $meiiie-operating-office to plan and deliver this project with
+    one accountable lead and proportionate review.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true

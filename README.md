@@ -7,6 +7,7 @@
 | [contest-code-quality](contest-code-quality/SKILL.md) | Experimental | Bounded correctness and refactoring workflow with an optional command-evidence helper. |
 | [meiiie-explain-clearly](meiiie-explain-clearly/SKILL.md) | Available | Precise Vietnamese/English explanations and teaching media chosen by the learning need. |
 | [meiiie-interactive-webgl](meiiie-interactive-webgl/SKILL.md) | Available | Semantic 3D objects, reversible assembly, accessible controls and explicit render checks. |
+| [meiiie-operating-office](meiiie-operating-office/SKILL.md) | Available | Task-scoped coordination with one accountable lead, bounded specialist work and evidence-based review. |
 
 Read [SKILL.md](contest-code-quality/SKILL.md) for the workflow and [command-evidence.md](contest-code-quality/references/command-evidence.md) before running a reviewed project manifest. The helper uses Python's standard library and already installed runtimes; no fixed model or agent team is required.
 
@@ -27,3 +28,9 @@ It uses STE-inspired clarity. “About 80% STE” is a soft editorial direction,
 [Meiiie Interactive WebGL](meiiie-interactive-webgl/SKILL.md) is a procedural workflow for inspectable 3D objects, semantic selection, reversible exploded views and explanatory effects. Its [architecture](meiiie-interactive-webgl/references/architecture.md) and [acceptance gates](meiiie-interactive-webgl/references/render-gates.md) keep logic, rendered inspection, interaction and real-device measurements separate.
 
 The package contains instructions, metadata, an icon and primary-source notes. It includes no reference media or demo implementation; publishing the skill does not establish render quality, measured performance, physical-phone behavior or engineering accuracy.
+
+## Operating Office
+
+[Meiiie Operating Office](meiiie-operating-office/SKILL.md) coordinates substantial software/IT, academic research and procurement assignments through one accountable lead and the smallest useful team. It includes domain playbooks and templates for work briefs, results and proportionate review.
+
+This is an instruction and template layer. Installation does not establish persistent workers, background execution, independent identities, new permissions or demonstrated research effectiveness; actual tools and artifacts establish what happened. Its [operating rationale](meiiie-operating-office/references/operating-rationale.md) preserves source attribution and implementation limits.

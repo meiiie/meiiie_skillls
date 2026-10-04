@@ -1,0 +1,15 @@
+# Operating rationale
+
+Use these sources to explain the design, not as guarantees that this skill reproduces a study's results. Sources checked on 2026-09-30. Recheck current evidence before making new empirical claims.
+
+- [Google Research: Towards a science of scaling agent systems](https://research.google/blog/towards-a-science-of-scaling-agent-systems-when-and-why-agent-systems-work/) (2026-01-28). Findings across 180 configurations support matching architecture to task structure: parallelizable work may benefit, while sequential work can suffer. Operational choice: use the smallest sufficient team and avoid reflexive delegation.
+- [Anthropic: How we built our multi-agent research system](https://www.anthropic.com/engineering/multi-agent-research-system) (2025-06-13). Reports research-specific benefits and substantial resource costs. Operational choice: use parallel specialists for separable searches, with explicit output contracts and integration. Do not generalize internal benchmark gains or conflate comparison baselines.
+- [Anthropic: AI organizations](https://alignment.anthropic.com/2026/ai-organizations/) (2026). Reports setup-dependent risks that organizational incentives can weaken constraints. Operational choice: keep end-to-end accountability and preserve relevant authority limits in every work package.
+- [OpenAI: A practical guide to building AI agents](https://openai.com/business/guides-and-resources/a-practical-guide-to-building-ai-agents/). Supports starting with minimal complexity and adding coordinated agents when justified. Operational choice: one accountable manager, outcome evaluation, and bounded escalation.
+- [Anthropic: Effective context engineering for AI agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) (2025-09-29). Supports task-relevant context rather than indiscriminate context accumulation. Operational choice: load only the applicable domain references and give specialists the inputs needed for their packages.
+- [Anthropic: Demystifying evals for AI agents](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents) (2026-01-09). Supports evaluating real outcomes rather than trusting an agent's narrative. Operational choice: acceptance evidence, observed execution state, and independent checks of important claims.
+- [Google DeepMind: Intelligent AI Delegation](https://arxiv.org/abs/2602.11865) (2026-02-12). Provides a conceptual delegation framework. Operational choice: specify ownership, authority, acceptance, and escalation. Treat it as design guidance, not empirical proof of this skill's effectiveness.
+
+## Limits of this implementation
+
+This is a reusable instruction and template layer. It does not itself enforce software permissions, durable execution, isolation, access control, audit retention, independent identity, or continuous availability. Those require actual platform capabilities and configuration. The virtual company is task-scoped coordination; verified tool activity and artifacts are the record of what happened.
