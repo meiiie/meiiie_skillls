@@ -9,6 +9,7 @@
 | [meiiie-interactive-webgl](meiiie-interactive-webgl/SKILL.md) | Available | Semantic 3D objects, reversible assembly, accessible controls and explicit render checks. |
 | [meiiie-operating-office](meiiie-operating-office/SKILL.md) | Available | Task-scoped coordination with one accountable lead, bounded specialist work and evidence-based review. |
 | [neko-wiii-product-studio](neko-wiii-product-studio/SKILL.md) | Available | Neko Core and Wiii ownership, shared contracts and integration acceptance. |
+| [motion-pptx-studio](motion-pptx-studio/SKILL.md) | Available | Cinematic motion PowerPoint decks with Morph keyframes, licensed assets and a speaker script. |
 
 Read [SKILL.md](contest-code-quality/SKILL.md) for the workflow and [command-evidence.md](contest-code-quality/references/command-evidence.md) before running a reviewed project manifest. The helper uses Python's standard library and already installed runtimes; no fixed model or agent team is required.
 
@@ -41,3 +42,9 @@ This is an instruction and template layer. Installation does not establish persi
 [Neko and Wiii Product Studio](neko-wiii-product-studio/SKILL.md) defines task-scoped ownership for Neko Core, Wiii and their integration. It includes a project brief, an integration contract checklist and a [dated orientation](neko-wiii-product-studio/references/project-baseline.md) with immutable source links.
 
 The accepted product direction and historical audit findings guide current inspection; they do not establish that current repositories conform, that their boundary is fully implemented, or that end-to-end integration has passed. This skill adds no persistent workers, permissions or release authority.
+
+## Motion PPTX Studio
+
+[Motion PPTX Studio](motion-pptx-studio/SKILL.md) is a workflow for a cinematic PowerPoint deck: Morph keyframe sequences, researched fonts, licensed assets and a speaker script. [Helper scripts](motion-pptx-studio/scripts/README.md) apply transitions, three-column highlight states, media deduplication, an example motif set and the script document.
+
+Slide paths, scene ranges and per-slide timings are arguments. The scripts do not ship a finished deck, source photographs or machine-specific paths. Installing the skill does not review a deck in PowerPoint, embed fonts or grant licences for images.
