@@ -34,6 +34,7 @@ Scripts are in `scripts/` (Python 3.9+, Pillow, lxml; opencv + numpy for inpaint
    ```
    Review at least twice as many candidates as you keep, and write down the rejected ones with reasons. Licences: CC0 / PD / CC BY / CC BY-SA;
    no NC/ND for contests, broadcast or commercial use. If the subject is unverified, use `--uncertain` (atmosphere only, never captioned).
+   If the search comes back empty because the subject is copyrighted (a commercial game, unpublished art), do not stretch one screenshot across every scene. Draw or generate assets from the TRUE motif list and label them as illustrations, or write down the scarcity, tell the user, and plan fewer scenes than you wanted. `motion-pptx-studio` records that choice as `asset_scarcity` in the brief.
 7. **Prepare**: `cutout.py` (museum objects on white → transparent PNG), `inpaint_text.py` (remove foreign script inside photos;
    credit "(đã chỉnh sửa)"; BY-SA stays BY-SA). Keep originals.
 8. **Fonts for the language** (if the output has text): `python $S/check_fonts.py font.ttf --lang vi --png sample.png`, then look at the sample.

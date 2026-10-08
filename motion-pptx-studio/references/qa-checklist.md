@@ -7,7 +7,12 @@ one pass, and re-render. Don't trust "it looks fine in the code".
 
 ## 1. Automatic (`check_deck.py DECK --anchor "…" [--forbid-notes] [--extra-forbid "cô đầu,MIT"] [--max-mb 25]`)
 ERROR (exit 1): not exactly 1 transition on a slide; duplicate `!!` names on a slide; a `!!` pair with different kinds;
-CJK characters on slides; template leftovers (lorem ipsum, "Click to add", "Title Here"); forbidden strings; size over the limit.
+CJK characters on slides; template leftovers (lorem ipsum, "Click to add", "Title Here"); forbidden strings; size over the limit;
+a stuck keyframe (same dominant subject image, box/crop move under 10% of slide width, no shared `!!` shape moves 6% or more, under 30% of pixels changed — the message names the slides);
+one subject image dominant on more than 4 slides, or (on a photo-led deck) fewer distinct subject images than consecutive runs;
+the editorial-left template on more than 3 scenes; fewer than 2 font families on a deck of 8 or more slides;
+on-slide text averaging under 8 words. With `--facts research/facts.md` (or a `facts.md` next to the project), also an error when under 40% of slides cite a fact ID.
+The same image, keyframe and layout errors run on a PDF: `python check_deck.py deck.pdf`.
 WARN: slides without notes; lonely `!!` names; fonts not installed; images wider than 2560 px; duplicate media; anchor count.
 
 ## 2. Visual (look)
@@ -16,7 +21,7 @@ WARN: slides without notes; lonely `!!` names; fonts not installed; images wider
 - [ ] Nothing is accidentally off-slide (parking off-slide is deliberate; note it in the notes file).
 - [ ] Photos are not stretched; crops keep the subject (focus point).
 - [ ] Typography: no fallback font, diacritics intact, no heading broken mid-word, no single word alone on the last line of a title.
-- [ ] Layout variety: each layout in at most 3 scenes, at most 1 text-only slide; the deck does not feel like one template repeated.
+- [ ] Layout variety: each storyboard layout value is in at most 3 scenes (Gate 4 enforces this; repeats inside a keyframe run do not count). `check_deck.py` also errors when the editorial-left template (section kicker, title on the left, caption, image on the right or full-bleed) appears in more than 3 scenes.
 - [ ] Every scene has a real visual (photo, screen, drawn TRUE motif). No stock icons or generic gradients standing in for content.
 
 ## 3. Accuracy (compare with `research/accuracy.md` and `facts.md`)
@@ -28,7 +33,7 @@ WARN: slides without notes; lonely `!!` names; fonts not installed; images wider
 - [ ] Product: logo unaltered, version labels on screenshots, illustrations labelled as illustrations.
 
 ## 4. Motion (structure; the playback itself needs PowerPoint)
-- [ ] `check_deck.py` per-slide lines show morph ms, entrances, and shared `!!` layers in every keyframe run.
+- [ ] `check_deck.py` per-slide lines show morph ms, entrances, and shared `!!` layers. A pair that shares a subject image and does not move it is an ERROR, not an info line. Look at the named slides.
 - [ ] Planned durations applied (2000 ms on blooms and anchors); `motion.py` printed the motion.json it used.
 - [ ] Blink only where planned; hand-made timing preserved for `keep_timing` slides.
 - [ ] Final report says: "check Morph, entrances and blink in PowerPoint 365".

@@ -29,7 +29,7 @@ Search in **the local language and in English**, with and without diacritics ("c
 snippet is not a source. Save raw pages in `research/` (`*.html`, `*.txt`) so a fact can be re-checked later.
 
 ## 3. Write `research/facts.md` (template provided by `gates.py init`)
-- Number the sources: `(U1) UNESCO decision 4.COM 14.12 — https://...`. Facts cite the ID and the URL.
+- Number the sources: `(U1) UNESCO decision 4.COM 14.12 — https://...`. Facts cite the ID and the URL. Gate 4 requires at least 40% of storyboard rows to carry one of these IDs (or a table id such as `1.1`) in the on-slide text, not only in the speaker notes.
 - One fact per row, short, with a tag:
   - `[verified]`: primary or institutional source, or two independent rung-3 sources
   - `[secondary]`: press or blog only, so phrase it carefully or leave it off the slides

@@ -78,3 +78,12 @@ inpainted", with the source URL and "(đã chỉnh sửa)"). Look at each result
 - Product, 6–8 min: the official logo, 1 real screenshot (version labelled), 1 demo poster, a brand-board grid
   background and a mascot, all from the repo, with the AI-made mascot labelled as such.
 `gates.py` enforces minimums (12 kept for heritage, 6 for product, scaled down for talks under 5 minutes).
+Gate 2 also reads the storyboard once it has 3 or more rows: distinct visuals ≥ scenes, and no file or `drawn:` motif on more than 4 rows. Gate 4 checks the same thing even if you run it before Gate 2.
+
+## 8. When there is nothing you may use (asset scarcity)
+Some subjects have no openly licensed image: a commercial game's art, a living designer's unpublished drawings, a logo you were not given. Stretching one official screenshot across a whole scene is the failure mode (one Mondstadt frame on six slides of a 23-slide deck). Do one of these, and say which:
+
+1. **Illustrate from the TRUE list.** Build procedural or drawn assets (`make_assets_example.py`, or your own drawing) of motifs that `research/accuracy.md` marks TRUE. Label them as illustrations on the slide and in CREDITS (licence `drawn` or `own work`, your name, why the motif is accurate, a source URL for the motif even though the pixels are yours). `drawn:<motif>` in the storyboard counts as a visual.
+2. **Shrink.** Set `asset_scarcity: <one sentence on why no licensed images exist>` in `brief.md`, tell the user in the next message, and plan only as many scenes as you have distinct visuals (Gate 4 lowers the scene minimum to that count, never below 2). The real-photo minimum at Gate 2 becomes 0. The kept-file minimum does not: every illustration still needs a CREDITS row. Distinct visuals ≥ scenes and the 4-row cap still apply.
+
+Do not caption a game screenshot as if you photographed it, and do not duplicate one file under several names to clear the distinct-image count.

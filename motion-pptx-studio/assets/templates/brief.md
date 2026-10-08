@@ -12,6 +12,9 @@
 - user_media: none (videos, frames, logos, screenshots the user gave, or none)
 - max_deck_mb: 25
 - time_overrun_accepted: no
+- asset_scarcity: no
+
+Leave `asset_scarcity` as `no` when openly licensed images exist. When they do not (copyrighted game art, unpublished work), replace `no` with one sentence saying why, tell the user, and either illustrate from the TRUE motif list or shrink the deck. Never stretch one screenshot across a scene.
 
 ## The user's own words (verbatim — these are the quality standard)
 - TODO paste every instruction about quality, accuracy, style, language
