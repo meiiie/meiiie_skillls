@@ -5,7 +5,7 @@
 #                            plus yt-dlp; prints the system-package command for binaries (never runs sudo)
 #   bash setup.sh --install --with-rembg   also installs rembg (background removal, ~200 MB model on first use)
 # REQUIRED : python3 >= 3.9, python-pptx, lxml, Pillow, fonttools, python-docx, LibreOffice (soffice), pdftoppm
-# RECOMMENDED: numpy, scipy, opencv-python-headless (inpainting), cairosvg (vector motifs), requests, ffmpeg, yt-dlp, fontconfig (fc-list)
+# RECOMMENDED: numpy, scipy, opencv-python-headless (inpainting), cairosvg (vector motifs), requests, ffmpeg, yt-dlp, fontconfig (fc-list), pymupdf (audit a finished deck from a PDF)
 # OPTIONAL : rembg (cut-outs), node + pptxgenjs (if you prefer building the family deck in JS),
 #            Anthropic "pptx"/"docx" skills (Claude Code), markitdown (quick text dump)
 set -u
@@ -32,6 +32,7 @@ check_mod cv2 opencv-python-headless recommended
 check_mod cairosvg cairosvg recommended
 check_mod scipy scipy recommended
 check_mod requests requests recommended
+check_mod pymupdf pymupdf recommended
 if [ $REMBG = 1 ]; then check_mod rembg "rembg[cpu]" optional; fi
 echo "== binaries"
 check_bin(){ # name level hint

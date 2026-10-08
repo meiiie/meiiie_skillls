@@ -4,6 +4,7 @@
 and proven with renders before the storyboard.
 
 ## 1. Fonts
+- **Two families, not two files of one family.** Gate 3 reads the name table (typographic family, else family) and folds it: weight, width, and the words Display / Condensed / Text are stripped. Noto Sans and Noto Sans Display count as one family. Noto Sans Mono does not. Calibri, Arial, Times New Roman, Cambria and Aptos do not count toward the two. A deck whose only faces are a regular and a display cut of the same family fails.
 - **Coverage first.** Vietnamese needs ă â đ ê ô ơ ư plus 5 tone marks on every vowel, including stacked marks (ẫ ỡ ự).
   `python $S/check_fonts.py WORK/fonts/*.ttf --lang vi --png WORK/design/font-sample.png > WORK/design/font-check.txt`
   then **look at the sample**: marks must not collide or fall back to another font.
@@ -22,10 +23,9 @@ and proven with renders before the storyboard.
 - Monospace headings break words mid-word in narrow template boxes; shorten the words, reduce the size or widen the box.
 
 ## 2. Palette
-- 1 background, 1 text colour, 1 muted colour, **1 accent** (2 at most). Write the hex code and **where it comes from**:
-  brand board pixel, lacquer photo, gold leaf sample. Heritage example: lacquer black #0E0A07, dó paper #F1E4C8,
-  gold leaf #C79A3B, muted #8C7B63. Product example (neko-core): #0A0B0D / #F4F5F7 / one amber #F0A030, with no purple
-  and no glow because the brand board said so.
+- 1 background, 1 text colour, 1 muted colour, **1 accent** (2 at most). Write the hex code and **where it comes from**, on the same line as the hex (a URL, or the words from / source / brand / photo / lacquer / sample / pixel / board / dossier / measured / nguồn). A line that is only `#0A0B0D background` fails. At least 3 hexes.
+  Heritage example: `#0E0A07` lacquer ground, sampled from the dossier photo; `#F1E4C8` dó paper, measured from the sample; `#C79A3B` gold leaf, from the lacquer sample; `#8C7B63` muted ink, sampled from the same photo.
+  Product example (neko-core): `#0A0B0D` from the brand board; `#F4F5F7` from the brand board; `#F0A030` amber, from the brand board. No purple and no glow, because the board said so.
 - Contrast: body text at least 4.5:1 against its actual background. Over photos, use a veil rectangle or a gradient scrim.
 
 ## 3. Motifs and textures
@@ -42,7 +42,15 @@ These objects become the `!!` layers in the storyboard. One strong recurring obj
 ## 5. Colour arc (the "bloom")
 Plan where colour arrives: muted (sepia or duotone, a veil rectangle at 45–70%) for the problem or history part,
 then a **bloom slide** with a long Morph (2 s) when the hero appears (the mascot, the product, the solution),
-then full colour. Write it in the storyboard header. The idea comes from the reference talk's "muted to colour" moment.
+then full colour. The idea comes from the reference talk's "muted to colour" moment.
+
+Write the arc in `design/art-direction.md` **and** on the storyboard header, with at least two different background hexes and at least two scene ids:
+
+```
+- colour arc: S1-S4 #0E0A07 → S6-S11 #F1E4C8
+```
+
+"Navy throughout", a single hex, or a TODO line fails Gate 3 and Gate 4. Backgrounds in the accepted decks are pictures, not a solid `p:bg` fill, so the gate checks this declaration rather than counting solid fills in the pptx. The two hexes are the two backgrounds you will actually use.
 
 ## 6. Family samples (Gate 3)
 Build a 2–4 slide family deck (title + body + one keyframe pair) with `build_deck.py`, render it and copy the

@@ -20,7 +20,7 @@ are animated films cut into slides: each slide is a **keyframe**, and Morph inte
   slides (picture↔picture, text↔text; a picture that turns into a shape will not morph).
 - Text morphs by characters inside a paired text box ("Ca Trù" → "2009" works when both boxes are `!!title`).
 - Images morph best when they are the **same image file**: crop, scale and position change smoothly.
-  A different image under the same name cross-fades.
+  A different image under the same name cross-fades. The file still has to **change on screen**. `check_deck.py` errors when consecutive slides share a dominant subject image and all of these are true: the image box and crop move less than 10% of the slide width, no shared `!!` shape moves or resizes by 6% of the slide width, and (when a render is available) fewer than 30% of pixels change. A counter scene with no subject photo is not that error. A photo that sits still while the caption changes is.
 - `!!` names that appear on only one slide are "lonely" (`check_deck.py` warns). That is fine for a deliberate
   entrance, but usually it means a name was mistyped.
 
@@ -28,7 +28,7 @@ are animated films cut into slides: each slide is a **keyframe**, and Morph inte
 | Recipe | K1 → K2 → K3 (→ K4) |
 |---|---|
 | Assemble | parts scattered or faded → drifting closer → locked together + title arrives |
-| Push-in | full-bleed photo → 1.25× scale with an offset (crop moves) → detail + label |
+| Push-in | full-bleed photo → 1.25× scale with an offset (crop moves ≥ 10% of slide width) → detail + label. The same file on at most 4 slides. |
 | Highlight walk | 3 columns at mid opacity → column 1 lifted + bright → column 2 → column 3 (`roles.py`) |
 | Counter | big number 1 → 2 → 3 (`!!count`), the background word changes each time |
 | Colour bloom | muted (veil 60–70%, greyscale hero parked) → hero lands in colour with a 2 s Morph |
@@ -37,6 +37,7 @@ are animated films cut into slides: each slide is a **keyframe**, and Morph inte
 | Zoom to detail | object whole → enlarged so one part fills the slide (+ highlight ring `!!hl`) → back out |
 | Circular close | the opening keyframe again, objects return to their first positions |
 Every scene should use one of these, or a variation. The 48-slide ca trù deck had 14 scenes; the 34-slide neko deck had 10.
+The storyboard `visual` cell is the dominant image of that row. Naming one file on five rows fails Gate 4 even when the run is a legal Morph: stop at 4, or bring in a second visual. A 5-slide run of one still screenshot is the Genshin failure, not a push-in.
 
 ## 4. Durations (`WORK/motion.json`)
 ```json

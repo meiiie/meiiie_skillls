@@ -7,7 +7,7 @@ the gate checks it.
 ```
 - target: 6 min · budget: 754 words   (python $S/words_budget.py plan --minutes 6 --slides 34)
 - anchor: "Hỏi trước, rồi mới làm." (on 3 slides: setup / middle / end)
-- colour arc: S2 slides 4–7 muted (amber removed) → slide 8 bloom 2 s → full colour
+- colour arc: S1-S4 #0E0A07 → S5-S8 #F1E4C8 (two backgrounds, two scene spans; "muted then bloom" alone fails)
 - circular close: slides 33–34 = title and boot keyframes again; the cat shrinks back into the cursor
 ```
 
@@ -19,11 +19,14 @@ the gate checks it.
 | 3 | S1 Hook | K3 photo bloom + title | full-bleed | !!photo !!title | 01_catru_trio_clean.jpg | Ca trù | 19 | 2000 |
 Rules checked by `gates.py`:
 - `scene` starts with a scene ID (S1, S2…). Rows with the same ID form one keyframe run.
-- At least 60% of scenes have 3 or more rows. At least 8 scenes for talks of 5 minutes or longer.
-- `layers` names the `!!` objects (at most 10% of rows without any).
-- `visual` is a kept file in `assets/`, `drawn:<motif>` from art-direction, or `frame:<file>` graded OK in the media audit. Never empty.
+- At least 60% of scenes have 3 or more rows. At least 8 scenes for talks of 5 minutes or longer. With `asset_scarcity` set in the brief, the minimum drops to the number of distinct visuals (never below 2).
+- `layers` names the `!!` objects (at most 10% of rows without any). Consecutive keyframes that share a subject image must actually move it: box or crop ≥ 10% of slide width, or another shared `!!` shape ≥ 6%, or the renders differ by ≥ 30% of pixels. `check_deck.py` errors otherwise.
+- `visual` is a kept file in `assets/`, `drawn:<motif>` from art-direction, or `frame:<file>` graded OK in the media audit. Never empty. Distinct visuals ≥ the number of scenes. No file or `drawn:` motif is named on more than 4 rows (a 5-slide run cannot keep one image on every frame).
+- `layout` is a short name. Each value appears in at most 3 scenes. Repeats inside one scene do not count.
+- `on-slide text` averages at least 8 words per row, and at least 40% of rows include a fact ID defined in `research/facts.md` (a source id such as `(S1)` or a table id such as `1.1`) in that on-slide cell.
 - `words` is the spoken budget for that slide (0 allowed for a silent keyframe). The total stays within the budget.
 - The anchor phrase appears in 3 or more rows.
+- `colour arc` names at least 2 background hexes and at least 2 scene ids (`S1-S4 #0E0A07 → S6-S11 #F1E4C8`).
 
 ## 3. A dependable scene structure for a 5–15 minute pitch
 | Scene | Purpose | Typical recipe |
@@ -41,7 +44,7 @@ Use the user's chapters if they have them (the ca trù video had Chapter 1 histo
 music, so the deck mirrored them).
 
 ## 4. Variety rules
-- Each layout appears in **at most 3 scenes** (repeats *inside* a keyframe run don't count).
+- Each layout appears in **at most 3 scenes** (repeats *inside* a keyframe run don't count). Gate 4 counts distinct scene IDs per layout value and fails when a value is over 3.
 - At most **one** text-only slide in the whole deck.
 - Real visuals: photos or screens in at least half the scenes. Drawn motifs fill the rest, never stock icons.
 - Team or user frames: inside a framed "screen" at ≤45% of the slide width, never as a cultural close-up.

@@ -16,7 +16,8 @@
 | `ooxml.py` | 5 | unpack / pack / order / inventory / sequence / clean / ensure-notes / notes-get / notes-set |
 | `motion.py` | 5 | one Morph per slide, `@fade/@float/@wipe/@blink` from names, durations from motion.json; idempotent |
 | `roles.py` | 5 | three-column highlight-walk keyframes on an OOXML slide |
-| `check_deck.py` | 5, 6 | transitions, `!!` pairs, CJK, leftovers, fonts, media, anchor count; exit 1 on errors |
+| `check_deck.py` | 5, 6 | transitions, `!!` pairs, CJK, leftovers, fonts, media, anchor count; keyframe delta, image reuse, editorial-left layout, on-slide words; a `.pdf` is audited the same way; exit 1 on errors |
+| `visual_audit.py` | 4, 5, 6 | the same visual measurements on a pptx or PDF (also imported by `gates.py` and `check_deck.py`) |
 | `render.sh` | 5, 6 | LibreOffice → PDF → slide-NN.jpg + contact sheets (isolated profile) |
 | `finish_dedupe.py` | 6 | merge identical media, downscale oversized images |
 | `script_docx.py` | 6 | speaker-script .docx with scenes and time estimates (same counting as words_budget) |

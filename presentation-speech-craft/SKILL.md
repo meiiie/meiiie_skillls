@@ -22,7 +22,7 @@ He opens with a prop (a rose crushed and dropped in a bin), repeats one anchor s
 - **Rhythm**: problem (quiet, muted) → turn (anchor #1) → the work (energetic, concrete) → proof (with caveats) → honest status → close (anchor #3).
 - **Pauses**: write `[ngừng 2 giây]` / `[pause 2s]` in the notes. They count as time, not words.
 - **Circular close**: return to the opening image or line, resolved.
-- **Honesty**: claims only from the fact file; the owner's claims are framed as "chúng tôi thiết kế để…" / "the team says…"; keep caveats aloud.
+- **Honesty**: claims only from the fact file; the owner's claims are framed as "chúng tôi thiết kế để…" / "the team says…"; keep caveats aloud. On the slides themselves, at least 40% of slides should carry a fact ID from `facts.md` in the on-slide text (the spoken notes still hold the longer citation). `motion-pptx-studio` Gate 4 checks that, and that on-slide text averages at least 8 words.
 
 ## 3. Budget and measure
 ```bash

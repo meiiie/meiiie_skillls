@@ -1,4 +1,4 @@
-"""Whole-deck motion/accuracy audit for a .pptx file or an unpacked deck folder.
+"""Whole-deck motion/accuracy audit for a .pptx, an unpacked deck folder, or a slide PDF.
 
 Checks (ERROR = must fix, WARN = look at it):
   ERROR  a slide without exactly one transition (Morph wrapper counts as one)
@@ -7,13 +7,26 @@ Checks (ERROR = must fix, WARN = look at it):
   ERROR  forbidden characters in on-slide text (default: Han/CJK ideographs; --forbid-notes also scans notes)
   ERROR  template leftovers (Lorem ipsum, Click to add, Sample text, ...)
   ERROR  deck bigger than --max-mb
+  ERROR  keyframe delta: a consecutive pair that shares a dominant subject image does not move it
+         (box/crop < 10% of slide width, no shared !! shape moves ≥ 6%, and < 30% of pixels change)
+  ERROR  image reuse: one subject image is dominant on more than 4 slides, or a photo-led deck
+         has fewer distinct subject images than consecutive runs of the same image
+  ERROR  layout: the editorial-left template (kicker, left title, caption, image right or full-bleed)
+         appears in more than 3 scenes
+  ERROR  fewer than 2 font families (Noto Sans Display counts as Noto Sans; Office defaults do not count)
+  ERROR  average on-slide words under 8, on a deck of 8 or more slides
+  ERROR  under 40% of slides carry a fact ID, only when --facts or a nearby facts.md is present
   WARN   slides without speaker notes; !! names that never pair; fonts used but not installed;
          images wider than 2560 px; byte-identical media (run finish_dedupe.py)
-  INFO   per-slide Morph duration, entrance count, kept custom timing (blink etc.), anchor phrase count
+  INFO   per-slide Morph duration, entrance count, shared !! layers, measured keyframe deltas
+
+A PDF has no !! names or transitions. On a PDF the keyframe, image-reuse, layout, font-family
+and word-count checks still run from the rendered pages and the embedded images.
 
 Usage:
-  python check_deck.py DECK.pptx|UNPACKED_DIR [--max-mb 25] [--anchor "Hỏi trước, rồi mới làm."]
+  python check_deck.py DECK.pptx|UNPACKED_DIR|DECK.pdf [--max-mb 25] [--anchor "Hỏi trước, rồi mới làm."]
          [--anchor-count 3] [--expect-slides 34] [--forbid-notes] [--extra-forbid "歌籌,MIT"]
+         [--renders DIR] [--facts research/facts.md]
 Exit code 1 when any ERROR is found.
 """
 import argparse
@@ -126,7 +139,14 @@ def main(argv=None):
     ap.add_argument('--forbid-notes', action='store_true', help='also scan speaker notes for forbidden characters')
     ap.add_argument('--extra-forbid', default='', help='comma-separated strings that must not appear on slides')
     ap.add_argument('--no-han-check', action='store_true', help='allow CJK characters (only if the user wants them)')
+    ap.add_argument('--renders', help='slide-NN images from render.sh; used when a stuck photo needs a pixel measurement')
+    ap.add_argument('--facts', help='facts.md; fact-ID coverage is an error only when this (or a nearby facts.md) exists')
     a = ap.parse_args(argv)
+    if Path(a.deck).suffix.lower() == '.pdf':
+        from visual_audit import audit_path, print_audit
+        audit = audit_path(a.deck, a.renders, a.facts)
+        print_audit(a.deck, audit)
+        sys.exit(1 if audit.errors else 0)
     src = Src(a.deck)
     errors, warns, info = [], [], []
     order = slide_order(src)
@@ -244,6 +264,11 @@ def main(argv=None):
     for ph in a.anchor:
         if anchor_hits[ph] != a.anchor_count:
             warns.append(f'anchor phrase {ph!r} on {anchor_hits[ph]} slides (plan: {a.anchor_count})')
+    from visual_audit import audit_path
+    vis = audit_path(a.deck, a.renders, a.facts)
+    info.extend(vis.infos)
+    warns.extend(vis.warns)
+    errors.extend(vis.errors)
     print(f'deck: {a.deck}  slides: {len(order)}  size: {mb:.2f} MB  media files: {len(media)}')
     print('fonts used:', dict(fonts))
     for line in info:

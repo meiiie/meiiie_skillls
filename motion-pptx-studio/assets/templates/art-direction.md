@@ -3,13 +3,13 @@
 - display: TODO (why it fits; diacritics PASS)
 - body: TODO
 - rejected: TODO (e.g. Bodoni Moda — no ơ ư ỹ ẫ)
-## Palette (hex + where it comes from: brand board pixel, lacquer photo, ...)
-- TODO #000000 role, source
+## Palette (each hex on its own line, with a source word on that same line: from / source / brand / photo / lacquer / sample / pixel / board / dossier / measured / nguồn, or a URL)
+- TODO #000000 role, sampled from <where>
 ## Motifs and textures (each must be on the TRUE list in research/accuracy.md)
 - TODO
 ## Layered objects for Morph (one PNG per moving part, all on one shared canvas)
 - TODO e.g. dd_head / dd_neck / dd_body (600x2400), strings as live lines
 ## Colour arc
-- TODO muted scenes / bloom slide / full colour after
+- TODO S1-S4 #000000 (name the real hex and the scene span) → S6-S11 #000000 (a second background). "One colour throughout" fails.
 ## Samples rendered (design/samples/*.jpg: title + one body slide, looked at)
 - TODO

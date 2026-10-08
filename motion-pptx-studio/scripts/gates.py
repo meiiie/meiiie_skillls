@@ -10,12 +10,18 @@ Gates
   1 research   research/facts.md (sourced, tagged, do-not-say list) + research/accuracy.md
                (+ research/lessons.md when a reference talk was given)
   2 assets     assets/CREDITS.md with enough kept, licensed, verified files; >= 2x as many candidates
-               looked at; a contact sheet of the kept set newer than the files; a "Rejected" list
-  3 design     design/art-direction.md (fonts, palette hex, motifs, layered objects), fonts/ with
-               licence, design/font-check.txt all PASS, >= 2 rendered samples in design/samples/
-  4 storyboard storyboard.md: >= 8 scenes, keyframe runs (>= 60 % of scenes have >= 3 slides),
-               !! layers on rows, a real visual per row, words budget within the time limit,
-               anchor phrase x3, colour arc, motion.json
+               looked at; a contact sheet of the kept set newer than the files; a "Rejected" list.
+               When storyboard.md is already filled, distinct visuals ≥ scenes and no visual is
+               referenced on more than 4 rows (also enforced at gate 4). asset_scarcity: <reason>
+               drops the real-photo minimum to 0 (illustrations still need CREDITS rows).
+  3 design     design/art-direction.md: ≥2 font families (Noto Sans Display counts as Noto Sans),
+               every palette hex sourced on its own line, a colour arc with ≥2 hexes across ≥2
+               scenes, motifs, layered objects; fonts/ with licence; font-check PASS; ≥2 samples
+  4 storyboard storyboard.md: scene count, keyframe runs (≥60% of scenes have ≥3 slides),
+               !! layers, a real visual per row, no visual on more than 4 rows, distinct visuals
+               ≥ scenes, each layout in ≤3 scenes, on-slide words averaging ≥8, ≥40% of rows
+               citing a fact ID, spoken-word budget, anchor ×3, colour arc (≥2 hexes, ≥2 scenes),
+               motion.json. asset_scarcity lowers the scene minimum to the visuals you have.
   5 group      renders/<group>-N/contact*.jpg, notes/<group>.md, check_deck.py passes on the preview
   6 final      deliver/ has pptx + docx + fonts/ + zip + CREDITS; check_deck passes; speaking time
                within 10 % of talk_minutes (or time_overrun_accepted: yes in brief.md)
@@ -34,6 +40,11 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 TEMPLATES = HERE.parent / 'assets' / 'templates'
+from visual_audit import (  # noqa: E402
+    FACT_SLIDE_MIN, LAYOUT_SCENE_MAX, OFFICE_DEFAULTS, SUBJECT_REUSE_MAX, WORDS_AVG_MIN,
+    colour_arc_ok, font_family_from_file, palette_report,
+    storyboard_density_errors, storyboard_layout_errors, storyboard_visual_errors, visual_keys,
+)
 URL = re.compile(r'https?://[^\s)|>\]]+')
 TAG = re.compile(r'\[(verified|secondary|claim|disputed|uncertain|claim-in-README|verified-in-[\w-]+|ĐÃ XÁC MINH[^\]]*|THỨ CẤP|TRANH CÃI|CHƯA RÕ|CHƯA XÁC MINH)\]', re.I)
 LIC = re.compile(r'CC[ -]?0|CC[ -]BY|public domain|PD|PDM|own work|owner|trademark|official|team|user|drawn|CC BY', re.I)
@@ -177,6 +188,29 @@ def g1(work):
     return g.report()
 
 
+def asset_scarcity(work):
+    """A reason means the subject has no openly licensed imagery.
+
+    `no`, `none`, or `no (a parenthetical)` stay off. A sentence that merely starts with
+    "no", such as "no openly licensed screenshots exist", is a reason and stays on.
+    """
+    v = brief(work).get('asset_scarcity', 'no').strip()
+    core = re.sub(r'\s*\(.*\)\s*$', '', v).strip()
+    low = core.lower()
+    if not core or low in ('no', 'none', 'false', 'n', 'todo') or low.startswith('todo'):
+        return None
+    return core
+
+
+def storyboard_filled(rows):
+    """The init template is one example row (drawn:string). That is not a storyboard yet."""
+    if len(rows) < 3:
+        visuals = ' '.join(col(r, 'visual') for r in rows)
+        if 'TODO' in visuals or visuals.strip() in ('', 'drawn:string') or len(rows) <= 1:
+            return False
+    return len(rows) >= 3
+
+
 def talk_minutes(work, default=6.0):
     try:
         return float(re.findall(r'[\d.]+', brief(work).get('talk_minutes', ''))[0])
@@ -222,8 +256,24 @@ def g2(work):
     rej = section(cr, r'reject|loại')
     if k == 'heritage':
         g.need(len(items(rej)) >= 1, f'CREDITS.md lists rejected candidates ({len(items(rej))})', 'write which candidates you rejected and why (wrong instrument, unverified place, NC licence)')
+    scarce = asset_scarcity(work)
+    if scarce:
+        m['real'] = 0
+        g.note(f'asset_scarcity: {scarce[:90]} — real-photo minimum is 0. Illustrations still need a CREDITS row '
+               f'(licence drawn / own work) and must be labelled as illustrations. Do not stretch one screenshot across a scene.')
     real = [r for r in rows if not re.search(r'drawn|vẽ|generated|texture', ' '.join(r.values()), re.I)]
     g.need(len(real) >= m['real'], f'{len(real)} real photos/screens/brand files (min {m["real"]})', 'decorations do not replace real imagery of the subject')
+    sb_head, sb_rows = table(read(work / 'storyboard.md'), ['#', 'scene', 'visual'])
+    sb_rows = [r for r in sb_rows if col(r, '#').strip().isdigit()]
+    if storyboard_filled(sb_rows):
+        verrs = storyboard_visual_errors(sb_rows, col)
+        if not verrs:
+            g.need(True, f'storyboard visuals: distinct images ≥ scenes, none referenced more than {SUBJECT_REUSE_MAX} times')
+        for e in verrs:
+            g.need(False, 'storyboard visuals: ' + e,
+                   'name a different kept file or drawn:<motif> per scene; never the same file on more than 4 rows')
+    else:
+        g.note('storyboard visual reuse is checked at gate 4 (storyboard not filled yet)')
     return g.report()
 
 
@@ -234,11 +284,26 @@ def g3(work):
     fonts = [p for p in (work / 'fonts').glob('*') if p.suffix.lower() in ('.ttf', '.otf')] if (work / 'fonts').is_dir() else []
     lic = [p for p in (work / 'fonts').glob('*') if re.search(r'ofl|licen[cs]e', p.name, re.I)] if (work / 'fonts').is_dir() else []
     g.need(len(fonts) >= 2, f'fonts/: {len(fonts)} font files (min 2)', 'download the chosen OFL fonts (static TTFs) into WORK/fonts')
+    fams = []
+    for p in fonts:
+        k = font_family_from_file(p)
+        if k and k not in OFFICE_DEFAULTS and k not in fams:
+            fams.append(k)
+    g.need(len(fams) >= 2, f'fonts/: {len(fams)} family/families {fams or ["(none)"]} (min 2)',
+           'Noto Sans and Noto Sans Display are one family. Pair a display face with a different body family. Office defaults (Calibri, Arial, Aptos) do not count.')
     g.need(bool(lic), 'fonts/: licence file present (OFL.txt)')
     fc = read(work / 'design/font-check.txt')
     g.need('PASS' in fc and 'FAIL' not in fc, 'design/font-check.txt: all fonts PASS the glyph check',
            'python check_fonts.py WORK/fonts/*.ttf --lang vi --png WORK/design/font-sample.png > WORK/design/font-check.txt')
-    g.need(len(set(re.findall(r'#[0-9A-Fa-f]{6}\b', ad))) >= 3, 'art-direction: >= 3 palette hex codes with a source')
+    hexes, unsourced = palette_report(ad)
+    g.need(len(hexes) >= 3, f'art-direction: {len(hexes)} palette hex codes (min 3)',
+           'write at least 3 #RRGGBB colours, each on a line that says where it comes from')
+    g.need(not unsourced, f'art-direction: every palette hex has a source on its line ({len(unsourced)} without)',
+           f'{unsourced[:8]} — same line needs a URL or from/source/brand/photo/lacquer/sample/pixel/board/dossier/measured/nguồn')
+    arc = section(ad, r'colou?r arc') or ''
+    arc_ok, arc_hex, arc_sc = colour_arc_ok(arc)
+    g.need(arc_ok, f'art-direction colour arc: {len(arc_hex)} hex(es) {arc_hex} across {len(arc_sc)} scene id(s) {arc_sc}',
+           'name ≥2 different background hexes and ≥2 scene ids, e.g. "S1-S4 #0E0A07 → S6-S11 #F1E4C8". "navy throughout" fails.')
     g.need(len(items(section(ad, r'motif|texture'))) >= 3, 'art-direction: >= 3 motifs/textures (each on the TRUE list)')
     g.need(len(items(section(ad, r'layered|layer'))) >= 1, 'art-direction: layered objects for Morph are planned')
     samples = list((work / 'design/samples').glob('*.jpg')) + list((work / 'design/samples').glob('*.png'))
@@ -249,8 +314,8 @@ def g3(work):
 def g4(work):
     g = Gate('GATE 4 storyboard')
     sb = read(work / 'storyboard.md')
-    head, rows = table(sb, ['#', 'scene', 'layers', 'visual', 'words'])
-    g.need(head is not None, 'storyboard.md has the slide table (# | scene | ... | layers | visual | ... | words)', 'copy the template table')
+    head, rows = table(sb, ['#', 'scene', 'layers', 'visual', 'words', 'layout', 'on-slide'])
+    g.need(head is not None, 'storyboard.md has the slide table (# | scene | layout | layers | visual | on-slide text | words)', 'copy the template table')
     rows = [r for r in rows if col(r, '#').strip().isdigit()]
     scenes = {}
     for r in rows:
@@ -260,6 +325,17 @@ def g4(work):
     except IndexError:
         mins = 6
     min_sc = min(8, max(2, round(1.5 * mins)))
+    scarce = asset_scarcity(work)
+    if scarce:
+        keys = []
+        for r in rows:
+            for k in visual_keys(col(r, 'visual')):
+                if k not in keys:
+                    keys.append(k)
+        shrunk = max(2, min(min_sc, len(keys) if keys else 2))
+        g.note(f'asset_scarcity: {scarce[:80]} — scene minimum {min_sc} → {shrunk} '
+               f'({len(keys)} distinct visuals). Tell the user the deck is shorter because openly licensed images do not exist.')
+        min_sc = shrunk
     g.need(len(scenes) >= min_sc, f'{len(scenes)} scenes (min {min_sc} for {mins:g} min)', 'a pitch of 5-12 min needs 8-15 scenes')
     runs = [s for s, rs in scenes.items() if len(rs) >= 3]
     avg = len(rows) / max(1, len(scenes))
@@ -279,6 +355,19 @@ def g4(work):
             if not any((work / d / f).exists() or (work / d / Path(f).name).exists() for d in ('assets', 'design', 'assets/frames', 'media', '.')):
                 bad_vis.append(f'{col(r, "#")}:{f}?')
     g.need(not bad_vis, f'every slide has a real visual ({len(bad_vis)} problems)', f'{bad_vis[:10]} — name a kept asset, drawn:<motif> or frame:<file>')
+    for e in storyboard_visual_errors(rows, col):
+        g.need(False, 'visuals: ' + e, 'one file on at most 4 rows; distinct visuals (files or drawn: motifs) must be ≥ the number of scenes')
+    if rows and not storyboard_visual_errors(rows, col):
+        g.need(True, f'visuals: distinct ≥ scenes, none referenced more than {SUBJECT_REUSE_MAX} times')
+    for e in storyboard_layout_errors(rows, col):
+        g.need(False, 'layout: ' + e, 'change the layout value; repeats inside one scene do not count, across scenes the cap is 3')
+    if rows and not storyboard_layout_errors(rows, col):
+        g.need(True, f'layout: each layout value is in at most {LAYOUT_SCENE_MAX} scenes')
+    for e in storyboard_density_errors(rows, col, read(work / 'research/facts.md')):
+        g.need(False, 'content: ' + e,
+               f'on-slide text averages ≥ {WORDS_AVG_MIN:g} words, and ≥ {FACT_SLIDE_MIN:.0%} of rows cite a fact ID from facts.md on the slide')
+    if rows and not storyboard_density_errors(rows, col, read(work / 'research/facts.md')):
+        g.need(True, f'content: on-slide words average ≥ {WORDS_AVG_MIN:g} and ≥ {FACT_SLIDE_MIN:.0%} of rows cite a fact ID')
     words = []
     for r in rows:
         try:
@@ -298,7 +387,13 @@ def g4(work):
     if g.need(bool(am) and 'TODO' not in am.group(1), 'anchor phrase declared (anchor: "...")', 'one short sentence the audience will repeat'):
         n = sum(1 for r in rows if am.group(1).lower() in ' '.join(r.values()).lower())
         g.need(n >= 3, f'anchor phrase appears on {n} slides (min 3: setup / middle / end)')
-    g.need(re.search(r'colou?r arc\s*:\s*(?!TODO)\S', sb, re.I) is not None, 'colour arc declared')
+    arc_line = ''
+    am_arc = re.search(r'colou?r arc\s*:\s*(.*)', sb, re.I)
+    if am_arc:
+        arc_line = am_arc.group(1)
+    arc_ok, arc_hex, arc_sc = colour_arc_ok(arc_line)
+    g.need(arc_ok, f'colour arc names ≥2 background hexes across ≥2 scenes (hexes {arc_hex}, scenes {arc_sc})',
+           'e.g. colour arc: S1-S4 #0E0A07 → S6-S11 #F1E4C8  (a single "navy throughout" fails)')
     g.need(re.search(r'circular close\s*:\s*(?!TODO)\S', sb, re.I) is not None, 'circular close declared')
     g.need((work / 'motion.json').is_file(), 'motion.json exists (durations keyed by slide FILE number)')
     return g.report()

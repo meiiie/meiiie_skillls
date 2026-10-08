@@ -5,6 +5,8 @@ description: Build cinematic, research-backed PowerPoint decks that use Morph (m
 
 # Motion PPTX Studio
 
+Version 3.0.0.
+
 Turn a brief into a **PowerPoint deck with real motion** (Morph keyframes across several slides),
 **researched and licensed imagery**, a **speaker script that fits the time limit**, and a delivery
 folder with fonts and credits. It works in any harness that has a shell and Python
@@ -19,7 +21,10 @@ The standard comes from a real user and is kept word for word:
 **The failure this skill exists to prevent:** an agent opens a slide tool straight away, uses
 generic icons, gradients and invented "cultural" motifs, never downloads a real image, never checks
 whether the drum in the picture belongs to the art form, and plans "7 seconds per slide" that turns
-into twice the allowed time. Every gate below blocks one part of that failure.
+into twice the allowed time. Version 3 also blocks a deck that passes those gates and is still
+empty: one screenshot stretched across a scene, Morph that only slides the words, one
+text-left/image-right template, one font family, a default navy palette, slogan lines with no fact
+on the slide. Every gate below blocks one part of that failure.
 
 ## Non-negotiable rules
 
@@ -27,7 +32,7 @@ into twice the allowed time. Every gate below blocks one part of that failure.
 2. **Every claim traces to `research/facts.md`; every image to `assets/CREDITS.md`.** No source, no slide.
 3. **Look at every image yourself** (contact sheets, renders). Titles, tags and file names are not evidence.
    The skill's own test found string quartets and a North Carolina road sign in a "đàn đáy / ca trù" search.
-4. **One motion = several slides.** A scene is 3–5 keyframe slides joined by Morph, with persistent `!!name` layers.
+4. **One motion = several slides, and the frames must change.** A scene is 3–5 keyframe slides joined by Morph, with persistent `!!name` layers. A shared subject image has to move (box or crop ≥ 10% of the slide width), or some other shared `!!` shape has to move ≥ 6% of the slide width, or the rendered frames have to differ by ≥ 30% of pixels. Sliding only the words fails `check_deck.py`.
 5. **On-slide language follows the audience** (Vietnamese topic, so Vietnamese slides). Foreign script
    *inside photos* counts too: crop or inpaint it.
 6. **Budget speech in words, not seconds per slide** (130 wpm). Measure the script before delivery.
@@ -86,19 +91,19 @@ python $S/contact_sheet.py WORK/assets --out WORK/assets/contact.jpg        # th
   image stays BY-SA and is credited "(đã chỉnh sửa / edited)". Subject not verified → `assets/_uncertain/`,
   never captioned as the subject.
 - Products: official logo, screenshots and brand board first; **never redraw a logo**; label illustrations as illustrations.
+- **No openly licensed images** (a copyrighted game, a living designer's unpublished work): do not stretch one screenshot across the scene. Either build procedural or illustrated assets from the TRUE motif list in `accuracy.md` and label every one as an illustration (licence `drawn` / own work, with a CREDITS row), or set `asset_scarcity: <why>` in `brief.md`, tell the user, and shrink the deck to the visuals you actually have. Gate 2 then drops only the real-photo minimum. The storyboard still needs distinct visuals ≥ scenes, and no file on more than 4 rows.
 - Prepare: `cutout.py` (museum objects, transparent PNG), `inpaint_text.py` (foreign script inside photos),
   `video_frames.py` (frames from the user's video), `make_assets_example.py` (procedural textures and gold-leaf motifs).
   Keep originals in `WORK/media_orig/`.
 
 ### Phase 3: Art direction → Gate 3 (`references/art-direction.md`)
-- Two or three OFL fonts with full coverage of the on-slide language, as **static** TTFs in `WORK/fonts/` with the OFL text
-  (download and instancing commands in the reference):
+- Two or three OFL fonts from **two different families**, with full coverage of the on-slide language, as **static** TTFs in `WORK/fonts/` with the OFL text
+  (download and instancing commands in the reference). Noto Sans and Noto Sans Display are one family; Calibri, Arial, Times New Roman, Cambria and Aptos do not count.
   `python $S/check_fonts.py WORK/fonts/*.ttf --lang vi --png WORK/design/font-sample.png > WORK/design/font-check.txt`
   (other languages: `--lang none --text-file slide_text.txt` with your real on-slide text). Look at the sample PNG.
 - **Install the fonts on the machine that renders** (`~/.local/share/fonts` + `fc-cache -f`, or `~/Library/Fonts`), or
   every render shows a fallback font and you judge the wrong thing.
-- A palette with hex codes and where each comes from (brand board, lacquer photo), motifs from the TRUE list
-  only, layered objects for Morph, and a colour arc, written in `WORK/design/art-direction.md`.
+- A palette of at least 3 hex codes. **Each hex shares its line with a source** (a URL, or from / source / brand / photo / lacquer / sample / pixel / board / dossier / measured / nguồn). Motifs from the TRUE list only, layered objects for Morph, and a **colour arc that names at least 2 different background hexes across at least 2 scene ids** (`S1-S4 #0E0A07 → S6-S11 #F1E4C8`). "Navy throughout" and a single default theme fail Gate 3. Write this in `WORK/design/art-direction.md`.
 - Samples: write a 2–4 slide `WORK/deck.json` (title, body, one keyframe pair), then `build_deck.py` + `render.sh` as in Phase 5,
   and copy the title and body renders into `WORK/design/samples/`. Look at them; change direction now, not after 40 slides.
 
@@ -108,9 +113,11 @@ python $S/words_budget.py plan --minutes 6 --slides 34     # → ~754 words tota
 ```
 `WORK/storyboard.md`: one row per **slide** with scene, keyframe role, layout, `!!` layers, a real visual
 (asset file, `drawn:<motif>` or `frame:<file>`), on-slide text and a **words budget**. Required:
-8 or more scenes for talks of 5 minutes or longer; at least 60% of scenes are keyframe runs of 3 or more slides;
-an anchor phrase on 3 slides (setup, middle, end); a colour arc; a circular close; and `WORK/motion.json`
-with the planned Morph durations (keyed by slide **file** number).
+8 or more scenes for talks of 5 minutes or longer (fewer only when `asset_scarcity` is set, and then not fewer than the distinct visuals); at least 60% of scenes are keyframe runs of 3 or more slides;
+each **layout** value in at most 3 scenes (repeats inside one scene do not count); distinct visuals ≥ scenes and no visual on more than 4 rows;
+on-slide text averaging at least 8 words, and at least 40% of rows citing a fact ID from `research/facts.md` on the slide;
+an anchor phrase on 3 slides (setup, middle, end); a colour arc with at least 2 background hexes and 2 scene ids; a circular close; and `WORK/motion.json`
+with the planned Morph durations (keyed by slide **file** number). A push-in may reuse one image file, but the image has to move, and it still counts toward the 4-row cap.
 
 ### Phase 5: Build in groups of 2–3 slides → Gate 5 per group (`references/build-engine.md`, `references/qa-checklist.md`)
 Default engine (no external service): `WORK/deck.json` holds every slide built so far; add 2–3 slides per group
@@ -122,6 +129,9 @@ rm -rf WORK/deck/unpacked && python $S/ooxml.py unpack WORK/deck/build.pptx WORK
 python $S/motion.py WORK/deck/unpacked          # 1 Morph per slide, @entrances, @blink; reads WORK/motion.json
 python $S/ooxml.py pack WORK/deck/unpacked WORK/deck/preview-g1.pptx
 python $S/check_deck.py WORK/deck/preview-g1.pptx --anchor "<anchor phrase>"
+# A finished deck with no project folder is audited the same way, including a PDF of the slides:
+# python $S/check_deck.py deck.pdf
+# Errors name the slides: stuck keyframes, an image dominant on more than 4 slides, editorial-left on more than 3 scenes.
 bash   $S/render.sh WORK/deck/preview-g1.pptx WORK/renders/g1-1           # NEW folder each round
 python $S/gates.py check WORK --gate 5 --group g1 --deck WORK/deck/preview-g1.pptx
 ```
