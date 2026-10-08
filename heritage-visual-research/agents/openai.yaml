@@ -1,0 +1,9 @@
+interface:
+  display_name: Heritage Visual Research
+  short_description: Sourced facts, true/wrong motifs and licensed images for cultural topics
+  default_prompt: Use $heritage-visual-research to research this cultural subject and collect accurate, licensed images with a credits file.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products: [chatgpt, codex, api, atlas]
+  allow_implicit_invocation: true

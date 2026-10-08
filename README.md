@@ -9,7 +9,9 @@
 | [meiiie-interactive-webgl](meiiie-interactive-webgl/SKILL.md) | Available | Semantic 3D objects, reversible assembly, accessible controls and explicit render checks. |
 | [meiiie-operating-office](meiiie-operating-office/SKILL.md) | Available | Task-scoped coordination with one accountable lead, bounded specialist work and evidence-based review. |
 | [neko-wiii-product-studio](neko-wiii-product-studio/SKILL.md) | Available | Neko Core and Wiii ownership, shared contracts and integration acceptance. |
-| [motion-pptx-studio](motion-pptx-studio/SKILL.md) | Available | Cinematic motion PowerPoint decks with Morph keyframes, licensed assets and a speaker script. |
+| [motion-pptx-studio](motion-pptx-studio/SKILL.md) | Available | Researched, licensed, Morph-animated PowerPoint decks with a timed speaker script and a gated pipeline. |
+| [heritage-visual-research](heritage-visual-research/SKILL.md) | Available | Sourced facts, true/wrong motif lists, anatomy checks and licensed images for cultural topics. |
+| [presentation-speech-craft](presentation-speech-craft/SKILL.md) | Available | Hook, anchor phrase, pauses, circular close, word budget and a speaker-script document. |
 
 Read [SKILL.md](contest-code-quality/SKILL.md) for the workflow and [command-evidence.md](contest-code-quality/references/command-evidence.md) before running a reviewed project manifest. The helper uses Python's standard library and already installed runtimes; no fixed model or agent team is required.
 
@@ -45,6 +47,32 @@ The accepted product direction and historical audit findings guide current inspe
 
 ## Motion PPTX Studio
 
-[Motion PPTX Studio](motion-pptx-studio/SKILL.md) is a workflow for a cinematic PowerPoint deck: Morph keyframe sequences, researched fonts, licensed assets and a speaker script. [Helper scripts](motion-pptx-studio/scripts/README.md) apply transitions, three-column highlight states, media deduplication, an example motif set and the script document.
+[Motion PPTX Studio](motion-pptx-studio/SKILL.md) (v2) builds a researched, licensed PowerPoint deck as Morph keyframe sequences, with a timed speaker script. The pipeline is gated from brief to delivery (Gates 0–6 in [gates.py](motion-pptx-studio/scripts/gates.py)): brief, research, assets, art direction, storyboard, group build and final delivery. [Harness notes](motion-pptx-studio/references/harness-adapters.md) cover Claude Code, Codex, Cursor, Grok Bot and a generic shell agent. Helper scripts are listed in [scripts/README.md](motion-pptx-studio/scripts/README.md).
 
-Slide paths, scene ranges and per-slide timings are arguments. The scripts do not ship a finished deck, source photographs or machine-specific paths. Installing the skill does not review a deck in PowerPoint, embed fonts or grant licences for images.
+Morph, entrance effects and blink play in PowerPoint 365 / 2019+. LibreOffice renders are static keyframes. Image search covers Wikimedia Commons and Openverse; museum sites stay manual. Installing the skill does not review a deck in PowerPoint, embed fonts or grant licences for images. Case studies and the quality bar are in the skill; they do not establish that a new deck has passed the gates.
+
+## Heritage visual research
+
+[Heritage Visual Research](heritage-visual-research/SKILL.md) collects sourced facts, a true/wrong motif list, an object anatomy checklist and openly licensed images before a cultural visual is designed. Templates live in [templates/](heritage-visual-research/templates/facts.md). Shared scripts are copies of the Motion PPTX Studio originals.
+
+## Presentation speech craft
+
+[Presentation Speech Craft](presentation-speech-craft/SKILL.md) writes the spoken track: a hook, an anchor phrase, marked pauses, a circular close, a word budget and a speaker-script document. It can time a deck that was built elsewhere. The lesson template is [templates/lessons.md](presentation-speech-craft/templates/lessons.md).
+
+## Install these three skills
+
+Copy the folders into the harness skill directory, then check the toolchain once per machine. Python 3.9+, LibreOffice and poppler (`pdftoppm`) are required. ffmpeg, yt-dlp and the Python image libraries are recommended. `setup.sh --install` installs the Python packages (pip `--user`, or a venv when pip is locked) and prints the system-package command for binaries. It does not run sudo.
+
+```bash
+# Claude Code
+cp -r motion-pptx-studio heritage-visual-research presentation-speech-craft ~/.claude/skills/
+# Codex (personal, or .agents/skills/ inside a repo)
+cp -r motion-pptx-studio heritage-visual-research presentation-speech-craft ~/.agents/skills/
+# Cursor (~/.cursor/skills/ or .cursor/skills/; also reads .agents/skills and .claude/skills)
+cp -r motion-pptx-studio heritage-visual-research presentation-speech-craft ~/.cursor/skills/
+bash motion-pptx-studio/scripts/setup.sh
+```
+
+A generic shell agent follows [motion-pptx-studio/SKILL.md](motion-pptx-studio/SKILL.md) directly. Per-harness differences are in [harness-adapters.md](motion-pptx-studio/references/harness-adapters.md). Optional external skills (Anthropic `pptx` / `docx`) are never required.
+
+`motion-pptx-studio/scripts/` is the canonical copy of the shared scripts. After editing one, run `bash motion-pptx-studio/sync_companions.sh`.
