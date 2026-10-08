@@ -1,0 +1,9 @@
+interface:
+  display_name: Presentation Speech Craft
+  short_description: Hook, anchor phrase, pauses and a word-budgeted speaker script
+  default_prompt: Use $presentation-speech-craft to write and time the speaker script for this deck within the time limit.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products: [chatgpt, codex, api, atlas]
+  allow_implicit_invocation: true
