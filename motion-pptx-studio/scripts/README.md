@@ -1,0 +1,9 @@
+Helper scripts for the motion-pptx-studio skill. Paths, scene ranges and per-slide timings are arguments. None of these scripts reads a fixed machine path or a finished deck.
+
+- `motion.py UNPACKED_DIR [--dur FILE=ms,FILE=ms]`: one Morph transition per slide (fallback fade) and entrances from `@fade` / `@float` / `@wipe` names. `FILE` is the slide file number (`slideN.xml`). Requires `lxml`.
+- `roles.py PPT_DIR SLIDE.xml --template TEMPLATE.xml [--highlight 1|2|3] [--page TEXT] [--title TEXT] [--kick TEXT] [--desc N=TEXT] [--instrument-layers A,B] [--string-layers C,D]`: three-column highlight-walk states (`!!role1`–`!!role3`, `!!hl`). `PPT_DIR` is the unpacked `ppt` directory. The template slide supplies rest-pose geometry. Extra instrument and string layers are optional and dim with column 2. Requires `lxml`.
+- `finish_dedupe.py UNPACKED_DIR [--max-bytes 22000000] [--max-width 2560]`: merge byte-identical `ppt/media` files by hash and repoint `.rels`. Wide images are downscaled only when the media folder exceeds `--max-bytes`. Requires `Pillow`.
+- `script_docx.py --notes NOTES.txt --scenes SCENES.json --out script.docx [--title TEXT] [--subtitle TEXT] [--timing timing.json] [--wpm-low 130] [--wpm-high 150] [--pause MARK]`: speaker script by slide and scene, with pause marks, time per scene and sources in grey. `SCENES.json` is a list of `{"name", "start", "end"}`. Notes are split on `##### N` headings. Requires `python-docx`.
+- `make_assets_example.py [--out assets_example] [--photo PATH|NAME[|SIZE[|x0,y0,x1,y1]]]`: example generator for gold-leaf textures, layered object parts, ring medallions and woven bands. Photos are optional. Requires `Pillow`, `numpy`, `scipy` and `cairosvg`.
+
+`ROLE` in `roles.py` is the set of object names the highlight walk looks up. Change that constant when a deck names the three columns differently.

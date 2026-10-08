@@ -1,0 +1,14 @@
+interface:
+  display_name: Motion PPTX Studio
+  short_description: Cinematic motion decks and speaker scripts
+  default_prompt: Use $motion-pptx-studio to build a cinematic motion PowerPoint
+    deck with researched assets and a speaker script.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true
