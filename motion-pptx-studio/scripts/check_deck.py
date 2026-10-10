@@ -15,7 +15,10 @@ Checks (ERROR = must fix, WARN = look at it):
          appears in more than 3 scenes
   ERROR  fewer than 2 font families (Noto Sans Display counts as Noto Sans; Office defaults do not count)
   ERROR  average on-slide words under 8, on a deck of 8 or more slides
-  ERROR  under 40% of slides carry a fact ID, only when --facts or a nearby facts.md is present
+  ERROR  no persistent system: no !! shape on 60% of the slides (craft_audit.py)
+  WARN   a hold beat (one still photo pair per scene, at most 10% of transitions); text overflow;
+         text outside the safe area; more than 10 text sizes; flat grounds; low contrast (with --renders);
+         under 40% of slides citing a fact ID on the slide or in the notes (with --facts)
   WARN   slides without speaker notes; !! names that never pair; fonts used but not installed;
          images wider than 2560 px; byte-identical media (run finish_dedupe.py)
   INFO   per-slide Morph duration, entrance count, shared !! layers, measured keyframe deltas
@@ -266,6 +269,8 @@ def main(argv=None):
             warns.append(f'anchor phrase {ph!r} on {anchor_hits[ph]} slides (plan: {a.anchor_count})')
     from visual_audit import audit_path
     vis = audit_path(a.deck, a.renders, a.facts)
+    from craft_audit import audit_craft
+    audit_craft(a.deck, a.renders, vis)
     info.extend(vis.infos)
     warns.extend(vis.warns)
     errors.extend(vis.errors)

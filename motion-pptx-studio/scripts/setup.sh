@@ -4,8 +4,11 @@
 #   bash setup.sh --install  pip-installs the missing Python packages (user site, or a venv if pip refuses),
 #                            plus yt-dlp; prints the system-package command for binaries (never runs sudo)
 #   bash setup.sh --install --with-rembg   also installs rembg (background removal, ~200 MB model on first use)
-# REQUIRED : python3 >= 3.9, python-pptx, lxml, Pillow, fonttools, python-docx, LibreOffice (soffice), pdftoppm
-# RECOMMENDED: numpy, scipy, opencv-python-headless (inpainting), cairosvg (vector motifs), requests, ffmpeg, yt-dlp, fontconfig (fc-list), pymupdf (audit a finished deck from a PDF)
+# REQUIRED : python3 >= 3.9, python-pptx, lxml, Pillow, numpy, fonttools, python-docx, cairosvg (drawn objects,
+#            make_assets.py foil/layers; rsvg-convert is accepted instead), LibreOffice (soffice), pdftoppm,
+#            fontconfig (fc-match: typeset.py measures text with the real font)
+# RECOMMENDED: scipy (faster crackle grounds, make_assets_example.py), opencv-python-headless (inpainting), requests,
+#            ffmpeg, yt-dlp, pymupdf (audit a finished deck from a PDF), pytest (tests/)
 # OPTIONAL : rembg (cut-outs), node + pptxgenjs (if you prefer building the family deck in JS),
 #            Anthropic "pptx"/"docx" skills (Claude Code), markitdown (quick text dump)
 set -u
@@ -27,12 +30,13 @@ check_mod lxml lxml req
 check_mod PIL Pillow req
 check_mod fontTools fonttools req
 check_mod docx python-docx req
-check_mod numpy numpy recommended
+check_mod numpy numpy req
+if "$PY" -c "import cairosvg" 2>/dev/null; then ok cairosvg; elif command -v rsvg-convert >/dev/null; then ok "rsvg-convert" "(instead of cairosvg)"; else miss MISSING cairosvg "(required for drawn objects; or install librsvg's rsvg-convert)"; missing_req=1; missing_py+=("cairosvg"); fi
 check_mod cv2 opencv-python-headless recommended
-check_mod cairosvg cairosvg recommended
 check_mod scipy scipy recommended
 check_mod requests requests recommended
 check_mod pymupdf pymupdf recommended
+check_mod pytest pytest recommended
 if [ $REMBG = 1 ]; then check_mod rembg "rembg[cpu]" optional; fi
 echo "== binaries"
 check_bin(){ # name level hint

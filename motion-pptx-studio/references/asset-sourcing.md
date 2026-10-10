@@ -11,8 +11,8 @@ A deck made from 3 stock icons and a gradient fails this skill even if it is pre
 | Wikimedia Commons | heritage photos, instruments, places, historic photos | `fetch_commons.py search` (licence metadata included) |
 | Openverse | Flickr CC, museum collections | `fetch_commons.py search --source openverse` |
 | Museum open access | objects on clean backgrounds | Smithsonian Open Access, The Met OA, Rijksmuseum, Europeana, national museum sites: check each record's licence |
-| Google Fonts / OFL | typefaces | github.com/google/fonts (see art-direction.md) |
-| Generate yourself | textures, ornaments, diagrams | `make_assets_example.py`, numpy or PIL, SVG with cairosvg: CC0 by you |
+| Google Fonts / OFL | typefaces | `fetch_fonts.py` (npm `@expo-google-fonts`, then github.com/google/fonts) |
+| Generate yourself | grounds, foil objects, layered parts, patterns, drawn screens | `make_assets.py` (ground, foil, layers, photo, glow, pattern); your own SVG drawings of TRUE-list objects: own work |
 
 Avoid: Pinterest, random Google Images, stock sites with unclear licences, AI images of the cultural
 subject itself (they invent anatomy). AI or procedural **textures** (paper, lacquer, grain) are fine.
@@ -67,9 +67,12 @@ full list on a credits slide near the end.
 | Museum object on white, to place on a dark slide | `python $S/cutout.py in.jpg out.png` (flood fill from the corners; `--rembg` for busy backgrounds) |
 | Han characters or other text inside a photo | `python $S/inpaint_text.py in.jpg out.jpg --box x0,y0,x1,y1 --vblur 61 --preview p.png` |
 | Frames from a video | `python $S/video_frames.py v.mp4 --out frames --every 5 --sheet` (or `--scene 0.35`) |
-| Duotone / sepia versions for a muted opening | `python $S/make_assets_example.py --photo path\|name` (duo_ and col_ versions) |
-| Procedural textures and gold-leaf motifs | `python $S/make_assets_example.py --out WORK/assets/gen` (adapt it to your TRUE list) |
-| Layered object for Morph | draw or cut each part (head, neck, body) onto **one shared canvas size** so the parts line up when stacked |
+| Duotone / sepia / mono + colour pair for a muted opening and a bloom | `python $S/make_assets.py photo in.jpg --mode duotone --colors "#140B08,#E2BE7C" --aspect 16:9 --pair --out WORK/assets/x.jpg` |
+| A material ground (lacquer, paper, noir, clean grid, halftone, flat) | `python $S/make_assets.py ground --style <pack> --name main --out …` or `--kind … --base … --tone …` |
+| A drawn object in one finish (gold, silver, copper, bronze, ink, chalk, neon, metal) | `python $S/make_assets.py foil object.svg --finish gold --out WORK/assets/object.png` |
+| Layered object for Morph | one SVG, one top-level `<g id="part">` per moving part on the same canvas: `python $S/make_assets.py layers object.svg --finish gold --out-dir WORK/assets/object` |
+| Bands and tiles (woven mat, dots, stripes, hatch, chevron, grid) | `python $S/make_assets.py pattern --kind woven --finish gold --size 2400x300 --out …` |
+| The ca trù drawings of the reference deck | `python $S/make_assets_example.py --out WORK/assets/gen` (a worked example of drawings in SVG) |
 Keep originals in `WORK/media_orig/`. Every derivative gets its own CREDITS row ("same as 01, pillar text
 inpainted", with the source URL and "(đã chỉnh sửa)"). Look at each result on a dark background before use.
 

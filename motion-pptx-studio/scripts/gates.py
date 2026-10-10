@@ -1,6 +1,6 @@
 """Hard gates for the motion-pptx-studio pipeline. A gate that fails means: STOP, do the missing work.
 
-  python gates.py init WORK [--kind heritage|product|other]   create the working folder + templates
+  python gates.py init WORK [--kind heritage|product|pitch|business|education|event|other]
   python gates.py check WORK --gate N                          check gate N (0..6); exit 1 on FAIL
   python gates.py check WORK --upto N                          check gates 0..N
   python gates.py check WORK --gate 5 --group g3 --deck WORK/deck/preview-g3.pptx
@@ -14,14 +14,18 @@ Gates
                When storyboard.md is already filled, distinct visuals ≥ scenes and no visual is
                referenced on more than 4 rows (also enforced at gate 4). asset_scarcity: <reason>
                drops the real-photo minimum to 0 (illustrations still need CREDITS rows).
-  3 design     design/art-direction.md: ≥2 font families (Noto Sans Display counts as Noto Sans),
-               every palette hex sourced on its own line, a colour arc with ≥2 hexes across ≥2
-               scenes, motifs, layered objects; fonts/ with licence; font-check PASS; ≥2 samples
+  3 design     design/art-direction.md: a style (pack or own design/style.json), a SIGNATURE that
+               carries through the deck, ≥2 font families (Noto Sans Display counts as Noto Sans),
+               every palette hex sourced on its own line ("from style pack X" counts), a colour arc
+               with ≥2 hexes across ≥2 scenes, motifs, layered objects; fonts/ with licence;
+               font-check PASS; ≥2 samples; a compare sheet next to the reference (studio.py compare)
   4 storyboard storyboard.md: scene count, keyframe runs (≥60% of scenes have ≥3 slides),
                !! layers, a real visual per row, no visual on more than 4 rows, distinct visuals
-               ≥ scenes, each layout in ≤3 scenes, on-slide words averaging ≥8, ≥40% of rows
-               citing a fact ID, spoken-word budget, anchor ×3, colour arc (≥2 hexes, ≥2 scenes),
-               motion.json. asset_scarcity lowers the scene minimum to the visuals you have.
+               ≥ scenes, on-slide words averaging ≥8, ≥40% of rows citing a fact ID (a source
+               column is fine: the claim must trace to a source, it need not be printed on the
+               slide), spoken-word budget, anchor ×3, colour arc (≥2 hexes, ≥2 scenes), motion.json
+               (or per-slide ms in deck.json). A layout name in more than 3 scenes is a note: keep
+               ONE system and vary the composition. asset_scarcity lowers the scene minimum.
   5 group      renders/<group>-N/contact*.jpg, notes/<group>.md, check_deck.py passes on the preview
   6 final      deliver/ has pptx + docx + fonts/ + zip + CREDITS; check_deck passes; speaking time
                within 10 % of talk_minutes (or time_overrun_accepted: yes in brief.md)
@@ -41,7 +45,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 TEMPLATES = HERE.parent / 'assets' / 'templates'
 from visual_audit import (  # noqa: E402
-    FACT_SLIDE_MIN, LAYOUT_SCENE_MAX, OFFICE_DEFAULTS, SUBJECT_REUSE_MAX, WORDS_AVG_MIN,
+    FACT_SLIDE_MIN, OFFICE_DEFAULTS, SUBJECT_REUSE_MAX, WORDS_AVG_MIN,
     colour_arc_ok, font_family_from_file, palette_report,
     storyboard_density_errors, storyboard_layout_errors, storyboard_visual_errors, visual_keys,
 )
@@ -49,11 +53,16 @@ URL = re.compile(r'https?://[^\s)|>\]]+')
 TAG = re.compile(r'\[(verified|secondary|claim|disputed|uncertain|claim-in-README|verified-in-[\w-]+|ĐÃ XÁC MINH[^\]]*|THỨ CẤP|TRANH CÃI|CHƯA RÕ|CHƯA XÁC MINH)\]', re.I)
 LIC = re.compile(r'CC[ -]?0|CC[ -]BY|public domain|PD|PDM|own work|owner|trademark|official|team|user|drawn|CC BY', re.I)
 IMG = ('.jpg', '.jpeg', '.png', '.webp', '.gif')
-MIN = {
+MIN = {  # research depth and imagery scale with the kind of deck (references/genres.md)
     'heritage': {'facts': 15, 'domains': 3, 'kept': 12, 'real': 6},
     'product': {'facts': 12, 'domains': 2, 'kept': 6, 'real': 1},
-    'other': {'facts': 12, 'domains': 3, 'kept': 8, 'real': 3},
+    'pitch': {'facts': 12, 'domains': 3, 'kept': 6, 'real': 1},
+    'business': {'facts': 10, 'domains': 2, 'kept': 4, 'real': 0},
+    'education': {'facts': 12, 'domains': 3, 'kept': 8, 'real': 3},
+    'event': {'facts': 6, 'domains': 2, 'kept': 6, 'real': 2},
+    'other': {'facts': 10, 'domains': 2, 'kept': 6, 'real': 2},
 }
+ANATOMY_KINDS = ('heritage', 'product', 'education')
 
 
 class Gate:
@@ -176,7 +185,8 @@ def g1(work):
     acc = read(work / 'research/accuracy.md')
     g.need(len(items(section(acc, r'true|đúng|use them'))) >= 3, 'accuracy.md: >= 3 TRUE motifs/objects with sources', 'list what really belongs to the subject')
     g.need(len(items(section(acc, r'wrong|sai|never use'))) >= 2, 'accuracy.md: >= 2 WRONG associations', 'list tempting but wrong symbols (generic national icons, neighbouring art forms, AI glow...)')
-    g.need(len(items(section(acc, r'anatomy|giải phẫu'))) >= 1, 'accuracy.md: object anatomy checklist', 'counts, shapes, who holds what, brand rules')
+    if k in ANATOMY_KINDS:
+        g.need(len(items(section(acc, r'anatomy|giải phẫu'))) >= 1, 'accuracy.md: object anatomy checklist', 'counts, shapes, who holds what, brand rules')
     b = brief(work)
     if b.get('user_media', 'none').lower() not in ('', 'none', 'no'):
         g.need(len(items(section(acc, r'user media|media audit'))) >= 1, 'accuracy.md: user media audited (frame -> verdict -> reason)',
@@ -304,10 +314,18 @@ def g3(work):
     arc_ok, arc_hex, arc_sc = colour_arc_ok(arc)
     g.need(arc_ok, f'art-direction colour arc: {len(arc_hex)} hex(es) {arc_hex} across {len(arc_sc)} scene id(s) {arc_sc}',
            'name ≥2 different background hexes and ≥2 scene ids, e.g. "S1-S4 #0E0A07 → S6-S11 #F1E4C8". "navy throughout" fails.')
-    g.need(len(items(section(ad, r'motif|texture'))) >= 3, 'art-direction: >= 3 motifs/textures (each on the TRUE list)')
+    g.need(len(items(section(ad, r'motif|texture'))) >= 2, 'art-direction: >= 2 motifs/textures (grounds count; content motifs on the TRUE list)')
     g.need(len(items(section(ad, r'layered|layer'))) >= 1, 'art-direction: layered objects for Morph are planned')
     samples = list((work / 'design/samples').glob('*.jpg')) + list((work / 'design/samples').glob('*.png'))
     g.need(len(samples) >= 2, f'design/samples: {len(samples)} rendered samples (min 2: title + body)', 'render the family deck and copy title + body renders here')
+    has_style = (work / 'design/style.json').is_file() or re.search(r'^\s*-?\s*style\s*:\s*(?!TODO)\S', ad, re.I | re.M)
+    g.need(bool(has_style), 'art-direction: a style is declared (style pack or design/style.json)',
+           'python studio.py new WORK --style <pack> (copies design/style.json), or write "- style: <pack>"')
+    g.need(len(items(section(ad, r'signature'))) >= 1, 'art-direction: a signature object/motif that carries through the deck',
+           'name ONE recurring object (strings, cursor, a line, a medallion) that lives on most slides as !! layers (references/craft.md §2)')
+    cmp_ = list((work / 'design').glob('compare*.jpg'))
+    g.need(bool(cmp_), 'design/compare*.jpg: the samples were put next to the reference deck',
+           'python studio.py compare WORK WORK/renders/<sample> — then answer the questions it prints in art-direction.md')
     return g.report()
 
 
@@ -360,14 +378,12 @@ def g4(work):
     if rows and not storyboard_visual_errors(rows, col):
         g.need(True, f'visuals: distinct ≥ scenes, none referenced more than {SUBJECT_REUSE_MAX} times')
     for e in storyboard_layout_errors(rows, col):
-        g.need(False, 'layout: ' + e, 'change the layout value; repeats inside one scene do not count, across scenes the cap is 3')
-    if rows and not storyboard_layout_errors(rows, col):
-        g.need(True, f'layout: each layout value is in at most {LAYOUT_SCENE_MAX} scenes')
+        g.note('layout: ' + e + ' (keep one system; make sure the compositions inside it differ: references/craft.md §6)')
     for e in storyboard_density_errors(rows, col, read(work / 'research/facts.md')):
         g.need(False, 'content: ' + e,
-               f'on-slide text averages ≥ {WORDS_AVG_MIN:g} words, and ≥ {FACT_SLIDE_MIN:.0%} of rows cite a fact ID from facts.md on the slide')
+               f'on-slide text averages ≥ {WORDS_AVG_MIN:g} words, and ≥ {FACT_SLIDE_MIN:.0%} of rows cite a fact ID (source column)')
     if rows and not storyboard_density_errors(rows, col, read(work / 'research/facts.md')):
-        g.need(True, f'content: on-slide words average ≥ {WORDS_AVG_MIN:g} and ≥ {FACT_SLIDE_MIN:.0%} of rows cite a fact ID')
+        g.need(True, f'content: on-slide words average ≥ {WORDS_AVG_MIN:g} and ≥ {FACT_SLIDE_MIN:.0%} of rows trace to a fact ID')
     words = []
     for r in rows:
         try:
@@ -395,7 +411,13 @@ def g4(work):
     g.need(arc_ok, f'colour arc names ≥2 background hexes across ≥2 scenes (hexes {arc_hex}, scenes {arc_sc})',
            'e.g. colour arc: S1-S4 #0E0A07 → S6-S11 #F1E4C8  (a single "navy throughout" fails)')
     g.need(re.search(r'circular close\s*:\s*(?!TODO)\S', sb, re.I) is not None, 'circular close declared')
-    g.need((work / 'motion.json').is_file(), 'motion.json exists (durations keyed by slide FILE number)')
+    deck_ms = False
+    if (work / 'deck.json').is_file():
+        try:
+            deck_ms = any('ms' in sl for sl in json.loads(read(work / 'deck.json')).get('slides', []))
+        except ValueError:
+            deck_ms = False
+    g.need((work / 'motion.json').is_file() or deck_ms, 'durations planned (motion.json, or "ms" on slides in deck.json)')
     return g.report()
 
 
@@ -458,7 +480,7 @@ def cmd_init(work, kind):
             shutil.copy(TEMPLATES / src, work / dst)
     b = (work / 'brief.md').read_text(encoding='utf-8')
     if kind:
-        b = b.replace('- deliverable_kind: TODO (heritage | product | other)', f'- deliverable_kind: {kind}')
+        b = re.sub(r'- deliverable_kind: TODO[^\n]*', f'- deliverable_kind: {kind}', b)
         (work / 'brief.md').write_text(b, encoding='utf-8')
     print('initialised', work)
     for p in sorted(work.rglob('*')):
@@ -468,7 +490,7 @@ def cmd_init(work, kind):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest='cmd', required=True)
-    s = sub.add_parser('init'); s.add_argument('work'); s.add_argument('--kind', choices=('heritage', 'product', 'other'))
+    s = sub.add_parser('init'); s.add_argument('work'); s.add_argument('--kind', choices=tuple(MIN))
     s = sub.add_parser('check'); s.add_argument('work'); s.add_argument('--gate', type=int); s.add_argument('--upto', type=int)
     s.add_argument('--group'); s.add_argument('--deck')
     a = ap.parse_args(argv)

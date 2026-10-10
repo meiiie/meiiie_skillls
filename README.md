@@ -9,7 +9,7 @@
 | [meiiie-interactive-webgl](meiiie-interactive-webgl/SKILL.md) | Available | Semantic 3D objects, reversible assembly, accessible controls and explicit render checks. |
 | [meiiie-operating-office](meiiie-operating-office/SKILL.md) | Available | Task-scoped coordination with one accountable lead, bounded specialist work and evidence-based review. |
 | [neko-wiii-product-studio](neko-wiii-product-studio/SKILL.md) | Available | Neko Core and Wiii ownership, shared contracts and integration acceptance. |
-| [motion-pptx-studio](motion-pptx-studio/SKILL.md) | Available | Researched, licensed, Morph-animated PowerPoint decks with a timed speaker script and a gated pipeline. |
+| [motion-pptx-studio](motion-pptx-studio/SKILL.md) | Available | Designed, researched, Morph-animated PowerPoint decks for any kind of talk: style packs, a deck engine with components, an asset kit, craft audits and a timed speaker script. |
 | [heritage-visual-research](heritage-visual-research/SKILL.md) | Available | Sourced facts, true/wrong motif lists, anatomy checks and licensed images for cultural topics. |
 | [presentation-speech-craft](presentation-speech-craft/SKILL.md) | Available | Hook, anchor phrase, pauses, circular close, word budget and a speaker-script document. |
 
@@ -47,9 +47,26 @@ The accepted product direction and historical audit findings guide current inspe
 
 ## Motion PPTX Studio
 
-[Motion PPTX Studio](motion-pptx-studio/SKILL.md) (v2) builds a researched, licensed PowerPoint deck as Morph keyframe sequences, with a timed speaker script. The pipeline is gated from brief to delivery (Gates 0–6 in [gates.py](motion-pptx-studio/scripts/gates.py)): brief, research, assets, art direction, storyboard, group build and final delivery. [Harness notes](motion-pptx-studio/references/harness-adapters.md) cover Claude Code, Codex, Cursor, Grok Bot and a generic shell agent. Helper scripts are listed in [scripts/README.md](motion-pptx-studio/scripts/README.md).
+[Motion PPTX Studio](motion-pptx-studio/SKILL.md) (v4) builds a PowerPoint deck as a short film shot on one set: a
+style pack holds the system (material ground, chrome, grid, type roles), one signature object carries the deck, and
+each scene is 3–5 Morph keyframes. It covers product launches, pitches, business reviews and data stories,
+lectures, events and heritage topics with one pipeline, gated from brief to delivery (Gates 0–6 in
+[gates.py](motion-pptx-studio/scripts/gates.py)).
 
-Morph, entrance effects and blink play in PowerPoint 365 / 2019+. LibreOffice renders are static keyframes. Image search covers Wikimedia Commons and Openverse; museum sites stay manual. Installing the skill does not review a deck in PowerPoint, embed fonts or grant licences for images. Case studies and the quality bar are in the skill; they do not establish that a new deck has passed the gates.
+- Five [style packs](motion-pptx-studio/references/styles.md) with OFL fonts that cover Vietnamese
+  ([gallery](motion-pptx-studio/assets/reference/styles-gallery.jpg)).
+- `studio.py new / build / compare`: a starter deck, a one-command build → motion → render → audit loop, and a
+  side-by-side with the [reference deck](motion-pptx-studio/references/reference-bar.md).
+- A deck engine with components (heading, card, stat, screen, timeline, bars, list, quote) and layout warnings
+  measured with the real font; an asset kit for grounds, foil drawings, layered parts and photo grading.
+- Audits that fail stuck keyframes, one-template decks and decks without a persistent system, and pass the accepted
+  reference deck. [Craft](motion-pptx-studio/references/craft.md) and [genre](motion-pptx-studio/references/genres.md)
+  references; three [worked examples](motion-pptx-studio/examples/README.md).
+
+Morph, entrance effects and blink play in PowerPoint 365 / 2019+. LibreOffice renders are static keyframes. Image search
+covers Wikimedia Commons and Openverse; museum sites stay manual. Installing the skill does not review a deck in
+PowerPoint, embed fonts or grant licences for images. The examples use fictional products and illustrative numbers;
+the reference renders credit their CC BY-SA photos in [assets/reference](motion-pptx-studio/assets/reference/README.md).
 
 ## Heritage visual research
 
@@ -61,7 +78,7 @@ Morph, entrance effects and blink play in PowerPoint 365 / 2019+. LibreOffice re
 
 ## Install these three skills
 
-Copy the folders into the harness skill directory, then check the toolchain once per machine. Python 3.9+, LibreOffice and poppler (`pdftoppm`) are required. ffmpeg, yt-dlp and the Python image libraries are recommended. `setup.sh --install` installs the Python packages (pip `--user`, or a venv when pip is locked) and prints the system-package command for binaries. It does not run sudo.
+Copy the folders into the harness skill directory, then check the toolchain once per machine. Python 3.9+ (python-pptx, lxml, Pillow, numpy, fonttools, python-docx, cairosvg), LibreOffice, poppler (`pdftoppm`) and fontconfig are required. ffmpeg, yt-dlp, scipy, OpenCV and pymupdf are recommended. `setup.sh --install` installs the Python packages (pip `--user`, or a venv when pip is locked) and prints the system-package command for binaries. It does not run sudo.
 
 ```bash
 # Claude Code
