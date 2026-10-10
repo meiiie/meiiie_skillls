@@ -12,18 +12,18 @@ the gate checks it.
 ```
 
 ## 2. Table: one row per SLIDE
-| # | scene | keyframe role | layout | layers | visual | on-slide text | words | morph ms |
-|---|---|---|---|---|---|---|---|---|
-| 1 | S1 Hook | K1 one string in darkness | void | !!str1-3 | drawn:string | Nghe bằng cả trái tim. | 17 | 1300 |
-| 2 | S1 Hook | K2 three strings + small photo | split | !!str1-3 !!photo | 01_catru_trio_clean.jpg | Hà Nội · biểu diễn ca trù | 10 | 1300 |
-| 3 | S1 Hook | K3 photo bloom + title | full-bleed | !!photo !!title | 01_catru_trio_clean.jpg | Ca trù | 19 | 2000 |
+| # | scene | keyframe role | layout | layers | visual | on-slide text | source | words | morph ms |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | S1 Hook | K1 one string in darkness | void | !!str1-3 | drawn:string | Nghe bằng cả trái tim. | — | 17 | 1300 |
+| 2 | S1 Hook | K2 three strings + small photo | split | !!str1-3 !!photo | 01_catru_trio_clean.jpg | Hà Nội · biểu diễn ca trù | 2.1 | 10 | 1300 |
+| 3 | S1 Hook | K3 photo bloom + title | full-bleed | !!photo !!title | 01_catru_trio_clean.jpg | Ca trù | 1.1 | 19 | 2000 |
 Rules checked by `gates.py`:
 - `scene` starts with a scene ID (S1, S2…). Rows with the same ID form one keyframe run.
 - At least 60% of scenes have 3 or more rows. At least 8 scenes for talks of 5 minutes or longer. With `asset_scarcity` set in the brief, the minimum drops to the number of distinct visuals (never below 2).
 - `layers` names the `!!` objects (at most 10% of rows without any). Consecutive keyframes that share a subject image must actually move it: box or crop ≥ 10% of slide width, or another shared `!!` shape ≥ 6%, or the renders differ by ≥ 30% of pixels. `check_deck.py` errors otherwise.
 - `visual` is a kept file in `assets/`, `drawn:<motif>` from art-direction, or `frame:<file>` graded OK in the media audit. Never empty. Distinct visuals ≥ the number of scenes. No file or `drawn:` motif is named on more than 4 rows (a 5-slide run cannot keep one image on every frame).
-- `layout` is a short name. Each value appears in at most 3 scenes. Repeats inside one scene do not count.
-- `on-slide text` averages at least 8 words per row, and at least 40% of rows include a fact ID defined in `research/facts.md` (a source id such as `(S1)` or a table id such as `1.1`) in that on-slide cell.
+- `layout` names the composition (craft.md §6: void, hero, split, full-bleed, numeral, walk, rail, screen, chart, reveal, quote, book, close). A value used in more than 3 scenes is reported as a note: one system, varied compositions.
+- `on-slide text` averages at least 8 words per row. At least 40% of rows cite a fact ID defined in `research/facts.md` (a source id such as `(S1)` or a table id such as `1.1`) in the `source` column: the claim traces to a source; the ID stays off the slide.
 - `words` is the spoken budget for that slide (0 allowed for a silent keyframe). The total stays within the budget.
 - The anchor phrase appears in 3 or more rows.
 - `colour arc` names at least 2 background hexes and at least 2 scene ids (`S1-S4 #0E0A07 → S6-S11 #F1E4C8`).
@@ -44,12 +44,12 @@ Use the user's chapters if they have them (the ca trù video had Chapter 1 histo
 music, so the deck mirrored them).
 
 ## 4. Variety rules
-- Each layout appears in **at most 3 scenes** (repeats *inside* a keyframe run don't count). Gate 4 counts distinct scene IDs per layout value and fails when a value is over 3.
+- Keep one system (ground, chrome, grid, type roles, signature) and vary the composition between scenes; a layout name in more than 3 scenes is a note at Gate 4, the editorial-left template in more than 3 scenes is an error on the built deck.
 - At most **one** text-only slide in the whole deck.
 - Real visuals: photos or screens in at least half the scenes. Drawn motifs fill the rest, never stock icons.
 - Team or user frames: inside a framed "screen" at ≤45% of the slide width, never as a cultural close-up.
 
 ## 5. From storyboard to build
-Copy `layers`, `visual` and text into `WORK/deck.json` (see build-engine.md). Put the planned durations into
-`WORK/motion.json` (slide file numbers = positions when you use `build_deck.py` without `sequence`). Write the
-speaker notes per slide inside the spec (`"notes"`), already within the words budget.
+Copy `layers`, `visual` and text into `WORK/deck.json` (see build-engine.md), one scene id per slide (`"scene": "S3"`).
+Put the planned durations on the slides (`"ms"`, `"morph"`); `build_deck.py` writes motion.json. Write the speaker notes per
+slide inside the spec (`"notes"`), already within the words budget, with the fact IDs the slide relies on.

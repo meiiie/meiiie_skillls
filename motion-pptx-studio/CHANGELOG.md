@@ -1,5 +1,47 @@
 # Changelog
 
+## 4.0.0
+v3 blocked decks that were wrong (unsourced, unlicensed, the wrong instrument, over time, a photo held still) but did
+not teach or produce decks that look designed, and its own `check_deck.py` failed the accepted ca trù deck
+(slides 31→32, a deliberate question beat). v4 adds the craft: a system the engine applies, a signature, components
+that move well, an asset kit, a reference to compare against, and audits recalibrated so the reference passes and the
+failure modes still fail. It also stops being a heritage-and-product skill: seven kinds of deck share one pipeline.
+
+- **The one idea** (SKILL.md): a motion deck is a short film shot on one set: the set (ground, chrome, grid, type),
+  one signature object, and scenes built as camera moves. Size the job first (Short / Standard / Long).
+- **Style packs** (`assets/styles/`): lacquer-heritage (measured from the reference deck), noir-product,
+  paper-editorial, boardroom-data, studio-pop. OFL fonts with full Vietnamese coverage, contrast checked on renders.
+  `references/styles.md`; `assets/reference/styles-gallery.jpg`.
+- **Engine** (`build_deck.py`, backward compatible with v3 specs): `style`, chrome on every slide with `{n}`,
+  `{total}`, `{title}`, `{source}`; text `role`s; grid `col`; material grounds generated from the style; shadows;
+  image duotone/grayscale/brightness/radius/border; groups; components `heading`, `card`, `stat`, `screen`,
+  `timeline`, `bars`, `list`, `quote` that keyframes drive by setting their keys; per-slide `ms`, `morph`,
+  `keep_timing` written to motion.json; scene ids in slide names. Layout warnings measured with the real font
+  (`typeset.py`): overflow, a word wider than its box, an orphan word, outside the safe area, texts that overlap,
+  text running over a card or screen. Quiet text as a mixed solid colour (`fade`), because LibreOffice misplaces
+  Vietnamese marks on transparent text.
+- **One-command loop** (`studio.py`): `new` (style + starter deck), `build` (build → motion → pack → render → audit
+  with renders, a new render folder each round), `compare` (your contact sheet above the reference), `fonts`.
+- **Asset kit** (`make_assets.py`): grounds (lacquer with crackle, noir, paper, clean grid, halftone, flat), foil
+  finishes for SVG/PNG drawings, SVG layers for Morph assembly, photo grading with mono/colour pairs, glows,
+  patterns. `fetch_fonts.py` gets static TTFs from the npm registry or google/fonts.
+- **Audits**: `craft_audit.py` (no persistent system is an error; overflow into other text, safe area, type scale,
+  flat grounds and contrast are warnings). `visual_audit.py` allows a hold beat (at most one per scene and 10% of
+  transitions), reads scene ids from slide names, ignores pictures parked off-slide, and treats fact IDs on slides as a
+  warning (sources trace through the storyboard `source` column and the notes). The reference deck passes
+  (`tests/test_audit.py`, `MOTION_REF_DECK`); the Genshin pattern (6 still pairs in 22, two in one scene) still fails.
+- **Gates**: kinds heritage, product, pitch, business, education, event, other with their own research and imagery
+  minimums; Gate 3 needs a style, a signature and a compare sheet; Gate 4 reads fact IDs from a source column and
+  reports repeated layout names as a note; per-slide `ms` in deck.json counts as planned durations.
+- **References**: new `craft.md` (the system with numbers, composition library, anti-patterns, the critic's pass),
+  `genres.md`, `styles.md`, `reference-bar.md`; motion-grammar gains camera language, byChar/byWord, bar grow,
+  reveal, screen tour and hold; build-engine, art-direction, qa-checklist, storyboard-template updated.
+- **Examples** built with the engine, each with `make_deck.py`, `build.sh` and a committed contact sheet:
+  `catru-mini` (7 keyframes rebuilt from the reference's own drawings), `product-launch` (11, a fictional product with
+  drawn screens), `data-story` (11, a fictional chain with illustrative numbers).
+- **Tests**: 70+ pytest checks (`tests/`).
+- `setup.sh`: numpy, cairosvg (or rsvg-convert) and fontconfig are required.
+
 ## 3.0.0
 A 23-slide Genshin Impact deck passed every v2 gate. Research, credits and the fan-concept disclaimer were real. The pictures were not: about 7 screenshots, one of them dominant on 6 slides, keyframe pairs inside a scene that only slid the words (the photo did not move), one text-left/image-right template for 12 slides, one font family (Noto Sans and Noto Sans Display), a near-uniform navy, slogan lines. Gates 2–4 checked that files and `!!` names were *declared*. They did not measure whether anything changed.
 

@@ -27,7 +27,10 @@ but **one** agent owns the storyboard and the build, so names and motion stay co
 
 ## 3. Weak-model mode (smaller or faster models)
 - Follow the gates literally; never skip a `gates.py check`. Paste the FAIL hints into your plan and fix them in order.
-- Use `build_deck.py` (path A), not raw XML editing.
+- Start from a style pack and the starter (`studio.py new`), use components (`heading`, `card`, `stat`, `screen`,
+  `timeline`, `bars`, `list`, `quote`) and roles, and build with `studio.py build`. Copy an example's `make_deck.py`
+  pattern rather than inventing coordinates. Never raw XML editing.
+- Fix every layout warning `studio.py build` prints before looking at the render.
 - Build 2–3 slides per group; render after every group; one fix pass per group.
 - Keep sentences in notes short; run `words_budget.py measure` after every group, not only at the end.
 - When unsure whether an image shows the subject: `--uncertain`, and use a drawn TRUE-list motif instead.
@@ -39,6 +42,8 @@ but **one** agent owns the storyboard and the build, so names and motion stay co
 | Anthropic `docx` | richer speaker-script formatting | same plugin (`skills/docx`) |
 | `heritage-visual-research` (this repo) | Phases 1–2 alone, for any visual project about a culture | copy the folder like the main skill |
 | `presentation-speech-craft` (this repo) | the script and talk alone, for decks built elsewhere | copy the folder like the main skill |
+Fonts: `fetch_fonts.py` tries the npm registry first (`@expo-google-fonts/<family>`, static TTFs with the OFL text),
+which works in sandboxes that block GitHub, then google/fonts.
 Tools the scripts can use if present: `yt-dlp` (reference talks), `ffmpeg` (frames), `rembg` (cut-outs: `setup.sh --with-rembg`),
 `markitdown` (quick text dump of a pptx).
 

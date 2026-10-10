@@ -1,27 +1,42 @@
 # QA checklist (every render, every group, and the final deck)
 
-Render: `bash $S/render.sh DECK WORK/renders/<group>-<round>` writes `slide-NN.jpg` and contact sheets.
-Use a **new folder per round** (some image viewers cache by path, so a re-render in the same folder can show stale images).
-Open the contact sheet, then every changed slide at full size. Write the defects in `WORK/notes/<group>.md`, fix them all in
-one pass, and re-render. Don't trust "it looks fine in the code".
+`python $S/studio.py build WORK --group <group>` builds, renders into a **new** `renders/<group>-N` folder (image viewers
+cache by path) and audits with the renders. Open the contact sheet, put it next to the reference
+(`studio.py compare`), then open every changed slide at full size and crop 4× where things meet (craft.md §12).
+Write the defects in `WORK/notes/<group>.md`, fix them all in one pass, and re-build. Don't trust "it looks fine in the code".
+
+## 0. Build-time layout warnings (`build_deck.py`, printed by `studio.py build`)
+Fix every one before you look at the render; each is visible on screen:
+- text that needs more height than its box, a word wider than its box, a single word on the last line of a title
+- text outside the safe area (0.45 in from the edge; parked shapes are fine)
+- two texts that overlap, or a text that runs over a card or a screen it does not belong to
+- a card whose content is taller than the card; a font that is not installed (the checks above are then skipped)
 
 ## 1. Automatic (`check_deck.py DECK --anchor "…" [--forbid-notes] [--extra-forbid "cô đầu,MIT"] [--max-mb 25]`)
 ERROR (exit 1): not exactly 1 transition on a slide; duplicate `!!` names on a slide; a `!!` pair with different kinds;
 CJK characters on slides; template leftovers (lorem ipsum, "Click to add", "Title Here"); forbidden strings; size over the limit;
-a stuck keyframe (same dominant subject image, box/crop move under 10% of slide width, no shared `!!` shape moves 6% or more, under 30% of pixels changed — the message names the slides);
+stuck keyframes (same dominant subject image, box/crop move under 10% of slide width, no shared `!!` shape moves 6% or more,
+under 30% of pixels changed) beyond the hold-beat allowance (one per scene, 10% of transitions);
 one subject image dominant on more than 4 slides, or (on a photo-led deck) fewer distinct subject images than consecutive runs;
 the editorial-left template on more than 3 scenes; fewer than 2 font families on a deck of 8 or more slides;
-on-slide text averaging under 8 words. With `--facts research/facts.md` (or a `facts.md` next to the project), also an error when under 40% of slides cite a fact ID.
+on-slide text averaging under 8 words; **no persistent system** (no `!!` shape on 60% of the slides).
 The same image, keyframe and layout errors run on a PDF: `python check_deck.py deck.pdf`.
-WARN: slides without notes; lonely `!!` names; fonts not installed; images wider than 2560 px; duplicate media; anchor count.
+WARN: a hold beat (make sure it is deliberate); text overflowing into other text or off the slide; text outside the 0.3 in
+safe area; more than 12 text sizes; flat grounds on most slides; low contrast (with `--renders`); under 40% of slides citing a
+fact ID on the slide or in the notes (with `--facts`); slides without notes; lonely `!!` names; fonts not installed; images
+wider than 2560 px; duplicate media; anchor count.
+The accepted reference deck passes this audit (`tests/test_audit.py`); a change that fails it is a wrong change.
 
 ## 2. Visual (look)
+- [ ] It reads as one deck at thumbnail size: the same ground family, chrome, grid and type roles; the signature is present.
+- [ ] Next to the reference (`studio.py compare`) it is as specific and as rich; nothing generic, flat or crowded.
+- [ ] Every scene is a camera move: keyframes change composition positions, not only words (one hold beat per scene at most).
 - [ ] Text is readable over its real background (veil or scrim behind text on photos; gold on a busy photo fails).
 - [ ] Nothing collides, including in keyframe states (an object enlarged by Morph can cover the title: move the title).
 - [ ] Nothing is accidentally off-slide (parking off-slide is deliberate; note it in the notes file).
 - [ ] Photos are not stretched; crops keep the subject (focus point).
 - [ ] Typography: no fallback font, diacritics intact, no heading broken mid-word, no single word alone on the last line of a title.
-- [ ] Layout variety: each storyboard layout value is in at most 3 scenes (Gate 4 enforces this; repeats inside a keyframe run do not count). `check_deck.py` also errors when the editorial-left template (section kicker, title on the left, caption, image on the right or full-bleed) appears in more than 3 scenes.
+- [ ] Composition variety inside one system (craft.md §6): the same template on scene after scene is a defect; `check_deck.py` errors when the editorial-left template appears in more than 3 scenes.
 - [ ] Every scene has a real visual (photo, screen, drawn TRUE motif). No stock icons or generic gradients standing in for content.
 
 ## 3. Accuracy (compare with `research/accuracy.md` and `facts.md`)

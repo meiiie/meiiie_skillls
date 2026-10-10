@@ -1,7 +1,7 @@
 interface:
   display_name: Motion PPTX Studio
-  short_description: Researched, licensed, Morph-animated decks with a timed script
-  default_prompt: Use $motion-pptx-studio to research the topic, collect licensed images, and build a Morph motion deck with a speaker script that fits the time limit.
+  short_description: Designed, researched, Morph-animated decks for any talk, with a timed script
+  default_prompt: Use $motion-pptx-studio to size the job, research the topic, pick a style pack and a signature object, and build a Morph motion deck that holds up next to the reference, with a speaker script that fits the time limit.
   icon_small: assets/icon.svg
   icon_large: assets/icon.svg
 policy:

@@ -1,0 +1,29 @@
+{
+  "skill_name": "motion-pptx-studio",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Mình cần một bộ slide ra mắt app ghi chú họp tên là Diều (app thật chưa có, đây là ý tưởng của nhóm) để thuyết trình 3 phút trước ban giám khảo cuộc thi khởi nghiệp. Muốn nhìn chuyên nghiệp, có motion kiểu Apple keynote, chữ tiếng Việt. Xuất file pptx.",
+      "expected_output": "A noir-product (or similar) deck of 10-15 slides: sized and estimated first; honest status (an idea, screens labelled as illustrations, numbers as illustrative); a signature (e.g. the cursor) on most slides; keyframe scenes (reveal, three-step timeline beside a screen, highlight walk, circular close); real type system with Vietnamese fonts; check_deck PASS with the craft audit; renders looked at; speaker notes within ~390 words.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Make a 6-minute quarterly business review deck for our coffee chain (I'll give you the numbers: revenue Apr 410, May 430, Jun 455, Jul 540, Aug 640, Sep 720 million VND; Q3 up 48% vs Q2; three reasons: autumn menu, 20-minute delivery, membership card). Light, clean, investor-friendly, in Vietnamese, with charts that animate.",
+      "expected_output": "A boardroom-data (or paper-editorial) deck: the headline number as the signature; bars that grow over a keyframe pair and then highlight; reasons revealed one at a time; a source line on data slides; numbers exactly as given; ≤ 8-word conclusion titles; check_deck PASS; ~760-word script.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Làm giúp mình slide thuyết trình 5 phút về nghệ thuật ca trù cho học sinh cấp 3, có motion đẹp như phim, đảm bảo chính xác về văn hóa, hình ảnh có bản quyền.",
+      "expected_output": "A lacquer-heritage deck: research with UNESCO / institute sources and a do-not-say list; TRUE/WRONG motifs and the đàn đáy anatomy (3 strings, 3 staggered pegs); licensed Commons images credited or drawn TRUE objects; strings or the instrument as the signature; assembly, highlight walk of the three roles, circular close; check_deck PASS; credits slide.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "I have to teach photosynthesis to 9th graders tomorrow, 10 minutes. Can you make me slides that build the idea step by step instead of a wall of bullet points? Vietnamese please, fun but not childish.",
+      "expected_output": "A studio-pop or paper-editorial deck: a question hook; a model (leaf/chloroplast) built keyframe by keyframe with a signature (e.g. a sunlight ray); facts from textbooks/institutions; a worked example and a common mistake; the question again; diagrams drawn and credited; check_deck PASS.",
+      "files": []
+    }
+  ]
+}

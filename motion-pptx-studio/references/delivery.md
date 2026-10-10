@@ -38,6 +38,7 @@ user's own computer (with their approval), install them for them:
   `HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Fonts` (name → full path), or right-click → Install for all users.
 - macOS: `cp *.ttf ~/Library/Fonts/`. Linux: `cp *.ttf ~/.local/share/fonts/ && fc-cache -f`.
 Ship **static** instances: variable fonts showed wrong weights in PowerPoint during the neko-core delivery.
+The style pack lists the families and weights (`font_files`); `fetch_fonts.py --style <pack> --out WORK/fonts` gets exactly those.
 
 ## 4. Hand-off message (template)
 ```
