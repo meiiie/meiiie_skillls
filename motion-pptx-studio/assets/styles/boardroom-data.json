@@ -8,7 +8,7 @@
     "surface": "#FFFFFF",
     "ink": "#0F1722",
     "head": "#0B1220",
-    "muted": "#5A6676",
+    "muted": "#4E5A6A",
     "faint": "#D5DCE4",
     "accent": "#0E7C6B",
     "accent2": "#F2542D",
@@ -48,7 +48,7 @@
     ]
   },
   "card": {"fill": "surface", "fill_alpha": 1.0, "line": "faint", "line_width": 0.75, "radius": 0.05,
-           "lit_fill": "#FFFFFF", "lit_line": "accent", "rule": "accent", "dim_alpha": 0.45,
+           "lit_fill": "#FFFFFF", "lit_line": "accent", "rule": "accent", "dim_alpha": 0.66,
            "shadow": {"blur": 20, "dist": 4, "dir": 90, "color": "#0B1220", "alpha": 0.10}},
   "screen": {"bezel": "#FFFFFF", "line": "#D5DCE4", "line_width": 0.75, "radius": 0.05, "bar": "#EEF2F6"},
   "shadow": {"blur": 24, "dist": 6, "dir": 90, "color": "#0B1220", "alpha": 0.14},

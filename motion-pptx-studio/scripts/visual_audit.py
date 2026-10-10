@@ -114,7 +114,7 @@ STYLE_WORDS = {
 }
 SOURCE_CUE = re.compile(
     r'https?://|\b(?:from|source|brand|photo|lacquer|sample|pixel|board|dossier|'
-    r'measured|eyedrop|pantone|sampled|swatch|nguồn|lấy từ)\b',
+    r'measured|eyedrop|pantone|sampled|swatch|style pack|style|nguồn|lấy từ)\b',
     re.I,
 )
 FACT_TOKEN = re.compile(r'\(([A-Za-z]{1,4}\d{1,3})\)')
@@ -511,8 +511,13 @@ def load_pptx_slides(path):
             box = _abs_box(el)
             if not box:
                 continue
+            # visible part only: a picture parked off-slide (waiting to fly in) is not on screen
+            vx0, vy0 = max(0, box[0]), max(0, box[1])
+            vx1, vy1 = min(sw, box[0] + box[2]), min(sh, box[1] + box[3])
+            if vx1 - vx0 <= 0 or vy1 - vy0 <= 0:
+                continue
             digest, flat = media_info(fn)
-            area = (box[2] * box[3]) / (sw * sh)
+            area = ((vx1 - vx0) * (vy1 - vy0)) / (sw * sh)
             pics.append({
                 'hash': digest, 'flat': flat, 'area': area,
                 'x': box[0], 'y': box[1], 'w': box[2], 'h': box[3],

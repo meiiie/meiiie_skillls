@@ -182,9 +182,13 @@ def test_card_states(build):
     c1, c2 = named(sl[0], '!!c1'), named(sl[0], '!!c2')
     assert c1.tag == P + 'grpSp' and c2.tag == P + 'grpSp'
     assert 'Nhanh' in text(c1) and 'TỐC ĐỘ'.upper() in text(c1).upper()
-    # a dim card is visibly quieter than a lit one: its title carries alpha
-    assert named(c2, '!!c2 title').find('.//' + A + 'alpha') is not None
-    assert named(c1, '!!c1 title').find('.//' + A + 'alpha') is None
+    # a dim card is visibly quieter than a lit one: its title colour is mixed toward the card
+    # surface as a SOLID colour (LibreOffice misplaces Vietnamese marks on transparent text)
+    lit = named(c1, '!!c1 title').find('.//' + A + 'srgbClr').get('val')
+    dim = named(c2, '!!c2 title').find('.//' + A + 'srgbClr').get('val')
+    assert lit != dim and named(c2, '!!c2 title').find('.//' + A + 'alpha') is None
+    lum = lambda h: sum(int(h[i:i + 2], 16) for i in (0, 2, 4))  # noqa: E731
+    assert lum(dim) < lum(lit)  # on a dark style the quiet title is darker
 
 
 def test_stat_component(build):
@@ -291,3 +295,18 @@ def test_preset_geometry(build):
     spec = {'slides': [{'shapes': [{'type': 'rect', 'geom': 'CHEVRON', 'name': '!!c', 'x': 1, 'y': 1, 'w': 1, 'h': 1, 'fill': '#FF0000'}]}]}
     _, sl, _ = build(spec)
     assert named(sl[0], '!!c').find('.//' + A + 'prstGeom').get('prst') == 'chevron'
+
+
+def test_text_running_over_a_card_is_flagged(build):
+    spec = {'style': 'noir-product', 'slides': [{'shapes': [
+        {'type': 'heading', 'name': '!!h', 'x': 1, 'y': 1.2, 'w': 7.5, 'title': 'Một tiêu đề khá dài sẽ xuống dòng và chạm vào thẻ bên dưới'},
+        {'type': 'card', 'name': '!!c', 'x': 1, 'y': 2.2, 'w': 3, 'h': 3, 'title': 'Thẻ'}]}]}
+    _, _, out = build(spec)
+    assert 'runs over !!c' in out
+
+
+def test_stat_unit_beside_value_is_not_a_collision(build):
+    spec = {'style': 'noir-product', 'slides': [{'shapes': [
+        {'type': 'stat', 'name': '!!k', 'x': 1, 'y': 1.5, 'w': 5, 'value': '5', 'unit': 'giờ / tuần', 'label': 'mỗi tuần'}]}]}
+    _, _, out = build(spec)
+    assert 'overlap' not in out and 'runs over' not in out

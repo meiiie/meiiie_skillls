@@ -23,7 +23,8 @@ Slide keys
 Shapes (every shape: type, name, x, y, w, h | "col": [start, span] on the grid, rot, alpha, hidden, shadow)
   text     text (str | [paragraph | {text, size, color, ...}]), role (kicker, display, title, subtitle, body,
            caption, label, numeral, quote, cardtitle, pageno...), font, size, bold, italic, color, align l|c|r,
-           anchor t|m|b, spacing (pt), line (multiple), caps
+           anchor t|m|b, spacing (pt), line (multiple), caps, fade 0..1 (+ fade_bg: a quiet text as a solid
+           colour mixed toward its background; prefer it to alpha, which LibreOffice renders badly)
   image    path, fit cover|contain|stretch, focus [fx, fy], radius, line_color, line_width,
            grayscale, duotone ["#dark", "#light"], brightness, contrast (-1..1)
   rect / ellipse   fill, alpha, gradient [[colour, alpha, pos%]...], angle, line_color, line_width,
@@ -33,7 +34,7 @@ Shapes (every shape: type, name, x, y, w, h | "col": [start, span] on the grid, 
 Components (expand into named parts; set the component in a keyframe, Morph moves the parts)
   heading  kicker, title, sub, body, title_role, align           parts NAME.kick/.title/.sub/.body
   card     title, kicker, desc, image, icon, state rest|lit|dim    a group NAME with children "NAME title"...
-  stat     value, unit, label, src, size                          NAME.value/.unit/.label/.src
+  stat     value, unit, label, src, size, color, label_color        NAME.value/.unit/.label/.src
   screen   image, device browser|phone|plain, url, focus           a group NAME
   timeline nodes [{t, label, desc}], active                        NAME.rail/.prog/.dot{i}/.t{i}/.l{i}/.d{i}
   bars     data [{label, value, display}], max, grow 0..1, highlight   NAME.base/.bar{i}/.v{i}/.k{i}
@@ -81,7 +82,7 @@ DEFAULT_PALETTE = {'ground': '#101114', 'ground2': '#1B1D22', 'surface': '#1E212
                    'veil': '#101114'}
 DEFAULT_FONTS = {'display': 'DejaVu Sans', 'text': 'DejaVu Sans', 'label': 'DejaVu Sans'}
 DEFAULT_CARD = {'fill': 'surface', 'fill_alpha': 1.0, 'line': 'faint', 'line_width': 0.75, 'radius': 0.05,
-                'lit_fill': 'surface', 'lit_line': 'accent', 'rule': 'accent', 'dim_alpha': 0.45, 'shadow': None}
+                'lit_fill': 'surface', 'lit_line': 'accent', 'rule': 'accent', 'dim_alpha': 0.66, 'shadow': None}
 DEFAULT_SCREEN = {'bezel': '#16191E', 'line': '#2A2F37', 'line_width': 0.75, 'radius': 0.05, 'bar': '#1E2228'}
 DEFAULT_SHADOW = {'blur': 20, 'dist': 6, 'dir': 90, 'color': '#000000', 'alpha': 0.35}
 COMPONENTS = ('heading', 'card', 'stat', 'screen', 'timeline', 'bars', 'list', 'quote')
@@ -111,7 +112,10 @@ def merge(a, b):
 
 class Spec:
     def __init__(self, data, root):
-        st = load_style(data['style']) if data.get('style') else {}
+        style_ref = data.get('style')
+        if style_ref and Path(str(style_ref)).suffix and not Path(str(style_ref)).is_absolute():
+            style_ref = str(root / style_ref)
+        st = load_style(style_ref) if style_ref else {}
         self.style_name = Path(str(data.get('style', 'custom'))).stem
         self.style = st
         self.pal = {**DEFAULT_PALETTE, **st.get('palette', {}), **data.get('palette', {})}
@@ -259,8 +263,15 @@ def text_props(spec, sh):
         'font': spec.font(g('font', 'text')), 'size': g('size', 18), 'bold': bool(g('bold', False)),
         'italic': bool(g('italic', False)), 'color': g('color', 'ink'), 'spacing': g('spacing', 0) or 0,
         'line': g('line', 1.0) or 1.0, 'caps': bool(g('caps', False)), 'alpha': g('alpha'),
-        'align': g('align', 'l'), 'anchor': g('anchor', 't'),
+        'align': g('align', 'l'), 'anchor': g('anchor', 't'), 'fade': g('fade'), 'fade_bg': g('fade_bg', 'ground'),
     }
+
+
+def mix(spec, fg, bg, amount):
+    """fg at `amount` opacity over bg, as one solid colour (hex without #)."""
+    a, b = spec.color(fg), spec.color(bg)
+    out = ''.join(f'{round(int(a[i:i + 2], 16) * amount + int(b[i:i + 2], 16) * (1 - amount)):02X}' for i in (0, 2, 4))
+    return '#' + out
 
 
 # ---------------------------------------------------------------- components
@@ -304,12 +315,17 @@ def comp_card(spec, sh):
     surf = {'type': 'rect', 'name': _child(base, 'bg'), 'x': x, 'y': y, 'w': w, 'h': h, 'radius': c['radius'],
             'fill': c['lit_fill'] if lit else c['fill'], 'alpha': 1.0 if lit else c['fill_alpha'],
             'line_color': c['lit_line'] if lit else c['line'], 'line_width': c['line_width'] * (1.4 if lit else 1)}
+    if not surf['line_color']:  # an open card: no outline at rest, only the rule (the reference's role cards)
+        surf.pop('line_color')
+    if not surf['alpha']:
+        surf['alpha'] = 0.001  # keep a real fill so Morph can fade the surface in when the card lights up
     shadow = c.get('lit_shadow') if lit and c.get('lit_shadow') else c.get('shadow')
     if shadow:
         surf['shadow'] = shadow
     kids = [surf]
     cy = y + pad
     ta = c['dim_alpha'] if dim else None
+    fade_bg = c['fill'] if (c.get('fill_alpha', 1) or 0) >= 0.5 else sh.get('ground', 'ground')
     if sh.get('image'):
         ih = sh.get('image_h', h * 0.42)
         kids.append({'type': 'image', 'name': _child(base, 'image'), 'path': sh['image'], 'x': x + pad, 'y': cy,
@@ -322,7 +338,7 @@ def comp_card(spec, sh):
                      'w': w - 2 * pad, 'h': ih, 'fit': 'contain', 'alpha': 0.5 if dim else None})
         cy += ih + 0.2
     kids.append({'type': 'line', 'name': _child(base, 'rule'), 'x1': x + pad, 'y1': cy, 'x2': x + pad + min(0.9, w * 0.3), 'y2': cy,
-                 'color': c['rule'] if not dim else c['line'], 'width': 1.5 if lit else 1.0})
+                 'color': c['rule'] if not dim else (c['line'] or 'faint'), 'width': 1.5 if lit else 1.0})
     cy += 0.14
     for part, role, key in (('title', 'cardtitle', 'title'), ('kicker', 'label', 'kicker'), ('desc', 'body', 'desc')):
         if not sh.get(key):
@@ -331,9 +347,9 @@ def comp_card(spec, sh):
         if part == 'desc':
             t['size'] = sh.get('desc_size', max(11, spec.role('body').get('size', 15) - 2))
         if part == 'kicker':
-            t['color'] = c['rule'] if not dim else 'muted'
-        if ta is not None:
-            t['alpha'] = ta
+            t['color'] = spec.role('kicker').get('color', c['rule']) if not dim else 'muted'
+        if ta is not None and part != 'kicker':  # the small label stays legible: it is already muted
+            t['fade'], t['fade_bg'] = ta, fade_bg
         t['h'] = round(text_height(spec, t, w - 2 * pad) + 0.04, 3)
         kids.append(t)
         cy += t['h'] + (0.1 if part != 'desc' else 0)
@@ -359,18 +375,30 @@ def comp_stat(spec, sh):
     num['h'] = round(vh + 0.02, 3)
     out = [num]
     if sh.get('unit'):
-        us = max(16, int(p['size'] * 0.34))
+        avail = max(0.6, w - vw - 0.12)
+        us = max(16, int(p['size'] * 0.3))
+        probe = {'type': 'text', 'role': 'title', 'text': sh['unit']}
+        while us > 16:
+            tp = text_props(spec, {**probe, 'size': us})
+            um = typeset.measure(sh['unit'], tp['font'], us, 99, tp['bold'], tp['italic'], tp['line'], tp['spacing'], tp['caps'])
+            if um['font_missing'] or um['widest_in'] <= avail:
+                break
+            us -= 2
         out.append({'type': 'text', 'name': _nm(base, 'unit'), 'role': 'title', 'size': us, 'text': sh['unit'],
-                    'x': round(x + vw + 0.08, 3), 'y': round(y + vh * 0.62 - us / 72 * 1.1, 3), 'w': max(0.6, w - vw - 0.08),
-                    'h': round(us / 72 * 1.3, 3), 'color': sh.get('unit_color', p['color'])})
+                    'x': round(x + vw + 0.12, 3), 'y': round(y + vh * 0.62 - us / 72 * 1.1, 3), 'w': round(avail, 3),
+                    'h': round(us / 72 * 1.35, 3), 'color': sh.get('unit_color', p['color'])})
     cy = y + vh + 0.12
     if sh.get('label'):
         t = {'type': 'text', 'name': _nm(base, 'label'), 'role': 'body', 'text': sh['label'], 'x': x, 'y': cy, 'w': w}
+        if sh.get('label_color'):
+            t['color'] = sh['label_color']
         t['h'] = round(text_height(spec, t, w) + 0.04, 3)
         out.append(t)
         cy += t['h'] + 0.06
     if sh.get('src'):
         t = {'type': 'text', 'name': _nm(base, 'src'), 'role': 'caption', 'text': sh['src'], 'x': x, 'y': cy, 'w': w}
+        if sh.get('label_color'):
+            t['color'] = sh['label_color']
         t['h'] = round(text_height(spec, t, w) + 0.03, 3)
         out.append(t)
     return out
@@ -433,20 +461,28 @@ def comp_timeline(spec, sh):
         on = i == act
         done = act is not None and i < act
         d = 0.42 if on else 0.28
+        al = 'l' if (i == 0 or n == 1) else ('r' if i == n - 1 else 'c')
+        lx = round(px - 0.05 if al == 'l' else (px + 0.05 - lab_w if al == 'r' else px - lab_w / 2), 3)
         out.append({'type': 'ellipse', 'name': _nm(base, f'dot{i}'), 'x': round(px - d / 2, 3), 'y': round(y - d / 2, 3), 'w': d, 'h': d,
                     'fill': color if (on or done) else 'ground', 'line_color': color, 'line_width': 1.25})
         ty = y + 0.38
         if nd.get('t'):
-            out.append({'type': 'text', 'name': _nm(base, f't{i}'), 'role': 'title', 'size': 26 if on else 22, 'text': nd['t'],
-                        'x': round(px - 0.05, 3), 'y': ty, 'w': lab_w, 'h': 0.45, 'color': 'head' if on else 'muted'})
-            ty += 0.45
+            t = {'type': 'text', 'name': _nm(base, f't{i}'), 'role': 'cardtitle', 'text': nd['t'], 'align': al,
+                 'x': lx, 'y': round(ty, 3), 'w': lab_w, 'color': 'head' if on else 'muted'}
+            t['h'] = round(text_height(spec, t, lab_w) + 0.04, 3)
+            out.append(t)
+            ty += t['h'] + 0.04
         if nd.get('label'):
-            out.append({'type': 'text', 'name': _nm(base, f'l{i}'), 'role': 'body', 'size': 14, 'bold': True, 'text': nd['label'],
-                        'x': round(px - 0.05, 3), 'y': ty, 'w': lab_w, 'h': 0.62, 'color': 'ink' if on else 'muted'})
-            ty += 0.62
+            t = {'type': 'text', 'name': _nm(base, f'l{i}'), 'role': 'body', 'bold': True, 'text': nd['label'], 'align': al,
+                 'x': lx, 'y': round(ty, 3), 'w': lab_w, 'color': 'ink' if on else 'muted'}
+            t['h'] = round(text_height(spec, t, lab_w) + 0.04, 3)
+            out.append(t)
+            ty += t['h'] + 0.04
         if nd.get('desc'):
-            out.append({'type': 'text', 'name': _nm(base, f'd{i}'), 'role': 'body', 'size': 12, 'text': nd['desc'],
-                        'x': round(px - 0.05, 3), 'y': ty, 'w': lab_w, 'h': 0.62, 'color': 'muted', 'alpha': None if on else 0.75})
+            t = {'type': 'text', 'name': _nm(base, f'd{i}'), 'role': 'body', 'size': max(11, spec.role('body').get('size', 15) - 2),
+                 'text': nd['desc'], 'align': al, 'x': lx, 'y': round(ty, 3), 'w': lab_w, 'color': 'ink' if on else 'muted'}
+            t['h'] = round(text_height(spec, t, lab_w) + 0.04, 3)
+            out.append(t)
     return out
 
 
@@ -473,10 +509,12 @@ def comp_bars(spec, sh):
         out.append({'type': 'rect', 'name': _nm(base, f'bar{i}'), 'x': round(bx, 3), 'y': round(base_y - bh, 3), 'w': round(bw, 3),
                     'h': round(bh, 3), 'fill': col})
         if grow >= 0.999:
-            out.append({'type': 'text', 'name': _nm(base, f'v{i}'), 'role': 'title', 'size': sh.get('value_size', 20),
-                        'text': d.get('display', str(d['value'])), 'x': round(bx - 0.3, 3), 'y': round(base_y - bh - value_h + 0.06, 3),
-                        'w': round(bw + 0.6, 3), 'h': value_h - 0.08, 'align': 'c', 'anchor': 'b',
-                        'color': 'head' if (hl is None or hl == i) else 'muted'})
+            v = {'type': 'text', 'name': _nm(base, f'v{i}'), 'role': 'cardtitle', 'size': sh.get('value_size', spec.role('cardtitle').get('size', 22)),
+                 'text': d.get('display', str(d['value'])), 'x': round(bx - 0.3, 3), 'w': round(bw + 0.6, 3), 'align': 'c', 'anchor': 'b',
+                 'color': 'head' if (hl is None or hl == i) else 'muted'}
+            vh = round(text_height(spec, v, v['w']) + 0.04, 3)
+            v.update({'y': round(base_y - bh - vh - 0.06, 3), 'h': vh})
+            out.append(v)
         out.append({'type': 'text', 'name': _nm(base, f'k{i}'), 'role': 'label', 'text': d['label'], 'x': round(bx - 0.3, 3),
                     'y': round(base_y + 0.1, 3), 'w': round(bw + 0.6, 3), 'h': 0.24, 'align': 'c'})
     return out
@@ -498,12 +536,12 @@ def comp_list(spec, sh):
         quiet = focus is not None and focus != i
         if numbered:
             out.append({'type': 'text', 'name': _nm(base, f'n{i}'), 'role': 'kicker', 'text': f'{i + 1:02d}', 'x': x, 'y': round(cy + 0.06, 3),
-                        'w': num_w, 'h': 0.3, 'alpha': 0.45 if quiet else None})
+                        'w': num_w, 'h': 0.3, **({'color': 'muted'} if quiet else {})})
         paras = [{'text': d['text'], 'size': size, 'bold': True}]
         if d.get('sub'):
             paras.append({'text': d['sub'], 'size': max(11, size - 4), 'color': 'muted', 'space_before': 3, 'bold': False})
         t = {'type': 'text', 'name': _nm(base, f'i{i}'), 'role': 'body', 'text': paras, 'x': x + num_w, 'y': round(cy, 3),
-             'w': w - num_w, 'alpha': 0.45 if quiet else None}
+             'w': w - num_w, 'fade': 0.66 if quiet else None, 'fade_bg': sh.get('ground', 'ground')}
         t['h'] = round(text_height(spec, t, w - num_w) + 0.04, 3)
         out.append(t)
         cy += t['h'] + gap / 2
@@ -518,9 +556,12 @@ def comp_quote(spec, sh):
     x, y, w = sh['x'], sh['y'], sh['w']
     base = sh.get('name')
     q = spec.role('quote')
-    out = [{'type': 'text', 'name': _nm(base, 'mark'), 'role': 'quote', 'text': '“', 'size': int(q.get('size', 32) * 3),
-            'x': round(x - 0.08, 3), 'y': round(y - q.get('size', 32) * 1.1 / 72, 3), 'w': 1.6, 'h': round(q.get('size', 32) * 2.4 / 72, 3),
-            'color': sh.get('mark_color', 'accent'), 'italic': False}]
+    size = sh.get('size', q.get('size', 32))
+    ms = int(size * 2.2)
+    mw = ms * 0.5 / 72
+    out = [{'type': 'text', 'name': _nm(base, 'mark'), 'role': 'quote', 'text': '“', 'size': ms, 'italic': False,
+            'x': round(x - mw - 0.08, 3), 'y': round(y - ms * 0.18 / 72, 3), 'w': round(mw, 3), 'h': round(ms * 1.25 / 72, 3),
+            'align': 'r', 'color': sh.get('mark_color', 'accent'), 'bleed': True}]
     t = {'type': 'text', 'name': _nm(base, 'text'), 'role': 'quote', 'text': sh['text'], 'x': x, 'y': y, 'w': w}
     if sh.get('size'):
         t['size'] = sh['size']
@@ -743,7 +784,12 @@ def style_run(run, d, spec):
     f.size = Pt(d['size'])
     f.bold = d['bold']
     f.italic = d['italic']
-    f.color.rgb = RGBColor.from_string(spec.color(d['color']))
+    col = d['color']
+    if d.get('fade') is not None and d['fade'] < 1:
+        # A quiet text is a solid colour mixed toward its background, not a transparent run:
+        # LibreOffice misplaces Vietnamese marks on transparent text, PowerPoint does not care.
+        col = mix(spec, col, d.get('fade_bg') or 'ground', d['fade'])
+    f.color.rgb = RGBColor.from_string(spec.color(col))
     rPr = run._r.get_or_add_rPr()
     for tag in ('a:ea', 'a:cs'):  # same family for every script slot (Vietnamese renders via latin)
         e = rPr.find(qn(tag))
@@ -921,6 +967,73 @@ def check_text(spec, sh, where, chrome_names):
         spec.warnings.append(f'{where} {name}: {pr}')
 
 
+def text_extent(spec, sh):
+    """(widest line, total height) in inches of a text shape laid out in its box."""
+    import typeset
+    paras = sh['text'] if isinstance(sh['text'], list) else [sh['text']]
+    wide, total = 0.0, 0.0
+    for para in paras:
+        d = para if isinstance(para, dict) else {'text': para}
+        p = text_props(spec, {**sh, **{k: v for k, v in d.items() if k not in ('text', 'runs')}})
+        txt = d.get('text') if 'runs' not in d else ''.join(r.get('text', '') for r in d['runs'])
+        m = typeset.measure(str(txt or ' '), p['font'], p['size'], sh['w'], p['bold'], p['italic'], p['line'], p['spacing'], p['caps'])
+        if m['font_missing']:
+            return sh['w'], text_height(spec, sh, sh['w'])
+        wide = max(wide, min(sh['w'], m['widest_in']))
+        total += m['height_in'] + d.get('space_before', 0) / 72
+    return wide, total
+
+
+def _boxes(spec, shapes, texts, groups, owner=None):
+    for sh in shapes:
+        if sh.get('type') == 'group':
+            kids = sh['shapes']
+            xs = [k.get('x', min(k.get('x1', 0), k.get('x2', 0))) for k in kids]
+            ys = [k.get('y', min(k.get('y1', 0), k.get('y2', 0))) for k in kids]
+            x2 = [k.get('x', 0) + k.get('w', 0) if 'w' in k else max(k.get('x1', 0), k.get('x2', 0)) for k in kids]
+            y2 = [k.get('y', 0) + k.get('h', 0) if 'h' in k else max(k.get('y1', 0), k.get('y2', 0)) for k in kids]
+            if kids:
+                groups.append((sh.get('name') or '(group)', min(xs), min(ys), max(x2) - min(xs), max(y2) - min(ys)))
+            _boxes(spec, kids, texts, groups, owner=sh.get('name') or '(group)')
+        elif sh.get('type') == 'text' and str(sh.get('text', '')).strip():
+            wide, need = text_extent(spec, sh)
+            tp = text_props(spec, sh)
+            anchor, align = tp['anchor'], tp['align']
+            top = sh['y'] if anchor == 't' else (sh['y'] + sh['h'] - need if anchor == 'b' else sh['y'] + (sh['h'] - need) / 2)
+            left = sh['x'] if align == 'l' else (sh['x'] + sh['w'] - wide if align == 'r' else sh['x'] + (sh['w'] - wide) / 2)
+            texts.append((sh.get('name') or '(text)', left, top, wide, need, owner))
+
+
+def _overlap(a, b):
+    ox = min(a[1] + a[3], b[1] + b[3]) - max(a[1], b[1])
+    oy = min(a[2] + a[4], b[2] + b[4]) - max(a[2], b[2])
+    return ox, oy
+
+
+def check_collisions(spec, prims, where, chrome_names):
+    """Texts that overlap each other, or a text that runs over a card or screen it does not
+    belong to, are almost always layout defects (a title that grew into the cards below it).
+    Measured text extents are compared, not box sizes."""
+    texts, groups = [], []
+    _boxes(spec, prims, texts, groups)
+    texts = [t for t in texts if t[0] not in chrome_names]
+    seen = set()
+    for i, a in enumerate(texts):
+        for b in texts[i + 1:]:
+            ox, oy = _overlap(a, b)
+            if ox > 0.05 and oy > 0.04 and (a[0], b[0]) not in seen:
+                seen.add((a[0], b[0]))
+                spec.warnings.append(f'{where}: {a[0]} and {b[0]} overlap on screen ({oy:.2f} in): '
+                                     'move one, shorten the text or widen the column')
+        for g in groups:
+            if a[5] == g[0]:
+                continue
+            ox, oy = _overlap(a, g)
+            inside = a[1] >= g[1] - 0.01 and a[2] >= g[2] - 0.01 and a[1] + a[3] <= g[1] + g[3] + 0.01 and a[2] + a[4] <= g[2] + g[4] + 0.01
+            if ox > 0.05 and oy > 0.04 and not inside:
+                spec.warnings.append(f'{where}: {a[0]} runs over {g[0]} ({oy:.2f} in): give the text its own space')
+
+
 def build(data, root, base=None):
     spec = Spec(data, root)
     prs = Presentation(base) if base else Presentation()
@@ -948,6 +1061,7 @@ def build(data, root, base=None):
         for sh in prims:
             check_text(spec, sh, f'slide {n}', chrome_names)
             add_shape(sl.shapes, sh, spec)
+        check_collisions(spec, prims, f'slide {n}', chrome_names)
         if s.get('notes'):
             sl.notes_slide.notes_text_frame.text = s['notes']
         else:

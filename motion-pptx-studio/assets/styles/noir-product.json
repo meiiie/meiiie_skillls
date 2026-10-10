@@ -45,11 +45,11 @@
     "over": [
       {"type": "line", "name": "!!rule", "x1": 0.9, "y1": 0.56, "x2": 12.433, "y2": 0.56, "color": "faint", "width": 0.75},
       {"type": "rect", "name": "!!mark", "x": 0.9, "y": 0.505, "w": 0.11, "h": 0.11, "fill": "accent"},
-      {"type": "text", "name": "!!pageno", "text": "{n} / {total}", "x": 10.933, "y": 6.98, "w": 1.5, "h": 0.25, "role": "pageno", "align": "r"}
+      {"type": "text", "name": "!!pageno", "text": "{n} / {total}", "x": 10.933, "y": 6.88, "w": 1.5, "h": 0.25, "role": "pageno", "align": "r"}
     ]
   },
   "card": {"fill": "surface", "fill_alpha": 1.0, "line": "faint", "line_width": 0.75, "radius": 0.05,
-           "lit_fill": "#1F232A", "lit_line": "accent", "rule": "accent", "dim_alpha": 0.4,
+           "lit_fill": "#1F232A", "lit_line": "accent", "rule": "accent", "dim_alpha": 0.66,
            "shadow": {"blur": 24, "dist": 8, "dir": 90, "color": "#000000", "alpha": 0.5}},
   "screen": {"bezel": "#16191E", "line": "#2A2F37", "line_width": 0.75, "radius": 0.06, "bar": "#1E2228"},
   "shadow": {"blur": 30, "dist": 10, "dir": 90, "color": "#000000", "alpha": 0.55},

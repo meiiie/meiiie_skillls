@@ -6,8 +6,10 @@
 
 One row per SLIDE. Several rows = one motion (keyframes). `visual` names a kept asset file,
 `drawn:<motif>` from art-direction, or `frame:<file>` marked OK in the media audit.
-`layers` lists the !! names that persist/move. `words` = spoken-word budget for that slide.
+`layers` lists the !! names that persist/move (the signature too). `layout` names the composition
+(references/craft.md §6). `source` holds the fact IDs behind the slide (they stay off the slide).
+`words` = spoken-word budget for that slide.
 
-| # | scene | keyframe role | layout | layers | visual | on-slide text | words | morph ms |
-|---|---|---|---|---|---|---|---|---|
-| 1 | S1 Hook | K1 one string in darkness | intro | !!str2 | drawn:string | — | 18 | 1500 |
+| # | scene | keyframe role | layout | layers | visual | on-slide text | source | words | morph ms |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | S1 Hook | K1 one string in darkness | void | !!str2 | drawn:string | — | — | 18 | 1500 |

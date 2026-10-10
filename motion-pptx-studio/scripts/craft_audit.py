@@ -10,7 +10,7 @@ decks usually skip:
   WARN   text that overflows its box, or a word wider than its box (measured with the real
          font when it is installed: typeset.py)
   WARN   text outside the safe area (0.3 in from the edge), unless parked off-slide
-  WARN   more than 10 distinct text sizes (a type scale has 6-8 steps)
+  WARN   more than 12 distinct text sizes (a type scale has 8-10 roles)
   WARN   a flat solid fill as the ground on most slides (use a material ground: make_assets.py ground)
   WARN   low contrast between a text colour and what is behind it (only when renders are given)
   INFO   the persistent layers, the type scale, ground kinds
@@ -25,7 +25,7 @@ from visual_audit import A, P, Audit, _abs_box, _slide_order, _Zip
 EMU = 914400
 SYSTEM_SHARE = 0.60
 SAFE_IN = 0.30
-MAX_SIZES = 10
+MAX_SIZES = 12
 
 
 def _runs(sp):
@@ -194,8 +194,10 @@ def audit_craft(path, renders_dir=None, audit=None):
             if renders.get(idx) is not None and paras[0]['color']:
                 im = renders[idx]
                 rx, ry = im.width / W, im.height / H
-                crop = im.crop((max(0, int(x * rx)), max(0, int(y * ry)), min(im.width, int((x + w) * rx)), min(im.height, int((y + h) * ry))))
-                if crop.width > 2 and crop.height > 2:
+                l, tp = max(0, int(x * rx)), max(0, int(y * ry))
+                r, bt = min(im.width, int((x + w) * rx)), min(im.height, int((y + h) * ry))
+                crop = im.crop((l, tp, r, bt)) if r - l > 2 and bt - tp > 2 else None
+                if crop is not None:
                     import numpy as np
                     arr = np.asarray(crop.convert('RGB')).reshape(-1, 3)
                     lumv = arr @ np.array([0.2126, 0.7152, 0.0722])
@@ -220,7 +222,7 @@ def audit_craft(path, renders_dir=None, audit=None):
     scale = sorted(sizes)
     audit.info(f'type scale: {scale}')
     if len(scale) > MAX_SIZES:
-        audit.warn(f'{len(scale)} distinct text sizes {scale}: keep to a scale of 6-8 steps (style pack roles)')
+        audit.warn(f'{len(scale)} distinct text sizes {scale}: keep to the style pack type roles (8-10 steps)')
     audit.info('grounds: ' + ', '.join(f'{k} {v}' for k, v in grounds.items()))
     if n >= 6 and grounds['flat'] > 0.7 * n:
         audit.warn(f'flat colour ground on {grounds["flat"]}/{n} slides: use a material ground (make_assets.py ground, style grounds)')

@@ -10,7 +10,7 @@
     "head": "#1C1A35",
     "muted": "#55507A",
     "faint": "#EADBB8",
-    "accent": "#FF5B35",
+    "accent": "#E8461F",
     "accent2": "#2E6BFF",
     "lit": "#1C1A35",
     "veil": "#1C1A35"
@@ -21,7 +21,7 @@
     {"family": "Be Vietnam Pro", "weights": "400,700,400i"}
   ],
   "type": {
-    "kicker":   {"font": "label", "size": 12, "bold": true, "spacing": 1.5, "caps": true, "color": "accent"},
+    "kicker":   {"font": "label", "size": 12, "bold": true, "spacing": 1.5, "caps": true, "color": "head"},
     "display":  {"font": "display", "size": 100, "bold": true, "line": 0.88, "spacing": -2, "color": "head"},
     "title":    {"font": "display", "size": 50, "bold": true, "line": 0.92, "spacing": -1, "color": "head"},
     "subtitle": {"font": "text", "size": 22, "line": 1.25, "color": "muted"},
@@ -47,7 +47,7 @@
     ]
   },
   "card": {"fill": "surface", "fill_alpha": 1.0, "line": "ink", "line_width": 1.75, "radius": 0.08,
-           "lit_fill": "ground2", "lit_line": "ink", "rule": "accent", "dim_alpha": 0.45,
+           "lit_fill": "ground2", "lit_line": "ink", "rule": "accent", "dim_alpha": 0.66,
            "shadow": {"blur": 0, "dist": 6, "dir": 45, "color": "#1C1A35", "alpha": 1.0}},
   "screen": {"bezel": "#FFFFFF", "line": "#1C1A35", "line_width": 1.75, "radius": 0.06, "bar": "#FFD447"},
   "shadow": {"blur": 0, "dist": 7, "dir": 45, "color": "#1C1A35", "alpha": 1.0},

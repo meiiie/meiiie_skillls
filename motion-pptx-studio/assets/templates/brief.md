@@ -1,8 +1,10 @@
 # Brief (Gate 0) — fill every line; "TODO" fails the gate
 - topic: TODO
 - audience: TODO (who decides? judges / TV viewers / investors / developers)
-- deliverable_kind: TODO (heritage | product | other)
+- deliverable_kind: TODO (heritage | product | pitch | business | education | event | other)
 - platform: PowerPoint 365 / 2019+ (.pptx with Morph)
+- style: TODO (style pack: lacquer-heritage | noir-product | paper-editorial | boardroom-data | studio-pop, or the brand's own; references/styles.md)
+- size: TODO (Short 8-15 slides | Standard 20-35 | Long 40+; say the estimate to the user first)
 - talk_minutes: TODO (hard limit of the video or talk; ask, else write the default you chose)
 - on_slide_language: TODO (e.g. Vietnamese only; English technical terms allowed)
 - forbidden_on_slide: TODO (e.g. Han characters; outdated "MIT" licence image; the word "playable")

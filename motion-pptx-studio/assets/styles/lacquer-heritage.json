@@ -175,13 +175,13 @@
   "card": {
     "fill": "surface",
     "fill_alpha": 0.0,
-    "line": "faint",
+    "line": null,
     "line_width": 1.0,
     "radius": 0.03,
     "lit_fill": "#3A2414",
     "lit_line": "accent",
     "rule": "accent",
-    "dim_alpha": 0.45,
+    "dim_alpha": 0.66,
     "shadow": null,
     "lit_shadow": {
       "blur": 18,
