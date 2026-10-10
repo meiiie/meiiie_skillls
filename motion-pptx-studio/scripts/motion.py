@@ -19,7 +19,11 @@ re-ordering. If --config is not given, motion.json is looked up in UNPACKED_DIR 
 its parent folder. Command-line values win over the config file.
 
 motion.json example:
-  {"default_ms": 1300, "dur": {"12": 2000, "22": 2000}, "keep_timing": [50]}
+  {"default_ms": 1300, "dur": {"12": 2000, "22": 2000}, "option": {"7": "byChar"}, "keep_timing": [50]}
+  option: byObject (default) | byWord | byChar. byChar lets a paired text box morph letter by
+  letter ("2009" -> "2024"); byWord moves words that the two slides share.
+build_deck.py writes motion.json next to the built deck from per-slide "ms", "morph" and
+"keep_timing" keys, so the numbers stay correct when slides are added.
 
 Re-runs are safe: every earlier transition (Morph wrapper or plain) is removed first,
 so a slide always ends with exactly one transition. p:timing is rebuilt from names,
@@ -45,7 +49,7 @@ STAGGER_MS = 220
 TRANS = (
     '<mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">'
     '<mc:Choice xmlns:p159="http://schemas.microsoft.com/office/powerpoint/2015/09/main" Requires="p159">'
-    '<p:transition xmlns:p="%s" xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main" spd="slow" p14:dur="{dur}"><p159:morph option="byObject"/></p:transition></mc:Choice>'
+    '<p:transition xmlns:p="%s" xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main" spd="slow" p14:dur="{dur}"><p159:morph option="{opt}"/></p:transition></mc:Choice>'
     '<mc:Fallback><p:transition xmlns:p="%s" spd="slow"><p:fade/></p:transition></mc:Fallback></mc:AlternateContent>'
 ) % (NS['p'], NS['p'])
 ANIM_RE = re.compile(r'@(fade|float|wipe|blink)(\d+)-')
@@ -81,13 +85,14 @@ def load_config(unpacked, path):
             return {
                 'default_ms': int(cfg.get('default_ms', DEFAULT_MS)),
                 'dur': {int(k): int(v) for k, v in cfg.get('dur', {}).items()},
+                'option': {int(k): str(v) for k, v in cfg.get('option', {}).items()},
                 'keep_timing': {int(x) for x in cfg.get('keep_timing', [])},
                 'stagger': int(cfg.get('stagger_ms', STAGGER_MS)),
                 'source': str(c),
             }
         if path:
             raise SystemExit('config not found: ' + str(c))
-    return {'default_ms': DEFAULT_MS, 'dur': {}, 'keep_timing': set(), 'stagger': STAGGER_MS, 'source': None}
+    return {'default_ms': DEFAULT_MS, 'dur': {}, 'option': {}, 'keep_timing': set(), 'stagger': STAGGER_MS, 'source': None}
 
 
 def eff(kind, spid, delay, ids, txt):
@@ -199,14 +204,17 @@ def apply(unpacked, cfg, dry=False):
                 root.remove(old_timing)
             timing_el = etree.fromstring(build_timing(anims, num, cfg['stagger'])) if anims else None
         dur = cfg['dur'].get(num, cfg['default_ms'])
-        new = [etree.fromstring(TRANS.replace('{dur}', str(dur)))]
+        opt = cfg.get('option', {}).get(num, 'byObject')
+        if opt not in ('byObject', 'byWord', 'byChar'):
+            raise SystemExit(f'slide{num}: morph option must be byObject, byWord or byChar (got {opt!r})')
+        new = [etree.fromstring(TRANS.replace('{dur}', str(dur)).replace('{opt}', opt))]
         if timing_el is not None:
             new.append(timing_el)
         insert_after(root, new)
         if not dry:
             tree.write(str(f), xml_declaration=True, encoding='UTF-8', standalone=True)
         kinds = ','.join(f'{k}{o}' for o, k, _, _ in anims)
-        report.append(f'slide{num}: morph {dur}ms, anims [{kinds}]' + (' timing KEPT' if keep else '') + f', !! {sorted(set(morphs))}')
+        report.append(f'slide{num}: morph {dur}ms' + (f' {opt}' if opt != 'byObject' else '') + f', anims [{kinds}]' + (' timing KEPT' if keep else '') + f', !! {sorted(set(morphs))}')
     return report, warnings
 
 

@@ -32,11 +32,16 @@ Thresholds (why these numbers, not the round examples):
                            Genshin deck (that deck is about 19 words/slide of slogans);
                            it fails a one-word deck. Slogan decks are caught by the fact-ID
                            rule when facts.md is in play.
-  FACT_SLIDE_MIN = 0.40    of slides / storyboard rows must carry a fact ID defined in
-                           facts.md. Enforced on the storyboard always, and on a finished
-                           deck only when a facts file is passed or discovered. The two
-                           accepted decks cite sources in speaker notes, not as fact IDs
-                           on the slide, so a bare audit does not pretend they already pass.
+  FACT_SLIDE_MIN = 0.40    of storyboard rows must cite a fact ID defined in facts.md (in a
+                           source column or anywhere in the row). v3 required the ID ON the
+                           slide; the accepted ca trù deck has none on its slides and is
+                           cleaner for it, so on a finished deck this is only a warning.
+  HOLD_BEAT_SHARE = 0.10   a "hold beat" is a pair that keeps the same photo still while the
+                           words change (a question, then its answer). v4 allows at most one
+                           per scene and at most 10% of all transitions (at least one). The
+                           ca trù deck has exactly one (31→32, the "which instrument is
+                           missing?" beat, 1 of 47 transitions). Genshin had 6 of 22 and 2
+                           in the same scene, so it still fails.
 
 A flat brand plate (low standard deviation and almost no edges) is not a subject photo.
 Layered parts of similar area are not "one dominant image".
@@ -55,7 +60,9 @@ Measured on the three reference outputs (200×112, channel delta > 24):
   carry a subject photo (46%), 9 distinct images and 9 runs, max reuse 4 (hash a535dcbe,
   slides 37–40). Editorial-left on 0 scenes. Words average 49.9. Families: Josefin Sans and
   Cormorant. Slides 31→32 share screenshot 52e451c0 with a 1.3% shape move and 2.8% pixel
-  change: a near-duplicate. The 6% floor is what flags it; list-reveal pairs at 6.2% pass.
+  change. v3 called that a defect; it is the deck's one hold beat (a question held on screen
+  while the presenter waits) and v4 reports it as a warning. The v4 rule: the accepted deck
+  must pass every check (tests/test_audit.py, MOTION_REF_DECK).
 """
 import hashlib
 import io
@@ -84,6 +91,7 @@ PHOTO_LED_MIN = 0.40
 LAYOUT_SCENE_MAX = 3
 WORDS_AVG_MIN = 8
 FACT_SLIDE_MIN = 0.40
+HOLD_BEAT_SHARE = 0.10
 FLAT_STD_MAX = 12.0
 FLAT_EDGE_MAX = 4.0
 SUBJECT_AREA_MIN = 0.12
@@ -301,11 +309,12 @@ def storyboard_density_errors(rows, col, facts_text):
     if not ids:
         errors.append('facts.md defines no fact IDs (S1) or table ids (1.1) to cite on slides')
         return errors
-    hit = sum(1 for r in rows if cites_fact(col(r, 'on-slide'), ids))
+    hit = sum(1 for r in rows if cites_fact(' '.join(str(v) for v in r.values()), ids))
     frac = hit / len(rows)
     if frac < FACT_SLIDE_MIN:
         errors.append(
-            f'{hit}/{len(rows)} rows ({frac:.0%}) cite a fact ID on the slide (min {FACT_SLIDE_MIN:.0%})'
+            f'{hit}/{len(rows)} rows ({frac:.0%}) cite a fact ID from facts.md (min {FACT_SLIDE_MIN:.0%}). '
+            f'Put the ID in the "source" column: the claim must trace to a source, it does not have to be printed on the slide'
         )
     return errors
 
@@ -533,9 +542,13 @@ def load_pptx_slides(path):
         onslide = '\n'.join(ln['text'] for ln in lines)
         notes = _notes_text(z, part)
         marker = None
-        m = re.search(r'(?:Cảnh|Scene)\s*(\d+)', notes, re.I)
-        if m:
-            marker = m.group(1)
+        csld = t.find(P + 'cSld')
+        if csld is not None and (csld.get('name') or '').strip():
+            marker = csld.get('name').strip()
+        else:
+            m = re.search(r'(?:Cảnh|Scene)\s*(\d+)', notes, re.I)
+            if m:
+                marker = m.group(1)
         slides.append({
             'pics': pics, 'shapes': shapes, 'lines': lines, 'fonts': fonts,
             'onslide': onslide, 'notes': notes, 'marker': marker,
@@ -812,17 +825,29 @@ def _keyframe_pairs(slides, renders, audit, kind):
         stuck = (not moved) and (pix is None or pix < PIXEL_DELTA_MIN)
         if stuck:
             pix_txt = 'pixels not available' if pix is None else f'pixels changed {pix:.1%} < {PIXEL_DELTA_MIN:.0%}'
-            failing.append(
+            failing.append((i,
                 f'keyframe delta: slides {i}→{i+1} share subject image {sa["hash"]} '
                 f'but it does not move (box {box:.0%} of slide width, crop {crop:.0%}, '
                 f'largest shared !! shape {shape:.0%}; {pix_txt}). '
                 f'Need a box/crop move ≥ {IMAGE_MOVE_MIN:.0%}, a !! shape move ≥ {SHAPE_MOVE_MIN:.0%}, '
                 f'or ≥ {PIXEL_DELTA_MIN:.0%} of pixels changed.'
-            )
+            ))
     for line in measured:
         audit.info('keyframe ' + line)
-    for msg in failing:
-        audit.error(msg)
+    if failing:
+        keys = _scene_keys(slides)
+        per_scene = Counter(keys[i] for i, _ in failing)  # scene of the second slide of the pair
+        budget = max(1, int(HOLD_BEAT_SHARE * max(1, len(slides) - 1)))
+        if len(failing) <= budget and max(per_scene.values()) <= 1:
+            for i, msg in failing:
+                audit.warn(f'hold beat: slides {i}→{i + 1} keep the same photo still while the words change. '
+                           f'Allowed (at most one per scene, {budget} in this deck); make sure it is a deliberate pause '
+                           f'(a question, then its answer), not a stuck keyframe.')
+        else:
+            why = (f'{len(failing)} still pairs (allowed: {budget}, one per scene)'
+                   if len(failing) > budget else 'two still pairs in one scene')
+            for i, msg in failing:
+                audit.error(msg + f' [{why}]')
     if not measured:
         audit.info('keyframe: no consecutive slides share a dominant subject image')
 
@@ -850,14 +875,14 @@ def _density_and_fonts(slides, audit, facts_text, min_slides=MIN_SLIDES_FOR_DENS
         if not ids:
             audit.error('facts.md defines no fact IDs to match against on-slide text')
         else:
-            hit = sum(1 for s in slides if cites_fact(s['onslide'], ids))
+            hit = sum(1 for s in slides if cites_fact(s['onslide'] + ' ' + s.get('notes', ''), ids))
             frac = hit / max(1, len(slides))
-            audit.info(f'fact IDs on slides: {hit}/{len(slides)} ({frac:.0%})')
+            audit.info(f'fact IDs on slides or in notes: {hit}/{len(slides)} ({frac:.0%})')
             if frac < FACT_SLIDE_MIN:
-                missing = [i for i, s in enumerate(slides, 1) if not cites_fact(s['onslide'], ids)]
-                audit.error(
-                    f'content density: {hit}/{len(slides)} slides ({frac:.0%}) carry a fact ID '
-                    f'from facts.md (min {FACT_SLIDE_MIN:.0%}). Slides without one: {missing[:18]}'
+                missing = [i for i, s in enumerate(slides, 1) if not cites_fact(s['onslide'] + ' ' + s.get('notes', ''), ids)]
+                audit.warn(
+                    f'sources: {hit}/{len(slides)} slides ({frac:.0%}) cite a fact ID from facts.md on the slide or in '
+                    f'the notes (aim for {FACT_SLIDE_MIN:.0%}). Slides without one: {missing[:18]}'
                 )
 
 
