@@ -12,3 +12,4 @@
 Each folder: `make_deck.py` (writes `deck.json`), `build.sh` (assets → deck.json → `studio.py build`), `contact.jpg`
 (the committed render). Generated assets, decks and renders are not committed; run `build.sh` to get the `.pptx` and
 play it in PowerPoint 365 to see the Morph.
+- `earth-fall/`: v5.2 pro-craft example: 22-slide Powers-of-Ten Earth deck, four sub-styles, variety audit passes.

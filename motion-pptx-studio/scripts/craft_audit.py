@@ -139,6 +139,14 @@ def audit_craft(path, renders_dir=None, audit=None):
             if not box:
                 continue
             x, y, w, h = (v / EMU for v in box)
+            tw, th = w, h   # text is laid out in the unrotated box
+            xf = sp.find('.//' + A + 'xfrm')
+            rot = int(xf.get('rot', 0)) / 60000 if xf is not None else 0
+            if rot % 180:   # v5.2: rotated text covers its rotated box, not the unrotated one
+                import math as _m
+                r = _m.radians(rot)
+                rw, rh = abs(w * _m.cos(r)) + abs(h * _m.sin(r)), abs(w * _m.sin(r)) + abs(h * _m.cos(r))
+                x, y, w, h = x + w / 2 - rw / 2, y + h / 2 - rh / 2, rw, rh
             c = sp.find('.//' + P + 'cNvPr')
             name = c.get('name') if c is not None else '?'
             for pr in paras:
@@ -148,7 +156,7 @@ def audit_craft(path, renders_dir=None, audit=None):
             if not parked and (x < SAFE_IN - 1e-3 or y < SAFE_IN - 1e-3 or x + w > W - SAFE_IN + 1e-3 or y + h > H - SAFE_IN + 1e-3):
                 unsafe.append(f'slide {idx} {name}')
             li, ri, ti, bi, auto, wrap = _insets(sp)
-            iw, ih = w - li - ri, h - ti - bi
+            iw, ih = tw - li - ri, th - ti - bi
             if iw <= 0 or parked:
                 continue
             need, problem = 0.0, None
@@ -189,6 +197,14 @@ def audit_craft(path, renders_dir=None, audit=None):
             if not paras or not box:
                 continue
             x, y, w, h = (v / EMU for v in box)
+            tw, th = w, h   # text is laid out in the unrotated box
+            xf = sp.find('.//' + A + 'xfrm')
+            rot = int(xf.get('rot', 0)) / 60000 if xf is not None else 0
+            if rot % 180:   # v5.2: rotated text covers its rotated box, not the unrotated one
+                import math as _m
+                r = _m.radians(rot)
+                rw, rh = abs(w * _m.cos(r)) + abs(h * _m.sin(r)), abs(w * _m.sin(r)) + abs(h * _m.cos(r))
+                x, y, w, h = x + w / 2 - rw / 2, y + h / 2 - rh / 2, rw, rh
             c = sp.find('.//' + P + 'cNvPr')
             name = c.get('name') if c is not None else '?'
             if renders.get(idx) is not None and paras[0]['color']:

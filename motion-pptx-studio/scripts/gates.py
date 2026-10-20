@@ -477,7 +477,7 @@ def g6(work):
             extra += ['--anchor', anchor.group(1)]
         ok, tail = run_check_deck(pp[0], extra)
         g.need(ok, 'check_deck.py: ' + (tail[-1] if tail else ''), '; '.join(tail[:6]))
-        target = b.get('talk_minutes', '')
+        target = (re.findall(r'\d+(?:[.,]\d+)?', b.get('talk_minutes', '')) or [''])[0].replace(',', '.')   # v5.2: '6 (default …)' -> '6'
         r = subprocess.run([sys.executable, str(HERE / 'words_budget.py'), 'measure', str(pp[0]), '--target', target or '99'],
                            capture_output=True, text=True)
         est = [l for l in r.stdout.splitlines() if l.startswith(('estimate', 'target'))]

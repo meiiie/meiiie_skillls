@@ -154,6 +154,9 @@ class Sprite:
         w, h = rec['w'] * W, rec['h'] * H
         cx, cy = sw / 2, sh / 2
         box = (int(cx - w / 2 - mx), int(cy - h / 2 - my), int(math.ceil(cx + w / 2 + mx)), int(math.ceil(cy + h / 2 + my)))
+        # a shape larger than the page (a Morph zoom plate at x3) renders only inside the page: crop to it, so a
+        # 30-inch circle does not ask PIL for a 190-megapixel crop (DecompressionBombError, v5.2 fix)
+        box = (max(0, box[0]), max(0, box[1]), min(sw, box[2]), min(sh, box[3]))
         b = np.asarray(black.crop(box).convert('RGB'), np.float32)
         wt = np.asarray(white.crop(box).convert('RGB'), np.float32)
         alpha = np.clip(1 - (wt - b).mean(axis=2) / 255.0, 0, 1)

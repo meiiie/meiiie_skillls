@@ -1072,8 +1072,14 @@ def check_text(spec, sh, where, chrome_names):
         return
     g = spec.grid
     m = g['safe']
-    if sh['x'] < m - 1e-3 or sh['y'] < m - 1e-3 or sh['x'] + sh['w'] > W - m + 1e-3 or sh['y'] + sh['h'] > H - m + 1e-3:
-        if not (sh['x'] > W or sh['y'] > H or sh['x'] + sh['w'] < 0 or sh['y'] + sh['h'] < 0):  # parked off-slide is fine
+    bx, by, bw, bh = sh['x'], sh['y'], sh['w'], sh['h']
+    if sh.get('rot'):   # v5.2: a rotated text box is judged by the box it really covers on screen
+        import math as _m
+        r = _m.radians(sh['rot'])
+        rw, rh = abs(bw * _m.cos(r)) + abs(bh * _m.sin(r)), abs(bw * _m.sin(r)) + abs(bh * _m.cos(r))
+        bx, by, bw, bh = bx + bw / 2 - rw / 2, by + bh / 2 - rh / 2, rw, rh
+    if bx < m - 1e-3 or by < m - 1e-3 or bx + bw > W - m + 1e-3 or by + bh > H - m + 1e-3:
+        if not (bx > W or by > H or bx + bw < 0 or by + bh < 0):  # parked off-slide is fine
             spec.warnings.append(f'{where} {name}: outside the safe area ({m:.2f} in from every edge)')
     import typeset
     paras = sh['text'] if isinstance(sh['text'], list) else [sh['text']]
@@ -1137,6 +1143,14 @@ def _boxes(spec, shapes, texts, groups, owner=None):
             anchor, align = tp['anchor'], tp['align']
             top = sh['y'] if anchor == 't' else (sh['y'] + sh['h'] - need if anchor == 'b' else sh['y'] + (sh['h'] - need) / 2)
             left = sh['x'] if align == 'l' else (sh['x'] + sh['w'] - wide if align == 'r' else sh['x'] + (sh['w'] - wide) / 2)
+            if sh.get('rot'):   # v5.2: rotate the measured ink box about the shape centre
+                import math as _m
+                r = _m.radians(sh['rot'])
+                cx0, cy0 = sh['x'] + sh['w'] / 2, sh['y'] + sh['h'] / 2
+                pts = [(left + dx - cx0, top + dy - cy0) for dx in (0, wide) for dy in (0, need)]
+                pts = [(cx0 + px * _m.cos(r) - py * _m.sin(r), cy0 + px * _m.sin(r) + py * _m.cos(r)) for px, py in pts]
+                left, top = min(p[0] for p in pts), min(p[1] for p in pts)
+                wide, need = max(p[0] for p in pts) - left, max(p[1] for p in pts) - top
             texts.append((sh.get('name') or '(text)', left, top, wide, need, owner))
 
 

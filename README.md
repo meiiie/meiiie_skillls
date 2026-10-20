@@ -9,7 +9,7 @@
 | [meiiie-interactive-webgl](meiiie-interactive-webgl/SKILL.md) | Available | Semantic 3D objects, reversible assembly, accessible controls and explicit render checks. |
 | [meiiie-operating-office](meiiie-operating-office/SKILL.md) | Available | Task-scoped coordination with one accountable lead, bounded specialist work and evidence-based review. |
 | [neko-wiii-product-studio](neko-wiii-product-studio/SKILL.md) | Available | Neko Core and Wiii ownership, shared contracts and integration acceptance. |
-| [motion-pptx-studio](motion-pptx-studio/SKILL.md) | Available | v5.1 designed, researched PowerPoint decks for any kind of talk: style packs as layout grammars, a motion library beyond Morph with a no-Morph safe mode, a deck engine, an asset kit, craft audits and a timed speaker script. |
+| [motion-pptx-studio](motion-pptx-studio/SKILL.md) | Available | v5.2 designed, researched PowerPoint decks for any kind of talk: style packs as layout grammars, a motion library beyond Morph with a no-Morph safe mode, variety and composition audits, a deck engine, an asset kit, craft audits and a timed speaker script. |
 | [heritage-visual-research](heritage-visual-research/SKILL.md) | Available | Sourced facts, true/wrong motif lists, anatomy checks and licensed images for cultural topics. |
 | [presentation-speech-craft](presentation-speech-craft/SKILL.md) | Available | Hook, anchor phrase, pauses, circular close, word budget and a speaker-script document. |
 
@@ -47,7 +47,7 @@ The accepted product direction and historical audit findings guide current inspe
 
 ## Motion PPTX Studio
 
-[Motion PPTX Studio](motion-pptx-studio/SKILL.md) (v5.1) builds a PowerPoint deck as a short film shot on one set: a
+[Motion PPTX Studio](motion-pptx-studio/SKILL.md) (v5.2) builds a PowerPoint deck as a short film shot on one set: a
 style pack holds the system (material ground, chrome, grid, type roles), one signature object carries the deck, and
 each scene uses a chosen motion vocabulary — Morph keyframes when PowerPoint 365/2019+ will play them, otherwise
 classic transitions, entrances, paths and type. It covers product launches, pitches, business reviews and data stories,
@@ -71,9 +71,11 @@ choice (including a rejected pack) and at least two techniques beyond Morph.
 - A deck engine with components (heading, card, stat, screen, timeline, bars, list, quote) and layout warnings
   measured with the real font; an asset kit for grounds, foil drawings, layered parts and photo grading.
 - Audits that fail stuck keyframes, one-template decks and decks without a persistent system, and pass the accepted
-  reference deck. The v3 visual-audit gates are included. [Craft](motion-pptx-studio/references/craft.md) and
-  [genre](motion-pptx-studio/references/genres.md) references; [worked examples](motion-pptx-studio/examples/README.md)
-  including the six-style phin deck. The v5 research notes are
+  reference deck. The v3 visual-audit gates are included. [Craft](motion-pptx-studio/references/craft.md),
+  [pro craft](motion-pptx-studio/references/pro-craft.md) (motion verb, cut grammar, composition, parallax) and
+  [genre](motion-pptx-studio/references/genres.md) references. `check_deck.py --variety` measures technique,
+  transition and composition variety. [Worked examples](motion-pptx-studio/examples/README.md) include the
+  six-style phin deck and the 22-slide earth-fall deck. The v5 research notes are
   [research-v5.md](motion-pptx-studio/references/research-v5.md).
 
 Morph plays in PowerPoint 365 / 2019+. PowerPoint 2016, Google Slides, Keynote and LibreOffice need `compat: safe`

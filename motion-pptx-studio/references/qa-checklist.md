@@ -57,6 +57,16 @@ The accepted reference deck passes this audit (`tests/test_audit.py`); a change 
 - [ ] Players known? If not PowerPoint 365 only, `compat` is `safe` or `dual`. `check_deck.py` shows `no-Morph: compat=…, 0 shared-shape move(s) without a classic replacement` (safe) and no `still carries a Morph`; the `-nomorph` render folder matches the intended render (`worst mean diff` near 0). LOOK at the `-nomorph` contact sheet.
 - [ ] Final report says: "check Morph, transitions, entrances, triggers, links and video in PowerPoint 365".
 
+## 4b. Variety and composition (`check_deck.py --variety warn|strict`, v5.2; rules in `pro-craft.md`)
+- [ ] ≥ 10 distinct effect techniques (decks of 15+ slides); no technique above 35% of effect nodes
+- [ ] ≥ 5 transition types; Morph only where one object travels; the climax transition used once
+- [ ] ≥ 60% distinct composition signatures across scene cuts; never the same grammar on 3 slides in a row
+  (e.g. "big numeral top-left + photo" three times)
+- [ ] ≥ 20% of slides have three planes in motion (plate + moving layer + text); parallax on a few
+- [ ] each scene has a nameable flavour (ground, type voice, accent, motion verb) visible at thumbnail size
+- [ ] a written harsh critique against the four gaps in notes/gN.md, and at least one iteration after it
+- [ ] rotated text (`rot`) is judged by its rotated box (safe area and collisions, v5.2)
+
 ## 5. Language and licences
 - [ ] On-slide language as in the brief (labels, captions, axes, credits too).
 - [ ] Credit line on slides with CC BY/BY-SA photos; a credits slide lists them all; edited BY-SA marked "(đã chỉnh sửa)".

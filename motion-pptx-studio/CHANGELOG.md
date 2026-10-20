@@ -1,5 +1,29 @@
 # Changelog
 
+## 5.2.0
+Pro craft: variety, composition and flavour. The phin sample was judged "better, but not truly professional" (too
+little animation variety, weak composition, too little flavour, too little overall variety); this release turns those
+four gaps into rules and measurements.
+- **`references/pro-craft.md`** (new, cited: Kurzgesagt, Eames *Powers of Ten*, Duarte, Fluent 2 motion, Microsoft
+  Learn easing, BrightCarbon and CreativePro parallax, Microsoft Morph tips, NASA media guidelines). Covers the
+  motion verb per scene, the cut grammar, eight composition systems, three planes and parallax, sub-styles, the
+  narrative device and the harsh-critique ritual.
+- **`scripts/variety_audit.py`** (new): names every effect node's technique, counts transition types, composition
+  signatures per scene cut and moving depth/parallax. Thresholds: ≥10 techniques, top ≤35%, ≥5 transitions,
+  ≥60% compositions, no 3 equal in a row, ≥20% moving depth (decks of 15+ slides).
+- **`check_deck.py --variety {warn,strict,off}`** (default warn) prints the variety line and census; strict makes
+  misses errors. Calibration: Earth deck passes (18 techniques, top 28%, 11 transitions, 12/14, depth 13/22). The
+  phin sample warns on depth. The catru reference warns 4 times (3 techniques, fade 73%, 1 transition) and still exits 0.
+- **Rotation-aware layout checks**: `build_deck.py` safe-area and collision checks and `craft_audit.py` safe area
+  use the rotated box for `rot` text. The overflow check still uses the unrotated box the text is set in. Vertical
+  numerals no longer raise false warnings.
+- **`preview_motion.py`**: sprite crop is clamped to the image bounds (fixes DecompressionBombError on huge
+  Morph zoom shapes).
+- **`gates.py` gate 6**: `talk_minutes: 6 (default chosen …)` is parsed to the number. Before, the free text
+  made `words_budget.py` fail and gate 6 reported a false time overrun.
+- `qa-checklist.md` §4b variety gates; SKILL.md reference map row; `examples/earth-fall` (22-slide Vietnamese
+  Powers-of-Ten deck, four sub-styles, two Manim films).
+
 ## 5.1.0
 No-Morph safe mode. Morph plays only in PowerPoint 365/2019+; 2016, Google Slides, Keynote and LibreOffice fell
 back to a plain fade where shared shapes jump.

@@ -5,7 +5,7 @@ description: Build cinematic, professionally designed PowerPoint decks with real
 
 # Motion PPTX Studio
 
-Version 5.1.0. Python 3.9+, LibreOffice and poppler; works in any harness with a shell (Claude Code, Codex,
+Version 5.2.0. Python 3.9+, LibreOffice and poppler; works in any harness with a shell (Claude Code, Codex,
 Cursor, Grok Bot, a plain LLM with tools: `references/harness-adapters.md`).
 
 The standard comes from a real user and is kept word for word:
@@ -194,9 +194,10 @@ and why they are deliberate.
 | `references/speech-craft.md` | Phases 1/4: hook, anchor, pauses, circular close, word budget |
 | `references/build-engine.md` | Phase 5: deck.json, components, generator scripts, OOXML editing, gotchas |
 | `references/qa-checklist.md` | every render: layout warnings, audit, visual, accuracy, motion, language, licence, timing |
+| `references/pro-craft.md` + `scripts/variety_audit.py` | Phases 3–5: the four pro gaps (animation variety, composition, flavour, overall variety) as rules: motion verb per scene, cut grammar, eight composition systems, three planes and parallax, sub-styles; measured by `check_deck.py --variety` |
 | `references/delivery.md` | Phase 6: package, fonts, credits, the hand-off message |
 | `references/harness-adapters.md` | installing the skill; harness differences; weak-model mode |
-| `examples/catru-mini`, `examples/product-launch`, `examples/data-story`, `examples/phin-multistyle` | before building: the same bar in nine styles (phin: six styles, one per chapter, each with its own grammar), each with `make_deck.py`, `build.sh` and a contact sheet |
+| `examples/catru-mini`, `examples/product-launch`, `examples/data-story`, `examples/phin-multistyle`, `examples/earth-fall` | before building: the same bar in nine styles (phin: six styles, one per chapter, each with its own grammar), each with `make_deck.py`, `build.sh` and a contact sheet |
 | `examples/case-catru-heritage.md`, `examples/case-neko-core-product.md` | the two delivered decks and every correction the user made |
 
 Companion skills (optional, same repo): `heritage-visual-research` (Phases 1–2 alone) and `presentation-speech-craft`

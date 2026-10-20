@@ -23,6 +23,10 @@ Checks (ERROR = must fix, WARN = look at it):
          images wider than 2560 px; byte-identical media (run finish_dedupe.py)
   ERROR  animation XML that targets a shape id not on the slide, or repeats a timing node id
   WARN   motion monotony: 12+ slides, >85% Morph, no emphasis/path/exit/letter/video effect
+  WARN   variety (v5.2, --variety strict makes these ERRORs; 15+ slides, scaled down for smaller decks):
+         < 10 distinct effect techniques, one technique > 35% of effect nodes, < 5 transition types,
+         < 60% distinct layout signatures across scene cuts or 3 equal cuts in a row,
+         < 20% of slides with moving depth (plate + moving layer + text)
   ERROR  no-Morph (v5.1, --compat or motion.json "compat"): in safe mode any Morph left, or a shared !! shape
          that moves with no classic replacement (path/entrance); with --nomorph-render DIR the deck is
          rendered with every Morph replaced by its fallback and each slide must match the --renders end state
@@ -36,6 +40,7 @@ Usage:
   python check_deck.py DECK.pptx|UNPACKED_DIR|DECK.pdf [--max-mb 25] [--anchor "Hỏi trước, rồi mới làm."]
          [--anchor-count 3] [--expect-slides 34] [--forbid-notes] [--extra-forbid "歌籌,MIT"]
          [--renders DIR] [--facts research/facts.md] [--compat morph|safe|dual] [--nomorph-render DIR]
+         [--variety warn|strict|off]
 Exit code 1 when any ERROR is found.
 """
 import argparse
@@ -187,6 +192,9 @@ def main(argv=None):
     ap.add_argument('--compat', choices=('morph', 'safe', 'dual'),
                     help='no-Morph mode to audit (default: "compat" in a motion.json next to the deck, else morph)')
     ap.add_argument('--nomorph-render', help='render the deck with Morph stripped into this folder and compare it with --renders')
+    ap.add_argument('--variety', choices=('warn', 'strict', 'off'), default='warn',
+                    help='v5.2 variety audit (techniques, max share, transitions, composition, moving depth): '
+                         'warn (default) or strict (errors); see variety_audit.py and references/pro-craft.md')
     a = ap.parse_args(argv)
     if Path(a.deck).suffix.lower() == '.pdf':
         from visual_audit import audit_path, print_audit
@@ -349,6 +357,13 @@ def main(argv=None):
     errors += ce
     warns += cw
     info += ci
+    if a.variety != 'off':
+        import variety_audit
+        ve, vw, vi = variety_audit.audit([(f'pos {i:2} ({Path(p).name})', xml(src, p)) for i, p in enumerate(order, 1)],
+                                         motionlib.describe_transition, strict=a.variety == 'strict')
+        errors += ve
+        warns += vw
+        info += vi
     if a.nomorph_render:
         ce, ci = nomorph_render(src, a.deck, a.nomorph_render, a.renders)
         errors += ce
