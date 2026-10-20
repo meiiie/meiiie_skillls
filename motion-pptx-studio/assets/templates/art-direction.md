@@ -1,6 +1,13 @@
 # Art direction (Gate 3)
 - style: TODO (pack name; the working copy is design/style.json. Change the copy, never the pack)
 
+## Style choice (no default template: pick or mix packs per chapter ON PURPOSE; references/styles.md §0)
+- chosen: TODO pack(s) and the scenes they cover, and why the subject asks for it
+- rejected: TODO a pack you considered and why it is wrong here
+
+## Motion vocabulary (2-4 signature techniques beyond Morph: references/motion-library.md)
+- TODO e.g. "type (letter by letter) for the hook and the close", "path: a drop that falls through the phin", "curtains between chapters"
+
 ## Signature (ONE object or motif that carries through the deck as !! layers)
 - TODO what it is, where it rests (margin, chrome) and the 2-3 moments where it becomes the hero
   e.g. "three graduated gold lines (the đàn đáy strings) in the left margin; they lie down into the timeline in S7 and are restored in the close"

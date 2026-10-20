@@ -142,6 +142,11 @@ def cmd_build(a):
         r = subprocess.run(['bash', str(HERE / 'render.sh'), str(preview), str(renders)], capture_output=True, text=True)
         print((r.stdout or r.stderr).strip().splitlines()[-1] if (r.stdout or r.stderr).strip() else 'render: no output')
     extra = ['--renders', str(renders)] if renders else []
+    mode = (json.loads(deck.read_text(encoding='utf-8')).get('compat') or 'morph') if deck.is_file() else 'morph'
+    if mode != 'morph':
+        extra += ['--compat', mode]
+        if renders:
+            extra += ['--nomorph-render', str(renders) + '-nomorph']
     c, o = run([HERE / 'check_deck.py', preview, *extra])
     keep = [l for l in o.splitlines() if l.startswith(('WARN', 'ERROR', 'RESULT')) or 'system:' in l or 'type scale' in l]
     print('\n'.join(keep) if any(l.startswith('RESULT') for l in keep) else 'check_deck.py did not finish:\n' + o[-3000:])

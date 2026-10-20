@@ -51,7 +51,11 @@ The accepted reference deck passes this audit (`tests/test_audit.py`); a change 
 - [ ] `check_deck.py` per-slide lines show morph ms, entrances, and shared `!!` layers. A pair that shares a subject image and does not move it is an ERROR, not an info line. Look at the named slides.
 - [ ] Planned durations applied (2000 ms on blooms and anchors); `motion.py` printed the motion.json it used.
 - [ ] Blink only where planned; hand-made timing preserved for `keep_timing` slides.
-- [ ] Final report says: "check Morph, entrances and blink in PowerPoint 365".
+- [ ] `check_deck.py` motion vocabulary line: more than Morph and fade; no NO-MORPH slide you did not plan; no effect ERROR (missing target, duplicate id).
+- [ ] `verify_motion.py DECK` PASS: every authored effect is imported by LibreOffice (p15 transitions are listed as not importable, that is expected).
+- [ ] Optional `preview_motion.py DECK --out X-SIMULATION.mp4`: watch it for order and rhythm; it is an approximation, labelled on every frame, never sent as "the deck playing".
+- [ ] Players known? If not PowerPoint 365 only, `compat` is `safe` or `dual`. `check_deck.py` shows `no-Morph: compat=…, 0 shared-shape move(s) without a classic replacement` (safe) and no `still carries a Morph`; the `-nomorph` render folder matches the intended render (`worst mean diff` near 0). LOOK at the `-nomorph` contact sheet.
+- [ ] Final report says: "check Morph, transitions, entrances, triggers, links and video in PowerPoint 365".
 
 ## 5. Language and licences
 - [ ] On-slide language as in the brief (labels, captions, axes, credits too).

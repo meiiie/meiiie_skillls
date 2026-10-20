@@ -1,5 +1,48 @@
 # Changelog
 
+## 5.1.0
+No-Morph safe mode. Morph plays only in PowerPoint 365/2019+; 2016, Google Slides, Keynote and LibreOffice fell
+back to a plain fade where shared shapes jump.
+- **`compat`** deck key (`morph` default | `safe` | `dual`) and `safe_transition`, written to motion.json
+  (`build_deck.py`), documented in SKILL.md, motion-library.md §4b, build-engine.md A.3c, qa-checklist.md §4.
+- **`compat.py`**: Morph → classic rebuild from the geometry of shared `!!` shapes: moved → appear/zoom + motion
+  path from the old place (`from_offset` paths in `motionlib.py`), resized → zoom, changed text → type/word,
+  new layer → fade; `dual` keeps Morph with a push/wipe/fade `mc:Fallback` (`transition_xml` `fallback`).
+  Applied by `motion.py`; authored entrances/paths are never overwritten.
+- **No-Morph gate** (`check_deck.py --compat`, auto from motion.json; `--nomorph-render DIR`): ERROR on Morph left
+  in safe mode and on Morph-authored shared moves with no classic replacement; renders a Morph-stripped copy and
+  compares each slide's end state with the intended render; WARN on overlapping end-state text. `studio.py build`
+  runs it when the deck sets compat.
+- Example: `examples/phin-multistyle/build-safe.sh` (`make_deck.py safe`). Tests: `tests/test_compat.py`.
+
+## 5.0.0
+v4 made decks look designed, but with one motion (Morph) and five packs that a starter deck showed as recolours of
+one layout. v5 widens the motion vocabulary to what professional motion decks actually use (research: slidewppt.vn
+decks, Office transition/animation XML, ManimGX, the "anatomy" idea), makes each style a layout grammar, and adds
+hand-built architecture films with an editable fallback. Backward compatible: v4 specs build unchanged.
+
+- **Creativity rule** (SKILL.md, styles.md §0): no default template or motion; `## Style choice` (with a rejected
+  pack) and `## Motion vocabulary` (≥ 2 techniques beyond Morph/fade) in art-direction.md, checked by Gate 3.
+- **Motion library** (`motionlib.py`, `references/motion-library.md`): 49 transitions (core, p14, p15 prstTrans,
+  morph) with fallbacks; effects entrance (fade, fly, drop, float, wipe, split, zoom, wheel, type, word), emphasis
+  (pulse, grow, spin, teeter, blink), exit, motion paths and orbits, loops, click groups, triggers, media.
+  Player support table and fallbacks for PowerPoint 365/2019/2016, Google Slides, Keynote, LibreOffice.
+- **Engine** (`build_deck.py`): slide `transition` and `style` (per-chapter packs, `style_overrides`); shape `anim`
+  (staggered over component parts), `link`; `poly` freeforms; `video` with poster and duration; line arrows;
+  explicit transition ms wins over template durations (`motion.py`).
+- **Styles**: five new packs with their own grammar docs (`references/styles/`): kinetic-type, blueprint,
+  swiss-blue (the white-blue option), neo-brutal, retro-terminal; three palette-only packs in
+  `assets/styles-experimental/`. All fonts OFL with Vietnamese coverage checked. New grounds `blueprint`, `mesh`,
+  `scanline` (`make_assets.py`).
+- **Diagram films** (`diagram_video.py`, `references/diagram-video.md`): nodes and edges JSON → MP4 (pop in, draw
+  on, flowing dots, breathing lit node) + poster + an editable shape fragment with native effects; ManimGX route.
+- **Verification**: `check_deck.py` effect census, ERROR on effects targeting missing shapes or duplicate ids, WARN on
+  motion monotony; `verify_motion.py` (LibreOffice round trip of authored effects); `preview_motion.py` (a labelled
+  SIMULATION MP4 from per-shape sprites and the parsed timing: entrances, emphasis, paths, iterate, morph
+  interpolation, transition approximations).
+- **Example** `examples/phin-multistyle` (18 slides, six styles, CC photos, drawn phin, diagram film).
+- Tests: `tests/test_motionlib_v5.py`.
+
 ## 4.0.0
 v3 blocked decks that were wrong (unsourced, unlicensed, the wrong instrument, over time, a photo held still) but did
 not teach or produce decks that look designed, and its own `check_deck.py` failed the accepted ca trù deck

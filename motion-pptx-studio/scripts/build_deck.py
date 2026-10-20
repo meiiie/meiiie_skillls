@@ -14,6 +14,9 @@ Top level
   "grounds": {"main": "assets/ground.jpg" | {recipe}}   "bg": default ground or colour for every slide
   "chrome": {"under": [shapes], "over": [shapes]}       replaces the style's chrome ("chrome_add" appends)
   "title": "Deck title"  (fills {title} in chrome)      "motion": {"default_ms": 1300, "stagger_ms": 220}
+  "compat": "morph"|"safe"|"dual"   no-Morph safe mode (compat.py): safe rebuilds every Morph as classic
+            transition + motion path/zoom/type effects; dual keeps Morph with a classic fallback
+  "safe_transition": "fade"|{"type": "push", "dir": "l"}   transition that replaces Morph in safe mode
 Slide keys
   "id", "from": "prev"|id, "set", "drop", "add", "front"   keyframes (see below)
   "bg": ground name | palette key | "#hex" | {"image": path}   "scene": "S3" (slide name, for audits)
@@ -40,6 +43,21 @@ Components (expand into named parts; set the component in a keyframe, Morph move
   bars     data [{label, value, display}], max, grow 0..1, highlight   NAME.base/.bar{i}/.v{i}/.k{i}
   list     items [str | {text, sub}], reveal k, focus i, numbered  NAME.n{i}/.i{i}/.r{i}
   quote    text, by                                               NAME.mark/.text/.by
+v5 motion and style keys
+  slide  "style": "swiss-blue"   switch the whole system (palette, fonts, roles, grounds, chrome) for this
+                                 slide and its keyframes: a deck can change style per chapter
+         "transition": "curtains" | {"type": "push", "dir": "l", "ms": 800}   any native transition
+                                 (motion.py --list); default Morph. "ms" still sets the duration.
+  shape  "anim": {"fx": "fly", "dir": "l", "delay": 200, "ms": 600} | [ {...}, ... ]   entrance,
+                                 emphasis, exit, path, orbit, letter-by-letter ("fx": "type"), loops
+                                 ("loop": true), clicks ("click": 1) and triggers ("trigger": "<name>").
+                                 On a component that expands into several top-level parts, the effect is
+                                 applied to every part with "stagger" ms between them (default 120).
+         "link": "<slide id>"    click the shape in the show to jump there (a hand-made slide zoom)
+  line   "arrow": true | "stealth" puts an arrow head at x2,y2 ("arrow_start" at x1,y1)
+  types  video  path (mp4), poster (png/jpg; default: first frame via ffmpeg), loop, mute, autoplay
+         poly   points [[x, y], ...] (inches), closed, fill, alpha, line_color, line_width: freeform
+                shapes for isometric solids, paper-cut layers, arrows and masks
 Keyframes: "from": "prev" copies the slide; "set" {name: {keys}} changes shapes and components by
 name; "drop" removes names; "add" appends; "front" moves names to the top. Unknown names are errors.
 After building: studio.py build (or ooxml.py unpack -> motion.py -> ooxml.py pack -> check_deck.py -> render.sh).
@@ -86,7 +104,8 @@ DEFAULT_CARD = {'fill': 'surface', 'fill_alpha': 1.0, 'line': 'faint', 'line_wid
 DEFAULT_SCREEN = {'bezel': '#16191E', 'line': '#2A2F37', 'line_width': 0.75, 'radius': 0.05, 'bar': '#1E2228'}
 DEFAULT_SHADOW = {'blur': 20, 'dist': 6, 'dir': 90, 'color': '#000000', 'alpha': 0.35}
 COMPONENTS = ('heading', 'card', 'stat', 'screen', 'timeline', 'bars', 'list', 'quote')
-INHERIT = ('bg', 'scene', 'chrome', 'chrome_set', 'source')
+INHERIT = ('bg', 'scene', 'chrome', 'chrome_set', 'source', 'style')
+STYLE_KEYS = ('palette', 'fonts', 'type', 'grid', 'grounds', 'chrome', 'chrome_add', 'card', 'screen', 'shadow', 'bg')
 
 
 def load_style(name):
@@ -137,6 +156,23 @@ class Spec:
         self.root = root
         self.warnings = []
         self._ground_cache = {}
+        self._data = data
+        self._subs = {}
+
+    def for_style(self, name):
+        """The system for one slide: the deck's own style, or another pack for a chapter.
+        Deck-level palette/fonts/type overrides belong to the deck style; a chapter style takes its
+        own overrides from "style_overrides": {"<style>": {"palette": {...}, ...}}."""
+        if not name or name == self._data.get('style'):
+            return self
+        if name not in self._subs:
+            d = {k: v for k, v in self._data.items() if k not in STYLE_KEYS}
+            d['style'] = name
+            d.update(copy.deepcopy((self._data.get('style_overrides') or {}).get(name, {})))
+            sub = Spec(d, self.root)
+            sub.warnings = self.warnings
+            self._subs[name] = sub
+        return self._subs[name]
 
     # -- values
     def color(self, c):
@@ -581,10 +617,23 @@ def expand(spec, sh):
     """Primitive shapes for one spec shape (components expand; groups recurse)."""
     if sh.get('hidden'):
         return []
+    if sh.get('anim') and sh.get('type') in EXPAND:
+        sh = dict(sh)
+        anim = sh.pop('anim')
+        parts = expand(spec, sh)
+        step = int(sh.get('stagger', 120))
+        anims = anim if isinstance(anim, list) else [anim]
+        for i, p in enumerate(parts):
+            p['anim'] = [{**a, 'delay': int(a.get('delay', 0)) + i * step} for a in anims]
+        return parts
     sh = dict(sh)
     if 'col' in sh:
         sh['x'], sh['w'] = spec.col(*sh['col'])
     t = sh.get('type')
+    if t == 'poly' and sh.get('points'):
+        xs = [p[0] for p in sh['points']]
+        ys = [p[1] for p in sh['points']]
+        sh.update({'x': min(xs), 'y': min(ys), 'w': max(xs) - min(xs), 'h': max(ys) - min(ys)})
     if t in EXPAND:
         for k in ('x', 'y', 'w'):
             if k not in sh:
@@ -598,6 +647,16 @@ def expand(spec, sh):
         for k in sh['shapes']:
             kids.extend(expand(spec, k))
         sh['shapes'] = kids
+        if 'x' not in sh and kids:  # bounding box for the layout checks
+            boxes = []
+            for k in kids:
+                if 'x1' in k:
+                    boxes.append((min(k['x1'], k['x2']), min(k['y1'], k['y2']), max(k['x1'], k['x2']), max(k['y1'], k['y2'])))
+                elif 'x' in k and 'w' in k:
+                    boxes.append((k['x'], k['y'], k['x'] + k['w'], k['y'] + k.get('h', 0)))
+            if boxes:
+                x0, y0 = min(b[0] for b in boxes), min(b[1] for b in boxes)
+                sh.update({'x': x0, 'y': y0, 'w': max(b[2] for b in boxes) - x0, 'h': max(b[3] for b in boxes) - y0})
     return [sh]
 
 
@@ -716,9 +775,82 @@ def add_line(shapes, sh, spec):
         lnel.set('cap', {'round': 'rnd', 'flat': 'flat', 'square': 'sq'}[sh['cap']])
     if sh.get('dash'):
         etree.SubElement(lnel, qn('a:prstDash'), val={'dash': 'dash', 'dot': 'sysDot', 'longdash': 'lgDash'}[sh['dash']])
+    for end, key in (('a:headEnd', 'arrow_start'), ('a:tailEnd', 'arrow')):
+        if sh.get(key):  # "arrow": true | "triangle" | "stealth" | "oval" (head at x2,y2)
+            kind = sh[key] if isinstance(sh[key], str) else 'triangle'
+            etree.SubElement(lnel, qn(end), type=kind, w='med', len='med')
     if sh.get('shadow'):
         apply_shadow(ln._element.spPr, sh['shadow'], spec)
     return ln
+
+
+def add_poly(shapes, sh, spec):
+    """A freeform polygon from inch points (isometric faces, paper-cut layers, masks, arrows)."""
+    pts = sh['points']
+    if len(pts) < 2:
+        raise SystemExit(f'poly {sh.get("name")!r}: needs at least 2 points')
+    fb = shapes.build_freeform(Inches(pts[0][0]), Inches(pts[0][1]), scale=1.0)
+    fb.add_line_segments([(Inches(x), Inches(y)) for x, y in pts[1:]], close=sh.get('closed', True))
+    shp = fb.convert_to_shape()
+    if sh.get('gradient'):
+        set_gradient_any(shp, sh['gradient'], sh.get('angle', 90), spec)
+    elif sh.get('fill'):
+        set_alpha_fill(shp, spec.color(sh['fill']), sh.get('alpha'))
+    else:
+        shp.fill.background()
+    if sh.get('line_color'):
+        shp.line.color.rgb = RGBColor.from_string(spec.color(sh['line_color']))
+        shp.line.width = Pt(sh.get('line_width', 1))
+        line_alpha(shp.line._get_or_add_ln(), sh.get('line_alpha'))
+        if sh.get('cap'):
+            shp.line._get_or_add_ln().set('cap', {'round': 'rnd', 'flat': 'flat', 'square': 'sq'}[sh['cap']])
+    else:
+        shp.line.fill.background()
+    shp.shadow.inherit = False
+    if sh.get('shadow'):
+        apply_shadow(shp._element.spPr, sh['shadow'], spec)
+    return shp
+
+
+def set_gradient_any(shape, stops, angle, spec):
+    """set_gradient for shapes whose geometry is custom (freeform)."""
+    spPr = shape._element.spPr
+    for tag in ('a:solidFill', 'a:noFill', 'a:gradFill', 'a:blipFill', 'a:pattFill'):
+        for e in spPr.findall(qn(tag)):
+            spPr.remove(e)
+    grad = etree.Element(qn('a:gradFill'), rotWithShape='1')
+    lst = etree.SubElement(grad, qn('a:gsLst'))
+    for st in stops:
+        gs = etree.SubElement(lst, qn('a:gs'), pos=str(int(st[2] * 1000)))
+        c = etree.SubElement(gs, qn('a:srgbClr'), val=spec.color(st[0]))
+        etree.SubElement(c, qn('a:alpha'), val=str(int(st[1] * 100000)))
+    etree.SubElement(grad, qn('a:lin'), ang=str(int(angle * 60000)), scaled='0')
+    geo = spPr.find(qn('a:custGeom'))
+    if geo is None:
+        geo = spPr.find(qn('a:prstGeom'))
+    geo.addnext(grad)
+
+
+def add_video(shapes, sh, spec):
+    """An embedded MP4 (looping background, a rendered Manim/diagram scene). The poster frame is what
+    LibreOffice, Google Slides import and printouts show; PowerPoint plays the video."""
+    p = spec.path(sh['path'])
+    if not p.exists():
+        raise SystemExit(f'video not found: {p}')
+    poster = sh.get('poster')
+    if poster:
+        poster = spec.path(poster)
+    else:
+        poster = p.with_suffix('.poster.png')
+        if not poster.exists():
+            import subprocess
+            r = subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', str(sh.get('poster_at', 0)), '-i', str(p),
+                                '-frames:v', '1', str(poster)], capture_output=True)
+            if r.returncode or not poster.exists():
+                raise SystemExit(f'video {p.name}: no poster given and ffmpeg could not grab one ({r.stderr[-200:]!r})')
+    mov = shapes.add_movie(str(p), Inches(sh['x']), Inches(sh['y']), Inches(sh['w']), Inches(sh['h']),
+                           poster_frame_image=str(poster), mime_type='video/mp4')
+    return mov
 
 
 def add_image(shapes, sh, spec):
@@ -844,6 +976,10 @@ def add_shape(shapes, sh, spec):
         obj = add_box(shapes, sh, spec, t)
     elif t == 'line':
         obj = add_line(shapes, sh, spec)
+    elif t == 'poly':
+        obj = add_poly(shapes, sh, spec)
+    elif t == 'video':
+        obj = add_video(shapes, sh, spec)
     elif t == 'group':
         obj = shapes.add_group_shape()
         for k in sh['shapes']:
@@ -852,7 +988,7 @@ def add_shape(shapes, sh, spec):
         if sh.get('shadow'):
             apply_shadow(obj._element.grpSpPr, sh['shadow'], spec)
     else:
-        raise SystemExit(f'unknown shape type {t!r} (primitives: text image rect ellipse line group; components: {", ".join(COMPONENTS)})')
+        raise SystemExit(f'unknown shape type {t!r} (primitives: text image rect ellipse line poly video group; components: {", ".join(COMPONENTS)})')
     if sh.get('name'):
         obj.name = sh['name']
     if sh.get('rot'):
@@ -1042,8 +1178,12 @@ def build(data, root, base=None):
     layout = prs.slide_layouts[6] if len(prs.slide_layouts) > 6 else prs.slide_layouts[-1]
     slides = resolve(data['slides'])
     total = len(slides)
+    made, links = {}, []
     for n, s in enumerate(slides, 1):
         sl = prs.slides.add_slide(layout)
+        if s.get('id'):
+            made[s['id']] = sl
+        deck_spec, spec = spec, spec.for_style(s.get('style'))
         for ph in list(sl.placeholders):
             ph._element.getparent().remove(ph._element)
         set_background(sl, spec, s.get('bg', spec.default_bg))
@@ -1058,23 +1198,62 @@ def build(data, root, base=None):
         dup = sorted({x for x in names if names.count(x) > 1})
         if dup:
             raise SystemExit(f'slide {n}: duplicate !! names after expanding components/chrome: {dup}')
-        for sh in prims:
+        s['_anims'], s['_media'] = [], {}
+        for k, sh in enumerate(prims):
+            if sh.get('anim'):
+                if not sh.get('name'):
+                    sh['name'] = f'fx{n}-{k}'
+                for a in (sh['anim'] if isinstance(sh['anim'], list) else [sh['anim']]):
+                    s['_anims'].append({'shape': sh['name'], **a})
+            if sh.get('type') == 'group':
+                bad = [kid.get('name') for kid in sh['shapes'] if kid.get('anim')]
+                if bad:
+                    spec.warnings.append(f'slide {n}: "anim" on shapes inside group {sh.get("name")!r} is ignored '
+                                         f'(PowerPoint animates only top-level shapes): {bad}')
+            if sh.get('type') == 'video':
+                s['_media'][sh.get('name') or f'video{n}-{k}'] = {kk: sh[kk] for kk in ('loop', 'mute', 'autoplay', 'delay') if kk in sh}
+                if not sh.get('name'):
+                    sh['name'] = f'video{n}-{k}'
+                try:
+                    import subprocess
+                    r = subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0',
+                                        str(spec.path(sh['path']))], capture_output=True, text=True)
+                    s['_media'][sh['name']]['ms'] = int(float(r.stdout.strip()) * 1000)
+                except (ValueError, OSError):
+                    pass
             check_text(spec, sh, f'slide {n}', chrome_names)
-            add_shape(sl.shapes, sh, spec)
+            obj = add_shape(sl.shapes, sh, spec)
+            if sh.get('link'):
+                links.append((n, obj, sh['link']))
         check_collisions(spec, prims, f'slide {n}', chrome_names)
+        s['_prims'] = [p.get('name') for p in prims]
         if s.get('notes'):
             sl.notes_slide.notes_text_frame.text = s['notes']
         else:
             sl.notes_slide  # an empty notes page so notes-set can fill it later
+        spec = deck_spec
+    for n, obj, target in links:
+        if target not in made:
+            raise SystemExit(f'slide {n}: link {target!r}: no slide with that id')
+        obj.click_action.target_slide = made[target]
     return prs, slides, spec
 
 
 def motion_config(data, slides, spec, out):
     """motion.json next to the output when the deck declares motion; WORK/motion.json values sit underneath."""
-    declares = 'motion' in data or any(k in s for s in slides for k in ('ms', 'morph', 'keep_timing'))
+    declares = 'motion' in data or data.get('compat', 'morph') != 'morph' or any(k in s for s in slides for k in ('ms', 'morph', 'keep_timing', 'transition')) \
+        or any(s.get('_anims') or s.get('_media') for s in slides)
     if not declares:
         return None
-    cfg = {'default_ms': spec.motion['default_ms'], 'stagger_ms': spec.motion['stagger_ms'], 'dur': {}, 'option': {}, 'keep_timing': []}
+    cfg = {'default_ms': spec.motion['default_ms'], 'stagger_ms': spec.motion['stagger_ms'], 'dur': {}, 'option': {}, 'keep_timing': [],
+           'transition': {}, 'effects': {}, 'media': {}}
+    import compat
+    try:
+        cfg['compat'] = compat.check_mode(data.get('compat'))
+    except ValueError as e:
+        raise SystemExit(str(e))
+    if data.get('safe_transition'):
+        cfg['safe_transition'] = data['safe_transition']
     work = Path(out).resolve().parent.parent / 'motion.json'
     if work.is_file():
         try:
@@ -1082,6 +1261,8 @@ def motion_config(data, slides, spec, out):
             cfg['dur'].update({str(k): v for k, v in old.get('dur', {}).items()})
             cfg['option'].update({str(k): v for k, v in old.get('option', {}).items()})
             cfg['keep_timing'] = sorted(set(cfg['keep_timing']) | {int(x) for x in old.get('keep_timing', [])})
+            for key in ('transition', 'effects', 'media'):
+                cfg[key].update({str(k): v for k, v in old.get(key, {}).items()})
         except (ValueError, OSError):
             pass
     for n, s in enumerate(slides, 1):
@@ -1093,6 +1274,20 @@ def motion_config(data, slides, spec, out):
             cfg['option'][str(n)] = s['morph']
         if s.get('keep_timing'):
             cfg['keep_timing'] = sorted(set(cfg['keep_timing']) | {n})
+        if s.get('transition'):
+            import motionlib
+            t = s['transition'] if isinstance(s['transition'], dict) else {'type': s['transition']}
+            if t.get('type', 'morph') not in motionlib.TRANSITIONS:
+                raise SystemExit(f'slide {n}: unknown transition {t.get("type")!r}; known: {", ".join(motionlib.transition_names())}')
+            cfg['transition'][str(n)] = t
+        if s.get('_anims'):
+            import motionlib
+            for a in s['_anims']:
+                if a.get('fx', 'fade') not in motionlib.PRESETS:
+                    raise SystemExit(f'slide {n}: {a["shape"]}: unknown effect {a.get("fx")!r}; known: {", ".join(sorted(motionlib.PRESETS))}')
+            cfg['effects'][str(n)] = s['_anims']
+        if s.get('_media'):
+            cfg['media'][str(n)] = s['_media']
     p = Path(out).parent / 'motion.json'
     p.write_text(json.dumps(cfg, indent=1), encoding='utf-8')
     return p

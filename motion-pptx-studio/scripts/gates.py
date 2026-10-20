@@ -14,7 +14,8 @@ Gates
                When storyboard.md is already filled, distinct visuals ≥ scenes and no visual is
                referenced on more than 4 rows (also enforced at gate 4). asset_scarcity: <reason>
                drops the real-photo minimum to 0 (illustrations still need CREDITS rows).
-  3 design     design/art-direction.md: a style (pack or own design/style.json), a SIGNATURE that
+  3 design     design/art-direction.md: a style (pack or own design/style.json) with a "Style choice"
+               (chosen + a rejected alternative), a "Motion vocabulary" (>= 2 techniques beyond Morph), a SIGNATURE that
                carries through the deck, ≥2 font families (Noto Sans Display counts as Noto Sans),
                every palette hex sourced on its own line ("from style pack X" counts), a colour arc
                with ≥2 hexes across ≥2 scenes, motifs, layered objects; fonts/ with licence;
@@ -323,6 +324,24 @@ def g3(work):
            'python studio.py new WORK --style <pack> (copies design/style.json), or write "- style: <pack>"')
     g.need(len(items(section(ad, r'signature'))) >= 1, 'art-direction: a signature object/motif that carries through the deck',
            'name ONE recurring object (strings, cursor, a line, a medallion) that lives on most slides as !! layers (references/craft.md §2)')
+    # v5 creativity rule: the style is chosen against an alternative, and the motion has a vocabulary beyond Morph
+    choice = items(section(ad, r'style choice'))
+    g.need(len(choice) >= 2 and any(re.search(r'reject|instead|rather than|not |thay vì|không chọn|loại|bỏ', l, re.I) for l in choice),
+           f'art-direction: "## Style choice" names the style(s) chosen AND at least one rejected alternative with the reason ({len(choice)} item(s))',
+           'e.g. "- chosen: blueprint for S3 (the phin is a machine: exploded view)" + "- rejected: paper-editorial (too quiet for a hook)". '
+           'No default template: pick or mix packs per chapter on purpose (references/styles.md §0)')
+    vocab_txt = ' '.join(items(section(ad, r'motion vocabulary'))).lower()
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import motionlib
+        names = (set(motionlib.PRESETS) | set(motionlib.TRANSITIONS)) - {'morph', 'none', 'fade', 'appear', 'video'}
+    except Exception:  # pragma: no cover
+        names = {'push', 'wipe', 'zoom', 'fly', 'path', 'pulse', 'type', 'curtains'}
+    names |= {'video', 'letter', 'motion path', 'trigger', 'loop', 'hyperlink', 'link', 'manim', 'diagram'}
+    found = sorted(n for n in names if re.search(r'\b' + re.escape(n) + r'\b', vocab_txt))
+    g.need(len(found) >= 2, f'art-direction: "## Motion vocabulary" names >= 2 techniques beyond Morph/fade ({found or "none"})',
+           'pick 2-4 signature techniques from references/motion-library.md (e.g. type, path, pulse loop, push, curtains, video) '
+           'and say where they play; Morph alone is the template look')
     cmp_ = list((work / 'design').glob('compare*.jpg'))
     g.need(bool(cmp_), 'design/compare*.jpg: the samples were put next to the reference deck',
            'python studio.py compare WORK WORK/renders/<sample> — then answer the questions it prints in art-direction.md')

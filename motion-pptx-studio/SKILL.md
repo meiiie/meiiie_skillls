@@ -1,11 +1,11 @@
 ---
 name: motion-pptx-studio
-description: Build cinematic, professionally designed PowerPoint decks with real Morph motion (multi-slide keyframe scenes, a recurring signature object, entrances) plus a timed speaker script, for any kind of talk — product launches and demos, startup and contest pitches, business reviews and data stories, lectures and explainers, events and campaigns, culture and heritage. Use it whenever someone wants a presentation, slide deck or .pptx that must look designed rather than templated ("motion pptx", "Morph", "slide động", "thuyết trình chuyên nghiệp", "pitch deck", "ấn tượng", a contest, broadcast or investor deck), even if they never say Morph. Ships five style packs with Vietnamese-ready fonts, a deck engine with components, an asset kit, research and licence gates, layout and craft audits, and worked examples measured against an accepted reference deck.
+description: Build cinematic, professionally designed PowerPoint decks with real native motion — Morph keyframe scenes plus a full library of transitions (push, curtains, fall over, cover…), entrances, emphasis loops, motion paths, letter-by-letter type, click triggers, hyperlink menus and looping video diagrams — plus a timed speaker script, for any kind of talk — product launches and demos, startup and contest pitches, business reviews and data stories, lectures and explainers, events and campaigns, culture and heritage. Use it whenever someone wants a presentation, slide deck or .pptx that must look designed rather than templated ("motion pptx", "Morph", "slide động", "thuyết trình chuyên nghiệp", "pitch deck", "ấn tượng", a contest, broadcast or investor deck), even if they never say Morph. Ships ten style packs (each a layout grammar, not a recolour) with Vietnamese-ready fonts, a deck engine with components, an architecture-diagram film maker with an editable fallback, a labelled motion-preview simulator, an asset kit, research and licence gates, layout and craft audits, and worked examples measured against an accepted reference deck.
 ---
 
 # Motion PPTX Studio
 
-Version 4.0.0. Python 3.9+, LibreOffice and poppler; works in any harness with a shell (Claude Code, Codex,
+Version 5.1.0. Python 3.9+, LibreOffice and poppler; works in any harness with a shell (Claude Code, Codex,
 Cursor, Grok Bot, a plain LLM with tools: `references/harness-adapters.md`).
 
 The standard comes from a real user and is kept word for word:
@@ -36,6 +36,12 @@ Two ways this fails, both seen in delivered decks: **generic** (a default theme,
 template on every scene) and **static** (Morph as a page turn, one screenshot held still while the words
 change). The fix for both is the same: a real system, a real signature, real objects of the subject, and
 scenes built as camera moves. `references/craft.md` gives the numbers.
+
+**Creativity rule (v5).** There is no default template and no default motion. Choose the style for the subject
+(or one per chapter), write the packs you rejected and why, and choose 2–4 signature techniques from
+`references/motion-library.md` beyond Morph. A pack is a layout grammar (`references/styles/<pack>.md`), never a
+palette on the starter layout; the starter deck only proves the system. If two chapters in two styles would
+look the same with the colours swapped, the design is not done.
 
 ## Size it first
 
@@ -72,14 +78,17 @@ Set `S=<absolute path of this skill>/scripts` and `WORK=<project folder>`. Every
 
 ```bash
 python $S/studio.py new WORK --kind heritage|product|pitch|business|education|event|other \
-       --style lacquer-heritage|noir-product|paper-editorial|boardroom-data|studio-pop --title "…" --fonts
+       --style <pack>   # lacquer-heritage noir-product paper-editorial boardroom-data studio-pop kinetic-type blueprint swiss-blue neo-brutal retro-terminal --title "…" --fonts
 python $S/gates.py check WORK --gate N        # N = 0..6; FAIL means stop and do the missing work
 ```
 
 ### Phase 0 · Brief → Gate 0
 Fill `WORK/brief.md`: topic, audience, kind, size, talk_minutes, on-slide language, forbidden items, **honest
 status**, presenter, reference talk, user media, style, and **the user's own words verbatim**. Read any video,
-form or repo the user gave first. Read the playbook for the kind in `references/genres.md`.
+form or repo the user gave first.
+Ask where it will play: if not surely PowerPoint 365/2019+ (venue PC with 2016, Google Slides, Keynote,
+LibreOffice), set `"compat": "safe"` (no Morph, classic motion rebuilt) or `"dual"` (Morph + classic fallback);
+see `motion-library.md` §4b. Read the playbook for the kind in `references/genres.md`.
 
 ### Phase 1 · Research → Gate 1 (`research-protocol.md`, `cultural-visual-accuracy.md`)
 `research/facts.md`: sourced facts, tagged `[verified]` / `[secondary]` / `[claim]` / `[disputed]` / `[uncertain]`,
@@ -103,6 +112,8 @@ imagery → illustrate from the TRUE list (labelled) or set `asset_scarcity` and
 - **Sample and compare**: turn the starter into your direction, `studio.py build WORK --group sample`, copy
   title and body renders to `design/samples/`, then `studio.py compare WORK WORK/renders/sample-1` and answer
   its questions. Change direction now, not after 40 slides.
+- **Style choice and motion vocabulary**: `## Style choice` (chosen, per chapter, and ≥ 1 rejected with the
+  reason) and `## Motion vocabulary` (≥ 2 techniques beyond Morph/fade) in `art-direction.md`; Gate 3 checks both.
 
 ### Phase 4 · Storyboard → Gate 4 (`storyboard-template.md`, `motion-grammar.md`, `speech-craft.md`)
 ```bash
@@ -116,16 +127,21 @@ an anchor phrase on 3 slides; a colour arc; a circular close.
 ### Phase 5 · Build in groups of 2–4 scenes → Gate 5 (`build-engine.md`, `qa-checklist.md`)
 Write `WORK/deck.json` against the style: components (`heading`, `card`, `stat`, `screen`, `timeline`, `bars`,
 `list`, `quote`), roles instead of sizes, `col` instead of x/w, keyframes as `"from": "prev"` + `set`, `"scene"`,
-`"ms"` and `"morph"` on the slides. When parts must line up (strings on a neck, a cursor that becomes the screen),
+`"ms"`, `"morph"`, `"transition"` and `"style"` on the slides, `"anim"` (effects) and `"link"` on shapes, `poly`
+and `video` shapes for drawn objects and diagram films (`diagram_video.py`, `references/diagram-video.md`). When parts must line up (strings on a neck, a cursor that becomes the screen),
 generate deck.json from a `make_deck.py`, as the examples do.
 ```bash
 python $S/studio.py build WORK --group g1         # build → motion → pack → render (new folder) → audit with renders
 python $S/studio.py compare WORK WORK/renders/g1-1
 python $S/gates.py check WORK --gate 5 --group g1 --deck WORK/deck/preview-g1.pptx
+python $S/verify_motion.py WORK/deck/preview-g1.pptx          # LibreOffice round trip: authored vs imported effects
+python $S/preview_motion.py WORK/deck/preview-g1.pptx --out WORK/renders/g1-preview-SIMULATION.mp4   # optional
 ```
 Fix every layout warning first, then look: contact sheet, the comparison, every changed slide, 4× crops where
 things meet (`craft.md` §12). Write defects in `notes/g1.md`, fix them in one pass, rebuild into `g1-2`.
-Naming: `!!name` persists (Morph pairs it), `@fade|float|wipe<N>-label` enters, `@blink<N>-label` loops.
+Naming: `!!name` persists (Morph pairs it), `@fade|float|wipe<N>-label` enters, `@blink<N>-label` loops; any
+effect can instead be written as `"anim"` on the shape. The preview MP4 is a simulation and must be labelled so;
+it never replaces playing the deck in PowerPoint.
 
 ### Phase 6 · Finish and deliver → Gate 6 (`delivery.md`)
 ```bash
@@ -150,10 +166,12 @@ python $S/gates.py check WORK --gate 6
 - **Imagery**: real → drawn from the TRUE list → nothing. Photos graded into the palette; drawn objects in one finish; screens in a device with a shadow.
 - **Detail belongs to something**, ends on something, and rewards a 4× look; nothing floats.
 - **Motion**: one primary move per transition; 1300 ms default, 2000 for assemblies, blooms and the close; ≤ 3 entrances, only for new information.
+- **Players**: Morph needs PowerPoint 365/2019+; for 2016, Google Slides, Keynote or an unknown venue PC build with `"compat": "safe"` or `"dual"` (`compat.py`, gate in `check_deck.py`).
+- **Vocabulary**: Morph for change inside a scene, a real transition between scenes (push, cover, curtains…), 2–4 signature effects repeated with intent; no deck that is only Morph (`check_deck.py` warns).
 
 ## Final message to the user (always)
 Files delivered; slide and scene count; measured speaking time against the target; fonts to install;
-**what must be checked in PowerPoint 365** (Morph, entrances and blink are invisible in LibreOffice renders);
+**what must be checked in PowerPoint 365** (Morph, Office 2013 transitions, triggers, links and video autoplay; LibreOffice renders are static and `preview_motion.py` is only a simulation);
 decisions taken without asking; claims left out because they could not be verified; the audit's remaining warnings
 and why they are deliberate.
 
@@ -164,19 +182,21 @@ and why they are deliberate.
 | `references/craft.md` | before Phase 3 and before every review: the set, signature, grid, type, colour, compositions, words, imagery, depth, data, anti-patterns, the critic's pass |
 | `references/reference-bar.md` + `assets/reference/` | before Phase 3: what the accepted deck does, measured; how to compare |
 | `references/genres.md` | Phase 0: arc, signature, evidence, research depth and traps for each kind of deck |
-| `references/styles.md` | Phase 3: the five packs, changing one, a style from a brand board, all keys |
+| `references/styles.md` + `references/styles/<pack>.md` | Phase 3: the creativity rule, the ten packs and each one's layout grammar and signature motion, changing one, a style from a brand board, all keys |
 | `references/research-protocol.md` | Phase 1: source ladder, tagging, do-not-say list, product research |
 | `references/cultural-visual-accuracy.md` | any cultural or heritage topic: true and wrong motifs, anatomy, user-media audit |
 | `references/asset-sourcing.md` | Phase 2: where to search, licences, keep/reject, the asset kit |
 | `references/art-direction.md` | Phase 3: style, signature, fonts, palette, motifs, layered objects, colour arc, samples |
 | `references/motion-grammar.md` | Phases 4–5: camera language, Morph pairing, keyframe recipes, durations, entrances |
+| `references/motion-library.md` | Phases 3–5: every transition and effect, recipes beyond Morph, player support and fallbacks, verify |
+| `references/diagram-video.md` | architecture, process, maths: diagram films with an editable fallback, Manim/ManimGX |
 | `references/storyboard-template.md` | Phase 4: table format, scene structure, worked example |
 | `references/speech-craft.md` | Phases 1/4: hook, anchor, pauses, circular close, word budget |
 | `references/build-engine.md` | Phase 5: deck.json, components, generator scripts, OOXML editing, gotchas |
 | `references/qa-checklist.md` | every render: layout warnings, audit, visual, accuracy, motion, language, licence, timing |
 | `references/delivery.md` | Phase 6: package, fonts, credits, the hand-off message |
 | `references/harness-adapters.md` | installing the skill; harness differences; weak-model mode |
-| `examples/catru-mini`, `examples/product-launch`, `examples/data-story` | before building: the same bar in three styles, each with `make_deck.py`, `build.sh` and a contact sheet |
+| `examples/catru-mini`, `examples/product-launch`, `examples/data-story`, `examples/phin-multistyle` | before building: the same bar in nine styles (phin: six styles, one per chapter, each with its own grammar), each with `make_deck.py`, `build.sh` and a contact sheet |
 | `examples/case-catru-heritage.md`, `examples/case-neko-core-product.md` | the two delivered decks and every correction the user made |
 
 Companion skills (optional, same repo): `heritage-visual-research` (Phases 1–2 alone) and `presentation-speech-craft`

@@ -62,10 +62,31 @@ Units are inches on 13.333 × 7.5. Colours are palette roles or `#RRGGBB`; fonts
 | `quote` | text, by, size, mark_color | NAME.mark (hanging in the margin)/.text/.by |
 In a keyframe, `set` the component (`{"!!b": {"grow": 1}}`), not its parts.
 
+### A.3b v5 keys (motion beyond Morph, drawn objects, film)
+| Where | Key | Meaning |
+|---|---|---|
+| slide | `"transition"` | `"push"` or `{"type": "curtains", "ms": 1800, "dir": "l"}`; every name in `motion.py --list`; default morph |
+| slide | `"style"` | switch pack for this slide (and keyframes that inherit it); `"style_overrides": {pack: {...}}` at the top |
+| shape | `"anim"` | an effect dict or a list (`references/motion-library.md` §2); on a component it applies to every part, `"stagger"` ms apart; unnamed shapes get `fx{n}-{k}` names; inside a group it is ignored with a warning |
+| shape | `"link"` | a slide id: click jumps there (menus, a hand-made Summary Zoom) |
+| shape | `"arrow"`, `"arrow_start"` | arrowheads on a `line` |
+| type | `poly` | `points` [[x, y] …] inches (closed unless `"open": true`), fill/gradient/alpha/line: draw objects (a phin, a cup, a machine part) as editable freeforms |
+| type | `video` | `path` (MP4), `poster` (else ffmpeg's first frame), `loop`, `autoplay` (default true), `mute`: plays in PowerPoint; renders show the poster |
+`motion_config` writes each slide's transition and effects into motion.json; unknown names are refused at build.
+
+### A.3c No-Morph safe mode (v5.1)
+Deck keys `"compat": "morph"|"safe"|"dual"` and `"safe_transition": "fade"|{"type": "push", "dir": "l"}` go to
+motion.json. `motion.py` reads the geometry of every top-level `!!` shape on consecutive slides and, on each
+Morph slide, calls `compat.plan()`: safe → core transition + synthesized `appear/zoom + path` (path starts at the
+old centre, `"from_offset": true`), `type/word` for changed text, `fade` for new layers; dual → Morph whose
+`mc:Fallback` is push/wipe/fade plus fade entrances on new `!!` shapes only. Authored entrances/paths on a shape
+are never overwritten; `keep_timing` slides only get the transition change. Report line:
+`compat=safe: N classic effect(s) synthesized from Morph pairs`.
+
 ### A.4 Generate deck.json from a script when geometry depends on geometry
 When parts must line up (strings locked to an instrument's neck, a cursor that becomes a panel the
 size of the screen), write a small `make_deck.py` that computes the boxes and writes `deck.json`, as the
-three examples do. Change one number (where the instrument stands) and every keyframe follows.
+examples do (`examples/phin-multistyle/make_deck.py`: six styles, drawn phin, diagram fragment, unit grid). Change one number (where the instrument stands) and every keyframe follows.
 
 ### A.5 Notes on the output
 - Text boxes have zero insets and no autofit; components size their boxes from the real font
