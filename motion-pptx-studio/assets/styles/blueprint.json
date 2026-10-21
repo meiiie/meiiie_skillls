@@ -243,12 +243,14 @@
       "aerospace": 0.8,
       "technology": 0.8,
       "science": 0.8,
-      "software": 0.6
+      "software": 0.6,
+      "energy": 0.4
     },
     "tones": [
       "technical",
       "precise",
-      "calm"
+      "calm",
+      "analytical"
     ],
     "material": {
       "diagram": 1,
@@ -258,11 +260,11 @@
     "avoid": [
       {
         "domain": "food",
-        "reason": "drafting-blue schematics make a meal look like a spare part"
+        "because": "drafting-blue schematics turn whatever they show into a spare part"
       },
       {
         "domain": "youth",
-        "reason": "a technical sheet reads as homework to a young audience"
+        "because": "a technical sheet reads as homework"
       }
     ]
   }

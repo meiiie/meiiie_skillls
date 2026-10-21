@@ -228,16 +228,21 @@
     "domains": {
       "business": 0.5,
       "science": 0.6,
-      "history": 0.6,
+      "history": 0.7,
       "culture": 0.5,
       "heritage": 0.5,
       "education": 0.5,
-      "travel": 0.4
+      "travel": 0.4,
+      "economy": 0.7,
+      "health": 0.5,
+      "climate": 0.5
     },
     "tones": [
       "calm",
       "warm",
-      "precise"
+      "precise",
+      "editorial",
+      "serious"
     ],
     "material": {
       "bright": 0.6,

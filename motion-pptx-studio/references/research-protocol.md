@@ -28,6 +28,16 @@ Search in **the local language and in English**, with and without diacritics ("c
 "Ca tru singing", "hát ả đào"). Fetch the page itself (WebFetch, curl or a browser) and quote it. A search
 snippet is not a source. Save raw pages in `research/` (`*.html`, `*.txt`) so a fact can be re-checked later.
 
+**Fetch fallback order (v5.6).** Many institutional sites (imf.org, oecd.org, worldbank.org, some ministries)
+answer `403` to a bare `curl`. Do not give up on rung 1 and do not cite the snippet instead:
+1. `curl -sL -A "Mozilla/5.0" URL -o research/raw/<id>.html` (a browser User-Agent; add `--compressed`);
+2. WebFetch on the same URL (it renders and returns readable text);
+3. the browser: open the page and save the text (or "Save as") of the passage you quote;
+4. the document itself when the page is a wrapper: the PDF report or data file the page links to.
+Whatever worked, save the extract as `research/raw/<source-id>.txt` starting with three lines
+`url: ...`, `fetched: YYYY-MM-DD (tool: curl | WebFetch | browser)`, `title: ...`, then the quoted passage.
+Facts cite the source ID; the raw file is how the number is re-checked later.
+
 ## 3. Write `research/facts.md` (template provided by `gates.py init`)
 - Number the sources: `(U1) UNESCO decision 4.COM 14.12 — https://...`. Facts cite the ID and the URL. The storyboard carries these IDs (or a table id such as `1.1`) in its **source column**, never as on-slide text. Gate 4 fails a row that shows a number (2+ digits or a %) without an ID; the share of rows citing an ID (40%) is advisory. On the slide, a short human source line in the chrome ("Nguồn: VinFast 20-F 2025") is welcome; the ID itself stays off the slide.
 - Audited vs preliminary: when two filings disagree (6-K preliminary −42.5% vs 20-F audited −45.4%), use the audited number, tag the other `[disputed]` with both sources, and say "đã kiểm toán / audited" on the slide.

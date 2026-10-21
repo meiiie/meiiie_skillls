@@ -102,11 +102,13 @@ def thumb(dr, work):
     title, kicker, number = dr.get('title', dr.get('name', '')), dr.get('kicker', ''), dr.get('number', '')
     if comp == 'full-bleed':
         if pic:
-            img.paste(cover(pic, W, H))
+            # v5.6 (I28): the plate sits IN the direction's palette: a ground veil over the whole photo, then the
+            # ground rising from the bottom, so a dark-navy direction reads dark-navy and not as the raw photo
+            img.paste(Image.blend(cover(pic, W, H).convert('RGB'), Image.new('RGB', (W, H), ground), 0.35))
         shade = Image.new('L', (W, H))
         sd = ImageDraw.Draw(shade)
         for y in range(H):
-            sd.line([(0, y), (W, y)], fill=int(220 * max(0, (y - H * 0.35) / (H * 0.65))))
+            sd.line([(0, y), (W, y)], fill=int(235 * max(0, (y - H * 0.25) / (H * 0.75))))
         img = Image.composite(Image.new('RGB', (W, H), ground), img, shade)
         d = ImageDraw.Draw(img)
         d.text((56, H - 200), kicker.upper(), font=fb(20), fill=accent)
@@ -205,7 +207,7 @@ def write_md(spec, md):
                   f'- palette: {" ".join(dr.get("palette", []))}',
                   f'- type: {dr.get("type", ", ".join(Path(f).stem for f in dr.get("fonts", []) if f))}',
                   f'- family: {dr.get("family", "free")}',
-                  f'- composition: {dr.get("composition", "")} — {dr.get("composition_note", "")}',
+                  f'- composition: {dr.get("composition", "")}' + (f' — {dr["composition_note"]}' if dr.get('composition_note') else ''),
                   f'- motion: {dr.get("motion", "")}',
                   f'- signature visual: {dr.get("signature", "")}', '']
     lines += ['## Decision', f'- chosen: {spec.get("chosen", "TODO")}', f'- why: {spec.get("why", "TODO")}',

@@ -129,7 +129,9 @@ The speaker carries the sentences; the slide carries the proof and the image.
 - Every number carries its unit and its source: a short human source line in the chrome or a caption
   ("Nguồn: 20-F 2025"), and its fact ID in the storyboard's source column. Fact IDs never appear on the
   slide (SKILL.md rule 2); the readable source line does.
-- Fact IDs stay off the slide: they trace in the storyboard's `source` column and in the notes.
+- Fact IDs stay off the slide: they trace in the storyboard's `source` column and in the notes. The build audit counts
+  a slide as sourced when it shows a source line or its notes cite an ID; deliver.py strips `[fact X.Y]` / `[X.Y]` tags
+  from the read-aloud script and lists them per page in an appendix (`script_docx.py --keep-facts` keeps them inline).
 - An anchor phrase (5-8 words) appears on 3-4 slides: setup, middle, end.
 
 ## 8. Imagery

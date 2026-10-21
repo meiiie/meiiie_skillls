@@ -249,7 +249,8 @@
       "aerospace": 0.8,
       "engineering": 0.6,
       "business": 0.4,
-      "software": 0.6
+      "software": 0.6,
+      "energy": 0.3
     },
     "tones": [
       "cinematic",
@@ -265,11 +266,11 @@
     "avoid": [
       {
         "domain": "heritage",
-        "reason": "a near-black product stage with one amber signal sells a gadget; it strips a place or tradition of its daylight and warmth"
+        "because": "a near-black product stage with one amber signal is a gadget launch"
       },
       {
         "domain": "food",
-        "reason": "a black stage makes food look cold"
+        "because": "a black stage with one cold signal makes food look clinical"
       }
     ]
   }

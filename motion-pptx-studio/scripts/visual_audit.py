@@ -114,9 +114,11 @@ STYLE_WORDS = {
 }
 SOURCE_CUE = re.compile(
     r'https?://|\b(?:from|source|brand|photo|lacquer|sample|pixel|board|dossier|'
-    r'measured|eyedrop|pantone|sampled|swatch|style pack|style|nguồn|lấy từ)\b',
+    r'measured|derived|explicit|genome|mixed|eyedrop|pantone|sampled|swatch|style pack|style|nguồn|lấy từ)\b',
     re.I,
 )
+FACT_TAG_ON = re.compile(r'\[(?:fact\s*)?\d+\.\d+[a-z]?\]|\bfact\s+\d+\.\d+', re.I)
+SOURCE_LINE = re.compile(r'(?:^|\n|\s)(?:nguồn|source|sources|theo số liệu|data)\s*[:：]', re.I)
 FACT_TOKEN = re.compile(r'\(([A-Za-z]{1,4}\d{1,3})\)')
 FACT_ROW = re.compile(r'^\|\s*(\d+\.\d+)\s*\|')
 HEX = re.compile(r'#[0-9A-Fa-f]{6}\b')
@@ -553,7 +555,7 @@ def load_pptx_slides(path):
             marker = csld.get('name').strip()
             if BOOKEND_TAG in marker:   # v5.4: a declared circular close ("bookend": true in deck.json)
                 bookend = True
-            marker = re.sub(r'\s*\[(?:bookend|still)\]', '', marker).strip() or None
+            marker = re.sub(r'\s*\[(?:bookend|still|bg-photo)\]', '', marker).strip() or None
         else:
             m = re.search(r'(?:Cảnh|Scene)\s*(\d+)', notes, re.I)
             if m:
@@ -897,14 +899,21 @@ def _density_and_fonts(slides, audit, facts_text, min_slides=MIN_SLIDES_FOR_DENS
         if not ids:
             audit.error('facts.md defines no fact IDs to match against on-slide text')
         else:
-            hit = sum(1 for s in slides if cites_fact(s['onslide'] + ' ' + s.get('notes', ''), ids))
+            # v5.6 (I20): fact IDs never go ON a slide (Rule 2). A slide is sourced when it shows a source line
+            # (Nguồn / Source ...) or its notes cite a fact ID (deliver.py strips the IDs from the read-aloud script).
+            def sourced(s):
+                return bool(SOURCE_LINE.search(s['onslide'])) or cites_fact(s.get('notes', ''), ids)
+            hit = sum(1 for s in slides if sourced(s))
             frac = hit / max(1, len(slides))
-            audit.info(f'fact IDs on slides or in notes: {hit}/{len(slides)} ({frac:.0%})')
+            on_slide = [i for i, s in enumerate(slides, 1) if FACT_TAG_ON.search(s['onslide'])]
+            audit.info(f'sourced slides (a visible source line, or a fact ID in the notes): {hit}/{len(slides)} ({frac:.0%})')
+            if on_slide:
+                audit.warn(f'fact IDs printed on slides {on_slide[:12]}: keep IDs in the storyboard and notes, show a source line instead')
             if frac < FACT_SLIDE_MIN:
-                missing = [i for i, s in enumerate(slides, 1) if not cites_fact(s['onslide'] + ' ' + s.get('notes', ''), ids)]
+                missing = [i for i, s in enumerate(slides, 1) if not sourced(s)]
                 audit.warn(
-                    f'sources: {hit}/{len(slides)} slides ({frac:.0%}) cite a fact ID from facts.md on the slide or in '
-                    f'the notes (aim for {FACT_SLIDE_MIN:.0%}). Slides without one: {missing[:18]}'
+                    f'sources: {hit}/{len(slides)} slides ({frac:.0%}) show a source line or cite a fact ID in the notes '
+                    f'(aim for {FACT_SLIDE_MIN:.0%}; IDs never on the slide). Slides without either: {missing[:18]}'
                 )
 
 

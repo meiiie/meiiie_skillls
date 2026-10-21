@@ -119,7 +119,16 @@ def _ring(render, box, slide_w=13.333, slide_h=7.5, gap=0.06, width=0.1):
                 X, Y = int(xx * sx), int(yy * sy)
                 if 0 <= X < W and 0 <= Y < H:
                     px.append(data[X, Y])
-    return _median(px)
+    if not px:
+        return None
+    # v5.7: the page is the most common colour of the ring; a rule or a source line that the ring happens to
+    # cross (chrome at 1.5 in, a source line just under the film) must not be averaged into it
+    bins = {}
+    for p in px:
+        bins.setdefault(tuple(c // 8 for c in p[:3]), []).append(p)
+    top = max(bins.values(), key=len)
+    near = [p for p in px if max(abs(a - b) for a, b in zip(p[:3], _median(top)[:3])) <= 10]
+    return _median(near or px)
 
 
 def film_edge_match(read, slide_part, slide_root, render_path):

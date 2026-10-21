@@ -261,11 +261,15 @@
     "avoid": [
       {
         "domain": "heritage",
-        "reason": "a fictional UI pastiche frames history as an app"
+        "because": "a fictional UI pastiche frames its subject as an app"
       },
       {
         "domain": "aerospace",
-        "reason": "window chrome and a dock make real missions look like a mock-up"
+        "because": "window chrome and a dock make real hardware look like a mock-up"
+      },
+      {
+        "domain": "economy",
+        "because": "a fictional desktop makes official statistics look like a game"
       }
     ]
   }

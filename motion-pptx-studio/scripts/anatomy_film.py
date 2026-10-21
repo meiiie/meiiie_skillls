@@ -226,7 +226,7 @@ def main(argv=None):
     print(f'film     {mp4 if not a.poster_only else "(poster only)"}')
     print(f'poster   {out / (a.name + ".poster.png")}')
     print(f'editable {out / (a.name + ".shapes.json")}  ({len(frag["shapes"])} native shapes, group {frag["name"]!r})')
-    print(f'fit      x={meta["fit"]["x"]} y={meta["fit"]["y"]} w={meta["fit"]["w"]} h={meta["fit"]["h"]} in; anchors {meta["anchors_in"]}')
+    print(f'fit      x={meta["fit"]["x"]} y={meta["fit"]["y"]} w={meta["fit"]["w"]} h={meta["fit"]["h"]} in; anchors {meta["anchors_in"]} (slide inches: film.json "anchors_in"; "anchors" there are figure pixels)')
     print('NEXT: look at the .strip.jpg, then a video shape {"type":"video","path":..., "poster":...} at the fit box, '
           'and the .shapes.json group on the editable keyframe (references/signature-moments.md §4)')
 

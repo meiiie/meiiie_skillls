@@ -240,14 +240,19 @@
   ],
   "fit": {
     "domains": {
-      "business": 1,
+      "economy": 1,
       "finance": 1,
-      "technology": 0.3
+      "business": 1,
+      "energy": 0.5,
+      "technology": 0.3,
+      "climate": 0.4
     },
     "tones": [
       "calm",
       "precise",
-      "technical"
+      "analytical",
+      "serious",
+      "clear"
     ],
     "material": {
       "bright": 0.6,
@@ -256,11 +261,15 @@
     "avoid": [
       {
         "domain": "heritage",
-        "reason": "a KPI teal dashboard turns a living tradition into a quarterly report"
+        "because": "a teal KPI dashboard grammar reads every subject as a quarterly report"
       },
       {
         "domain": "culture",
-        "reason": "numbers-as-heroes grammar has no room for people, places and ritual"
+        "because": "numbers-as-heroes layouts leave no room for people, places and ritual"
+      },
+      {
+        "domain": "youth",
+        "because": "a boardroom register talks down to a young audience"
       }
     ]
   }

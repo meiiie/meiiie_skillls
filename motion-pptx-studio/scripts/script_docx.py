@@ -32,6 +32,18 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from words_budget import SKIP, spoken  # one counting rule for plan, measure and the script document
 
 
+# v5.6 (I20/I35): fact tags help the author trace numbers; they are not read aloud, so the read-aloud
+# text drops them and an appendix lists them by page
+FACT_TAG = re.compile(r'\s*\[(?:fact\s*)?\d+\.\d+[a-z]?(?:\s*[,;/]\s*(?:fact\s*)?\d+\.\d+[a-z]?)*\]', re.I)
+FACT_ID = re.compile(r'\d+\.\d+[a-z]?')
+
+
+def strip_facts(line):
+    """(line without fact tags, [fact ids])"""
+    ids = [i for m in FACT_TAG.finditer(line) for i in FACT_ID.findall(m.group(0))]
+    return FACT_TAG.sub('', line).rstrip(), ids
+
+
 def kind(line):
     return 'src' if SKIP.match(line) else 'say'
 
@@ -72,7 +84,7 @@ def fmt(seconds):
     return f"{int(seconds // 60)}:{int(round(seconds % 60)):02d}"
 
 
-def build(notes, scenes, out, title, subtitle, timing, wpm_low, wpm_high, pauses):
+def build(notes, scenes, out, title, subtitle, timing, wpm_low, wpm_high, pauses, morph_s=1.3, keep_facts=False):
     slides = load_notes(notes)
     scene_rows = load_scenes(scenes)
     wpm = (wpm_low, wpm_high)
@@ -93,7 +105,9 @@ def build(notes, scenes, out, title, subtitle, timing, wpm_low, wpm_high, pauses
     lo = tot_w / wpm[1] * 60 + tot_p
     hi = tot_w / wpm[0] * 60 + tot_p
     pages = max(end for _, _, end in scene_rows)
+    trans = round(pages * morph_s, 1)   # v5.6 (I34): the time if the speaker waits for every transition
     payload = {
+        'transitions_s': trans, 'hi_with_transitions': fmt(hi + trans),
         'words': tot_w,
         'pauses': tot_p,
         'lo': fmt(lo),
@@ -116,7 +130,9 @@ def build(notes, scenes, out, title, subtitle, timing, wpm_low, wpm_high, pauses
         f'Bài trình bày {pages} trang chiếu, {len(scene_rows)} cảnh. '
         f'Lời đọc khoảng {tot_w} từ và {tot_p:g} giây ngừng có đánh dấu. '
         f'Ước tính thời gian nói: {fmt(lo)} – {fmt(hi)} '
-        f'(tốc độ {wpm[1]}–{wpm[0]} từ/phút, đã cộng các lần ngừng; chưa tính thời gian chuyển cảnh Morph).'
+        f'(tốc độ {wpm[1]}–{wpm[0]} từ/phút, đã cộng các lần ngừng). '
+        f'Nếu dừng lời ở mỗi lần chuyển cảnh ({pages} lần × {morph_s:g} giây ≈ {trans:g} giây): '
+        f'{fmt(lo + trans)} – {fmt(hi + trans)}; nói tiếp trong lúc chuyển cảnh thì giữ được mức trên.'
     )
     document.add_paragraph(
         'Quy ước: chữ thường là lời đọc; [ngừng N giây] và chỉ dẫn trong ngoặc vuông không đọc; '
@@ -136,6 +152,7 @@ def build(notes, scenes, out, title, subtitle, timing, wpm_low, wpm_high, pauses
     total[0].text = 'Tổng'
     total[2].text = str(tot_w)
     total[3].text = f'{fmt(lo)} – {fmt(hi)}'
+    facts_by_page = {}
     for row in stat:
         document.add_heading(f'{row[0]}  ·  khoảng {fmt(row[5])} – {fmt(row[6])}', 1)
         for n, lines in slides:
@@ -145,6 +162,11 @@ def build(notes, scenes, out, title, subtitle, timing, wpm_low, wpm_high, pauses
                 run.bold = True
                 run.font.color.rgb = RGBColor(0x8A, 0x5A, 0x10)
                 for line in lines:
+                    if not keep_facts:
+                        line, ids = strip_facts(line)
+                        facts_by_page.setdefault(n, []).extend(ids)
+                        if not line.strip():
+                            continue
                     paragraph = document.add_paragraph()
                     run = paragraph.add_run(line)
                     if kind(line) == 'src':
@@ -154,6 +176,14 @@ def build(notes, scenes, out, title, subtitle, timing, wpm_low, wpm_high, pauses
                     elif line.startswith('['):
                         run.bold = True
                         run.font.color.rgb = RGBColor(0xA0, 0x20, 0x20)
+    if facts_by_page and any(facts_by_page.values()):
+        document.add_heading('Phụ lục: mã dữ kiện theo trang (không đọc)', 1)
+        for n in sorted(facts_by_page):
+            if facts_by_page[n]:
+                para = document.add_paragraph()
+                run = para.add_run(f'Trang {n}: ' + ', '.join(dict.fromkeys(facts_by_page[n])))
+                run.font.size = Pt(9)
+                run.font.color.rgb = RGBColor(0x80, 0x80, 0x80)
     out_path = Path(out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     document.save(out_path)
@@ -171,12 +201,15 @@ def main(argv=None):
     parser.add_argument('--wpm-low', type=int, default=DEFAULT_WPM[0], help='slower words-per-minute bound')
     parser.add_argument('--wpm-high', type=int, default=DEFAULT_WPM[1], help='faster words-per-minute bound')
     parser.add_argument('--pause', action='append', default=None, help='pause mark to count (repeatable; default [ngừng 2 giây])')
+    parser.add_argument('--morph-s', type=float, default=1.3, help='seconds per slide transition (for the "pause at every transition" estimate)')
+    parser.add_argument('--keep-facts', action='store_true', help='keep [fact X.Y] tags in the read-aloud text (default: strip, list in an appendix)')
     args = parser.parse_args(argv)
     if args.wpm_low < 1 or args.wpm_high < 1:
         raise SystemExit('speaking rates must be positive')
     pauses = args.pause or [DEFAULT_PAUSE]
     try:
-        build(args.notes, args.scenes, args.out, args.title, args.subtitle, args.timing, args.wpm_low, args.wpm_high, pauses)
+        build(args.notes, args.scenes, args.out, args.title, args.subtitle, args.timing, args.wpm_low, args.wpm_high, pauses,
+              morph_s=args.morph_s, keep_facts=args.keep_facts)
     except (OSError, ValueError, KeyError, json.JSONDecodeError) as error:
         raise SystemExit('could not build the script: ' + str(error))
 

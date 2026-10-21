@@ -286,15 +286,19 @@
     "avoid": [
       {
         "domain": "aerospace",
-        "reason": "aged paper, terracotta gradients and a script accent read as nostalgia and craft; launch hardware shot cold and high-contrast against night sky needs precision and scale, not a scrapbook"
+        "because": "aged paper, terracotta gradients and a script accent are a nostalgic scrapbook"
       },
       {
         "domain": "software",
-        "reason": "a magazine scrapbook has nothing to say about code"
+        "because": "a magazine scrapbook has no vocabulary for code"
       },
       {
         "domain": "finance",
-        "reason": "collage softness undercuts figures that must read as exact"
+        "because": "collage softness, tilted prints and a script accent make figures look approximate"
+      },
+      {
+        "domain": "economy",
+        "because": "collage softness, tilted prints and a script accent make figures look approximate"
       }
     ]
   }

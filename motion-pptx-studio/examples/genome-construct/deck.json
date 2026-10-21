@@ -1,0 +1,708 @@
+{
+ "title": "Cảng Bến Mây (hư cấu)",
+ "style": "design/style.json",
+ "compat": "morph",
+ "slides": [
+  {
+   "shapes": [
+    {
+     "type": "text",
+     "name": "!!kicker",
+     "role": "kicker",
+     "text": "SỐ LIỆU HƯ CẤU · VÍ DỤ V5.6",
+     "x": 0.9,
+     "y": 1.6,
+     "w": 8,
+     "h": 0.4
+    },
+    {
+     "type": "text",
+     "name": "!!title",
+     "role": "title",
+     "text": "Cảng Bến Mây sắp chạm trần năng lực",
+     "x": 0.9,
+     "y": 2.1,
+     "w": 9,
+     "h": 1.8
+    },
+    {
+     "type": "text",
+     "name": "!!num",
+     "role": "numeral",
+     "text": "88%",
+     "x": 0.9,
+     "y": 4.1,
+     "w": 5,
+     "h": 2.0
+    }
+   ],
+   "notes": "Đây là ví dụ với số liệu hư cấu. [ngừng 1 giây] Cảng đang dùng 88% năng lực. [fact 1.4]"
+  },
+  {
+   "source": "Nguồn: số liệu hư cấu của ví dụ",
+   "shapes": [
+    {
+     "type": "text",
+     "name": "!!title",
+     "role": "title",
+     "text": "Sản lượng tăng 75% sau 4 năm",
+     "x": 0.9,
+     "y": 1.0,
+     "w": 4.3,
+     "h": 2.7
+    },
+    {
+     "type": "text",
+     "name": "!!num",
+     "role": "numeral",
+     "text": "2,1",
+     "x": 0.9,
+     "y": 3.8,
+     "w": 4.3,
+     "h": 1.9
+    },
+    {
+     "type": "text",
+     "name": "!!unit",
+     "role": "caption",
+     "text": "triệu TEU năm 2025",
+     "x": 0.9,
+     "y": 5.85,
+     "w": 4.3,
+     "h": 0.4
+    },
+    {
+     "type": "construct",
+     "name": "teu",
+     "parts": [
+      {
+       "id": "base",
+       "kind": "line",
+       "layer": "base",
+       "points": [
+        [
+         0,
+         0
+        ],
+        [
+         10,
+         0
+        ]
+       ],
+       "line": "faint",
+       "width": 1.0
+      },
+      {
+       "id": "b0",
+       "kind": "rect",
+       "layer": "structure",
+       "on": "base",
+       "at": [
+        0.5,
+        -2.64,
+        1.2,
+        2.64
+       ],
+       "fill": "faint",
+       "lit": false
+      },
+      {
+       "id": "y0",
+       "kind": "text",
+       "layer": "label",
+       "on": "b0",
+       "text": "2021",
+       "at": [
+        0.5,
+        0.15,
+        1.2,
+        0.3
+       ],
+       "role": "label",
+       "color": "muted",
+       "align": "c"
+      },
+      {
+       "id": "v0",
+       "kind": "text",
+       "layer": "label",
+       "on": "b0",
+       "text": "1,2",
+       "at": [
+        0.5,
+        -3.39,
+        1.2,
+        0.35
+       ],
+       "role": "cardtitle",
+       "color": "head",
+       "align": "c"
+      },
+      {
+       "id": "b1",
+       "kind": "rect",
+       "layer": "structure",
+       "on": "base",
+       "at": [
+        2.4,
+        -3.08,
+        1.2,
+        3.08
+       ],
+       "fill": "faint",
+       "lit": false
+      },
+      {
+       "id": "y1",
+       "kind": "text",
+       "layer": "label",
+       "on": "b1",
+       "text": "2022",
+       "at": [
+        2.4,
+        0.15,
+        1.2,
+        0.3
+       ],
+       "role": "label",
+       "color": "muted",
+       "align": "c"
+      },
+      {
+       "id": "v1",
+       "kind": "text",
+       "layer": "label",
+       "on": "b1",
+       "text": "1,4",
+       "at": [
+        2.4,
+        -3.83,
+        1.2,
+        0.35
+       ],
+       "role": "cardtitle",
+       "color": "head",
+       "align": "c"
+      },
+      {
+       "id": "b2",
+       "kind": "rect",
+       "layer": "structure",
+       "on": "base",
+       "at": [
+        4.3,
+        -3.5200000000000005,
+        1.2,
+        3.5200000000000005
+       ],
+       "fill": "faint",
+       "lit": false
+      },
+      {
+       "id": "y2",
+       "kind": "text",
+       "layer": "label",
+       "on": "b2",
+       "text": "2023",
+       "at": [
+        4.3,
+        0.15,
+        1.2,
+        0.3
+       ],
+       "role": "label",
+       "color": "muted",
+       "align": "c"
+      },
+      {
+       "id": "v2",
+       "kind": "text",
+       "layer": "label",
+       "on": "b2",
+       "text": "1,6",
+       "at": [
+        4.3,
+        -4.2700000000000005,
+        1.2,
+        0.35
+       ],
+       "role": "cardtitle",
+       "color": "head",
+       "align": "c"
+      },
+      {
+       "id": "b3",
+       "kind": "rect",
+       "layer": "structure",
+       "on": "base",
+       "at": [
+        6.199999999999999,
+        -4.18,
+        1.2,
+        4.18
+       ],
+       "fill": "faint",
+       "lit": false
+      },
+      {
+       "id": "y3",
+       "kind": "text",
+       "layer": "label",
+       "on": "b3",
+       "text": "2024",
+       "at": [
+        6.199999999999999,
+        0.15,
+        1.2,
+        0.3
+       ],
+       "role": "label",
+       "color": "muted",
+       "align": "c"
+      },
+      {
+       "id": "v3",
+       "kind": "text",
+       "layer": "label",
+       "on": "b3",
+       "text": "1,9",
+       "at": [
+        6.199999999999999,
+        -4.93,
+        1.2,
+        0.35
+       ],
+       "role": "cardtitle",
+       "color": "head",
+       "align": "c"
+      },
+      {
+       "id": "b4",
+       "kind": "rect",
+       "layer": "structure",
+       "on": "base",
+       "at": [
+        8.1,
+        -4.620000000000001,
+        1.2,
+        4.620000000000001
+       ],
+       "fill": "accent",
+       "lit": true
+      },
+      {
+       "id": "y4",
+       "kind": "text",
+       "layer": "label",
+       "on": "b4",
+       "text": "2025",
+       "at": [
+        8.1,
+        0.15,
+        1.2,
+        0.3
+       ],
+       "role": "label",
+       "color": "muted",
+       "align": "c"
+      },
+      {
+       "id": "v4",
+       "kind": "text",
+       "layer": "label",
+       "on": "b4",
+       "text": "2,1",
+       "at": [
+        8.1,
+        -5.370000000000001,
+        1.2,
+        0.35
+       ],
+       "role": "cardtitle",
+       "color": "head",
+       "align": "c"
+      },
+      {
+       "id": "cap",
+       "kind": "poly",
+       "layer": "control",
+       "on": "base",
+       "closed": false,
+       "points": [
+        [
+         0,
+         -5.28
+        ],
+        [
+         10,
+         -5.28
+        ]
+       ],
+       "line": "muted",
+       "width": 2.0,
+       "dash": "dash",
+       "lit": false
+      },
+      {
+       "id": "capl",
+       "kind": "text",
+       "layer": "label",
+       "on": "cap",
+       "text": "năng lực 2,4",
+       "at": [
+        6.6,
+        -5.73,
+        2.4,
+        0.35
+       ],
+       "role": "label",
+       "color": "muted"
+      }
+     ],
+     "x": 5.4,
+     "y": 1.5,
+     "w": 7.2,
+     "h": 5.0,
+     "reveal": true,
+     "total_ms": 2600
+    }
+   ],
+   "notes": "Sản lượng đi từ 1,2 lên 2,1 triệu TEU. [fact 1.1, 1.2]"
+  },
+  {
+   "source": "Nguồn: số liệu hư cấu của ví dụ",
+   "shapes": [
+    {
+     "type": "text",
+     "name": "!!title",
+     "role": "title",
+     "text": "Bến sắp đầy trước 2027",
+     "x": 0.9,
+     "y": 1.0,
+     "w": 4.3,
+     "h": 2.7
+    },
+    {
+     "type": "text",
+     "name": "!!num",
+     "role": "numeral",
+     "text": "12%",
+     "x": 0.9,
+     "y": 3.8,
+     "w": 4.3,
+     "h": 1.9,
+     "color": "accent2"
+    },
+    {
+     "type": "text",
+     "name": "!!unit",
+     "role": "caption",
+     "text": "năng lực còn trống",
+     "x": 0.9,
+     "y": 5.85,
+     "w": 4.3,
+     "h": 0.4
+    },
+    {
+     "type": "construct",
+     "name": "teu",
+     "parts": [
+      {
+       "id": "base",
+       "kind": "line",
+       "layer": "base",
+       "points": [
+        [
+         0,
+         0
+        ],
+        [
+         10,
+         0
+        ]
+       ],
+       "line": "faint",
+       "width": 1.0
+      },
+      {
+       "id": "b0",
+       "kind": "rect",
+       "layer": "structure",
+       "on": "base",
+       "at": [
+        0.5,
+        -2.64,
+        1.2,
+        2.64
+       ],
+       "fill": "faint",
+       "lit": false
+      },
+      {
+       "id": "y0",
+       "kind": "text",
+       "layer": "label",
+       "on": "b0",
+       "text": "2021",
+       "at": [
+        0.5,
+        0.15,
+        1.2,
+        0.3
+       ],
+       "role": "label",
+       "color": "muted",
+       "align": "c"
+      },
+      {
+       "id": "v0",
+       "kind": "text",
+       "layer": "label",
+       "on": "b0",
+       "text": "1,2",
+       "at": [
+        0.5,
+        -3.39,
+        1.2,
+        0.35
+       ],
+       "role": "cardtitle",
+       "color": "head",
+       "align": "c"
+      },
+      {
+       "id": "b1",
+       "kind": "rect",
+       "layer": "structure",
+       "on": "base",
+       "at": [
+        2.4,
+        -3.08,
+        1.2,
+        3.08
+       ],
+       "fill": "faint",
+       "lit": false
+      },
+      {
+       "id": "y1",
+       "kind": "text",
+       "layer": "label",
+       "on": "b1",
+       "text": "2022",
+       "at": [
+        2.4,
+        0.15,
+        1.2,
+        0.3
+       ],
+       "role": "label",
+       "color": "muted",
+       "align": "c"
+      },
+      {
+       "id": "v1",
+       "kind": "text",
+       "layer": "label",
+       "on": "b1",
+       "text": "1,4",
+       "at": [
+        2.4,
+        -3.83,
+        1.2,
+        0.35
+       ],
+       "role": "cardtitle",
+       "color": "head",
+       "align": "c"
+      },
+      {
+       "id": "b2",
+       "kind": "rect",
+       "layer": "structure",
+       "on": "base",
+       "at": [
+        4.3,
+        -3.5200000000000005,
+        1.2,
+        3.5200000000000005
+       ],
+       "fill": "faint",
+       "lit": false
+      },
+      {
+       "id": "y2",
+       "kind": "text",
+       "layer": "label",
+       "on": "b2",
+       "text": "2023",
+       "at": [
+        4.3,
+        0.15,
+        1.2,
+        0.3
+       ],
+       "role": "label",
+       "color": "muted",
+       "align": "c"
+      },
+      {
+       "id": "v2",
+       "kind": "text",
+       "layer": "label",
+       "on": "b2",
+       "text": "1,6",
+       "at": [
+        4.3,
+        -4.2700000000000005,
+        1.2,
+        0.35
+       ],
+       "role": "cardtitle",
+       "color": "head",
+       "align": "c"
+      },
+      {
+       "id": "b3",
+       "kind": "rect",
+       "layer": "structure",
+       "on": "base",
+       "at": [
+        6.199999999999999,
+        -4.18,
+        1.2,
+        4.18
+       ],
+       "fill": "faint",
+       "lit": false
+      },
+      {
+       "id": "y3",
+       "kind": "text",
+       "layer": "label",
+       "on": "b3",
+       "text": "2024",
+       "at": [
+        6.199999999999999,
+        0.15,
+        1.2,
+        0.3
+       ],
+       "role": "label",
+       "color": "muted",
+       "align": "c"
+      },
+      {
+       "id": "v3",
+       "kind": "text",
+       "layer": "label",
+       "on": "b3",
+       "text": "1,9",
+       "at": [
+        6.199999999999999,
+        -4.93,
+        1.2,
+        0.35
+       ],
+       "role": "cardtitle",
+       "color": "head",
+       "align": "c"
+      },
+      {
+       "id": "b4",
+       "kind": "rect",
+       "layer": "structure",
+       "on": "base",
+       "at": [
+        8.1,
+        -4.620000000000001,
+        1.2,
+        4.620000000000001
+       ],
+       "fill": "faint",
+       "lit": false
+      },
+      {
+       "id": "y4",
+       "kind": "text",
+       "layer": "label",
+       "on": "b4",
+       "text": "2025",
+       "at": [
+        8.1,
+        0.15,
+        1.2,
+        0.3
+       ],
+       "role": "label",
+       "color": "muted",
+       "align": "c"
+      },
+      {
+       "id": "v4",
+       "kind": "text",
+       "layer": "label",
+       "on": "b4",
+       "text": "2,1",
+       "at": [
+        8.1,
+        -5.370000000000001,
+        1.2,
+        0.35
+       ],
+       "role": "cardtitle",
+       "color": "head",
+       "align": "c"
+      },
+      {
+       "id": "cap",
+       "kind": "poly",
+       "layer": "control",
+       "on": "base",
+       "closed": false,
+       "points": [
+        [
+         0,
+         -5.28
+        ],
+        [
+         10,
+         -5.28
+        ]
+       ],
+       "line": "muted",
+       "width": 2.0,
+       "dash": "dash",
+       "lit": "accent2"
+      },
+      {
+       "id": "capl",
+       "kind": "text",
+       "layer": "label",
+       "on": "cap",
+       "text": "năng lực 2,4",
+       "at": [
+        6.6,
+        -5.73,
+        2.4,
+        0.35
+       ],
+       "role": "label",
+       "color": "accent2"
+      }
+     ],
+     "x": 5.4,
+     "y": 1.5,
+     "w": 7.2,
+     "h": 5.0,
+     "reveal": [
+      "cap",
+      "capl"
+     ],
+     "total_ms": 2600
+    }
+   ],
+   "notes": "Năng lực bến là 2,4 triệu TEU, nên chỉ còn khoảng 12% trống. [ngừng] Bến số 4 mới vào năm 2027. [fact 1.3]"
+  }
+ ]
+}

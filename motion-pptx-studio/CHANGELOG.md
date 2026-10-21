@@ -1,5 +1,88 @@
 # Changelog
 
+## 5.7.0
+Lessons of the "Khí áp" flagship (30-slide world-economy deck, six hand-built films; examples/flagship-khi-ap).
+- **SKILL.md: Full creative authority** (new section before "The one idea"): think deeply first; one deck-wide,
+  data-grounded concept with a written mapping (chapter → instrument); signature films via ManimGX/Anatomy are
+  the core, one per chapter, each ending on the frame its editable native fallback redraws; a scored visual
+  self-critique loop (`critique-log.md`, redo until ≥ 8 against FT/Bloomberg/Economist/Pentagram); never invent
+  numbers to fit a metaphor; the skill is a floor, not a ceiling.
+- **build_deck: theme style refs stripped** (`strip_theme_style`): `<p:style>` (effectRef idx 2) is removed from
+  every text-less drawn shape before saving; LibreOffice painted the theme shadow under every hairline, turning
+  dense maps into grey bands. Shapes with text keep it.
+- **references/manimgx-quirks.md**: fonts by nameID 1, no matplotlib in ManimGX's python (precompute to JSON),
+  VFR output (stills by frame index), stroke widths scale with the camera frame (kit.View), `play` re-adds
+  z-order (UpdateFromFunc re-raise), Text caching in redraws; the native-fallback pattern; the effectRef fix.
+- **anatomy_film.py** says which anchors are inches (`anchors_in`) and which are figure pixels (`anchors`).
+- **examples/flagship-khi-ap/** (lightweight: boards, stills, film recipes, art direction, critique log, deck scripts).
+- **film_audit**: the page colour around a film is the ring's dominant colour; a chrome rule or a source line the
+  ring crosses no longer fails a film whose card matches the page (false ERROR on the flagship's slide 8).
+- tests/test_v57.py.
+
+## 5.6.0
+The world-economy test (30 slides, econ-test/NOTES.md I1–I36) and the v5.3.1 leftovers. Routing now judges what
+a deck is ABOUT instead of counting keyword hits: "AI" in an economics brief, or a NASA credit on a wafer photo,
+no longer makes it a tech deck.
+- **Semantic routing** (`route.py`): subject evidence by zone (topic head ×4, rest of the topic ×2.5, the user's
+  words ×1.5, audience ×0.6; facts length-normalised and capped; CREDITS never count as subject), STRONG/WEAK
+  bilingual lexicons per domain (new: economy, energy, climate, health…), "about" vs "mentioned" (capped at 0.35;
+  about also needs ≥ 25% of the leading weight), declared domains (`- domains:` in brief.md or
+  `design/subject.json`) that win over the lexicon, tone as vectors on energy/warmth/formality/drama (serious,
+  analytical, sober… score against calm/precise families; "không …"/"not …" excluded; unknown words listed).
+  Material is measured on KEPT images only (CREDITS rows, else assets minus candidates/rejected/_uncertain/raw/
+  cut/film/drawn/samples/contact sheets); URLs and pixel sizes are not years. (I36, priority list)
+- **Composed rejection reasons**: the family's `because` + "this deck is about X (weight: the words), which needs
+  …" + the material clash; low-fit rejections name the weakest axis with specifics. All 14 `fit` blocks rewritten
+  (boardroom-data/swiss-blue/paper-editorial cover economy; kinetic-type, collages, neo-brutal, studio-pop,
+  desktop-os, retro-terminal avoid it). No two reasons in one routing are equal.
+- **Semantic staleness**: routing.json stores a hash per input; gate 3 names what changed and re-decides in
+  memory — green when the decision is the same (derived assets/cut, assets/film, appended facts), WARN only when
+  it would change. (I36)
+- **Genome**: `arc`/`motifs`/`layers` accept a string (split on → / -> / ; / commas) and are validated (I10);
+  palette provenance per key — "sampled" only for sampled keys, explicit overrides say so, derived keys say how,
+  contrast adjustments are shown (I11); every routing rejection in `## Style choice`, subject reasons first (I12);
+  ground2/surface/lit lines with a source (I13); chrome running head = the deck title by default (`"scene"` or a
+  template on request) plus a `!!source` line filled by the slide's `source` (empty → skipped) (I19).
+- **construct**: text parts take `color` (`fill` is read as the colour with a warning) (I23); `"closed": false`
+  is a stroke path like `"open": true` (I24 = v5.3.1 #7); `"lit": "accent2"`/a hex keeps a part lit in another
+  colour, a lit stroke is lit in its line (I25).
+- **Timing**: a bare `[ngừng]` counts 1 s and WARNs (I30); `plan --keyframes K` prints a per-slide guide derived
+  from the budget (I14); `--lang vi` = 160/190 syllables per minute and a note on syllable counting (I14);
+  `measure` prints the time with transitions (read from the .pptx) and WARNs when pausing at every Morph runs over
+  the target; gate 6 shows both rows (I34). The speaker script states the transition estimate too.
+- **Fact IDs out of the read-aloud script**: `script_docx.py` (deliver.py) strips `[fact X.Y]`/`[X.Y]` tags and lists
+  them per page in an appendix (`--keep-facts` to keep) (I31/I35); the build audit counts a slide as sourced
+  with a visible source line OR a fact ID in the notes, and flags IDs printed on slides (I20).
+- **Audits**: the geometry fingerprint opens groups (children through the group transform) and counts a
+  background photo (build_deck tags it `[bg-photo]`; ground textures are not composition) (I21); gate 2's AI
+  counter matches provenance ("AI-generated", "made/generated with AI", "ảnh AI", "tạo bằng AI", generator
+  names), not the word AI (I4 = v5.3.1 #4); the "rejected candidates" list is asked of every kind (I5).
+- **Phase order**: storyboard films are PLANNED at gate 4 (WARN) and FAIL at gates 5 (whole deck) and 6 (I15);
+  gate 3 FAILs without ≥ 2 samples and a compare sheet (I16); layout repetition over 3 scenes is a WARN (I18).
+- **Final check**: `studio.py final` runs check_deck ONCE, on deck/final.pptx with renders/final-N (saved to
+  deck/final-check.txt); gate 6 runs check_deck with the latest final renders (the strict result) (I32).
+  Gate history goes to `WORK/gates.history.log`; `gates.log` is never written by the tool (I33).
+- **studio.py**: `new` without `--style` says no style.json/starter deck/fonts were made and what to run next;
+  `--fonts` there says it was skipped (I1/I2); `fonts WORK` without `--style` uses design/style.json, else compiles
+  design/genome.json (I26). Brief template: `style: routed`, `tone:` and `domains:` lines (I3).
+- **directions.py**: no dangling " — " (I27); a full-bleed thumbnail sits in the direction's ground (veil +
+  gradient) (I28). **build_deck**: component-scoped roles (`"timeline.cardtitle"`, `"bars.cardtitle"`, or a
+  shape's `"roles"` map) inherit the base role, so enlarging card titles leaves the timeline alone (I29).
+- **check_deck**: a `!!` kind mismatch between a video and a group says to name the film and its editable
+  layer differently; signature-moments.md says so too (I22).
+- **Docs**: a style doc for every family, 14/14 (`references/styles/<pack>.md`: lacquer-heritage, noir-product,
+  paper-editorial, boardroom-data, studio-pop, glass-tech, papercut-collage, desktop-os new) (I8); the shipped
+  worked example `examples/genome-construct/` (brief, genome with an arc string, directions, routing.md,
+  art-direction.md, a construct deck; built by a test) (I9); the ManimGX recipe checked against the installed
+  manimgx: `import manimgx as m`, `config.pixel_width/height` for inspect, no `frame_width` setter, print (I17);
+  research-protocol.md fetch fallback order (browser UA curl → WebFetch → browser → the linked document, raw
+  extract with url/date/tool) (I6); design-space.md routing section rewritten; speech-craft, qa-checklist, craft,
+  construction-motion updated.
+- **Tests**: `tests/test_v56.py` (34 tests), including the Anatomy `anchorsAt` contract run in node
+  (v5.3.1 #6) and `studio.py final` printing exactly one RESULT.
+- Proof: routing for econ-test, v55-spacex and v55-doson in /workspace/v56-proof/routing (v5.5 vs v5.6);
+  the econ deck rebuilt with `studio.py final` in /workspace/econ-v56.
+
 ## 5.5.0
 Open-ended by construction: the skill routes each deck to a fitting direction before design, invents the
 deck's own system from a genome, and builds diagrams the way Anatomy and Manim do. Darren's v5.4 review ("the

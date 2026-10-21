@@ -23,8 +23,9 @@ on-slide text averaging under 8 words; **no persistent system** (no `!!` shape o
 The same image, keyframe and layout errors run on a PDF: `python3 check_deck.py deck.pdf`.
 A declared bookend (`"bookend": true`, at most 2 slides) may repeat the opening photo; it is reported as INFO.
 WARN: a hold beat (make sure it is deliberate); text overflowing into other text or off the slide; text outside the 0.3 in
-safe area; more than 12 text sizes; flat grounds on most slides; low contrast (with `--renders`); under 40% of slides citing a
-fact ID on the slide or in the notes (with `--facts`); slides without notes; lonely `!!` names; fonts not installed; images
+safe area; more than 12 text sizes; flat grounds on most slides; low contrast (with `--renders`); under 40% of slides
+sourced (v5.6: a visible source line such as "Nguồn: IMF WEO", or a fact ID in the notes; with `--facts`); a `[fact X.Y]`
+tag printed ON a slide; slides without notes; lonely `!!` names; fonts not installed; images
 wider than 2560 px; duplicate media; anchor count.
 The accepted reference deck passes this audit (`tests/test_audit.py`); a change that fails it is a wrong change.
 

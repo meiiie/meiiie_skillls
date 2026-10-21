@@ -246,12 +246,19 @@
       "engineering": 0.8,
       "science": 0.8,
       "aerospace": 0.7,
-      "business": 0.6
+      "business": 0.6,
+      "economy": 0.8,
+      "finance": 0.7,
+      "energy": 0.6,
+      "climate": 0.6
     },
     "tones": [
       "precise",
       "calm",
-      "technical"
+      "technical",
+      "analytical",
+      "clear",
+      "minimal"
     ],
     "material": {
       "bright": 0.7,
@@ -260,7 +267,7 @@
     "avoid": [
       {
         "domain": "heritage",
-        "reason": "one cobalt on white in a strict 12-column grid is the look of a tech report; it erases the warmth and age of the material"
+        "because": "one cobalt on white in a strict modular grid is the look of a technical report"
       }
     ]
   }
