@@ -20,6 +20,10 @@ Top level
 Slide keys
   "id", "from": "prev"|id, "set", "drop", "add", "front"   keyframes (see below)
   "bg": ground name | palette key | "#hex" | {"image": path}   "scene": "S3" (slide name, for audits)
+  "bookend": true   a declared circular close: this slide may return to the opening image (check_deck allows
+                    it on at most 2 slides instead of counting it as image reuse)
+  "still": true     a deliberately still page (a printed chapter, a quiet opener): not counted in the moving-depth
+                     share (at most a quarter of the deck)
   "chrome": true|false|[names]  "chrome_set": {name: {...}}  "source": "Nguồn: ..." (fills {source})
   "ms": 2000  "morph": "byObject"|"byWord"|"byChar"  "keep_timing": true   -> written to motion.json
   "notes": speaker notes
@@ -43,6 +47,10 @@ Components (expand into named parts; set the component in a keyframe, Morph move
   bars     data [{label, value, display}], max, grow 0..1, highlight   NAME.base/.bar{i}/.v{i}/.k{i}
   list     items [str | {text, sub}], reveal k, focus i, numbered  NAME.n{i}/.i{i}/.r{i}
   quote    text, by, mark_size (pt, default 2.2 x size)              NAME.mark/.text/.by
+  callout  at [x, y], x, y, label, desc, color, chip, elbow, dot      NAME.ring/.dot/.lead/.labk/.lab/.desc (v5.4)
+  swatch   image | colors, n, dir h|v, hex, labels, vivid            NAME.s{i}/.h{i}: a palette strip sampled from a photo
+  photogrid images [path | {path, span [c, r], label, focus}], cols, rows, gap, border, tilt   NAME.f{i}/.p{i}/.t{i}k/.t{i}
+  nodemap  nodes [{x, y (0..1), label, desc, side, big}], links [[a, b]], image, dash   NAME.map/.e{k}/.n{i}/.t{i}k/.t{i}/.d{i}
 v5 motion and style keys
   slide  "style": "swiss-blue"   switch the whole system (palette, fonts, roles, grounds, chrome) for this
                                  slide and its keyframes: a deck can change style per chapter
@@ -56,7 +64,7 @@ v5 motion and style keys
          "link": "<slide id>"    click the shape in the show to jump there (a hand-made slide zoom)
   line   "arrow": true | "stealth" puts an arrow head at x2,y2 ("arrow_start" at x1,y1)
   types  video  path (mp4), poster (png/jpg; default: first frame via ffmpeg), loop, mute, autoplay
-         poly   points [[x, y], ...] (inches), closed, fill, alpha, line_color, line_width: freeform
+         poly   points [[x, y], ...] (inches), closed (default true; "open": true = closed false), fill, alpha, line_color, line_width: freeform
                 shapes for isometric solids, paper-cut layers, arrows and masks
 Keyframes: "from": "prev" copies the slide; "set" {name: {keys}} changes shapes and components by
 name; "drop" removes names; "add" appends; "front" moves names to the top. Unknown names are errors.
@@ -110,9 +118,9 @@ DEFAULT_TYPE = {
     'kicker': {'font': 'label', 'size': 12, 'bold': True, 'spacing': 3, 'caps': True, 'color': 'accent'},
     'display': {'font': 'display', 'size': 88, 'bold': True, 'line': 0.9, 'color': 'head'},
     'title': {'font': 'display', 'size': 44, 'bold': True, 'line': 0.95, 'color': 'head'},
-    'subtitle': {'font': 'text', 'size': 22, 'line': 1.2, 'color': 'muted'},
+    'subtitle': {'font': 'text', 'size': 24, 'line': 1.2, 'color': 'muted'},
     'body': {'font': 'text', 'size': 16, 'line': 1.3, 'color': 'ink'},
-    'caption': {'font': 'text', 'size': 9, 'color': 'muted'},
+    'caption': {'font': 'text', 'size': 10, 'color': 'muted'},
     'label': {'font': 'label', 'size': 10, 'bold': True, 'spacing': 1.5, 'caps': True, 'color': 'muted'},
     'numeral': {'font': 'display', 'size': 150, 'bold': True, 'line': 0.85, 'color': 'accent'},
     'quote': {'font': 'display', 'size': 32, 'italic': True, 'line': 1.1, 'color': 'head'},
@@ -127,20 +135,47 @@ DEFAULT_CARD = {'fill': 'surface', 'fill_alpha': 1.0, 'line': 'faint', 'line_wid
                 'lit_fill': 'surface', 'lit_line': 'accent', 'rule': 'accent', 'dim_alpha': 0.66, 'shadow': None}
 DEFAULT_SCREEN = {'bezel': '#16191E', 'line': '#2A2F37', 'line_width': 0.75, 'radius': 0.05, 'bar': '#1E2228'}
 DEFAULT_SHADOW = {'blur': 20, 'dist': 6, 'dir': 90, 'color': '#000000', 'alpha': 0.35}
-COMPONENTS = ('heading', 'card', 'stat', 'screen', 'timeline', 'bars', 'list', 'quote')
+COMPONENTS = ('heading', 'card', 'stat', 'screen', 'timeline', 'bars', 'list', 'quote', 'callout', 'swatch', 'photogrid', 'nodemap',
+              'construct')
+
+def poly_closed(sh):
+    """A poly is closed unless "closed": false or "open": true (both spellings are documented)."""
+    if 'open' in sh:
+        return not bool(sh['open'])
+    return bool(sh.get('closed', True))
+
 INHERIT = ('bg', 'scene', 'chrome', 'chrome_set', 'source', 'style')
 STYLE_KEYS = ('palette', 'fonts', 'type', 'grid', 'grounds', 'chrome', 'chrome_add', 'card', 'screen', 'shadow', 'bg')
 
 
 def load_style(name):
-    """A style pack by name (assets/styles/<name>.json) or path."""
+    """A style pack by name (assets/styles/<name>.json, then assets/styles-experimental) or path."""
     p = Path(name)
     if not p.suffix:
         p = STYLES / f'{name}.json'
+        if not p.is_file():
+            p = STYLES.parent / 'styles-experimental' / f'{name}.json'
     if not p.is_file():
         known = sorted(x.stem for x in STYLES.glob('*.json'))
-        raise SystemExit(f'style {name!r} not found. Known styles: {known} (or give a path to a style .json)')
+        raise SystemExit(f'style {name!r} not found. Known styles: {known} (or give a path to a style .json, or define it in '
+                         f'deck.json: "styles": {{"{name}": {{"extends": "paper-editorial", "palette": {{...}}}}}})')
     return json.loads(p.read_text(encoding='utf-8'))
+
+
+def inline_style(name, data):
+    """v5.4: a style defined inside deck.json. "styles": {"<name>": {...}} always defines one; a
+    "style_overrides" entry defines one when <name> is not a shipped pack. Either may say
+    "extends": "<pack or path>" and give only what differs; without "extends" it is a full spec."""
+    if not name or Path(str(name)).suffix:
+        return None
+    spec = (data.get('styles') or {}).get(name)
+    if spec is None and not (STYLES / f'{name}.json').is_file() and not (STYLES.parent / 'styles-experimental' / f'{name}.json').is_file():
+        spec = (data.get('style_overrides') or {}).get(name)
+    if spec is None:
+        return None
+    spec = copy.deepcopy(spec)
+    base = spec.pop('extends', None)
+    return merge(load_style(base), spec) if base else spec
 
 
 def merge(a, b):
@@ -158,7 +193,9 @@ class Spec:
         style_ref = data.get('style')
         if style_ref and Path(str(style_ref)).suffix and not Path(str(style_ref)).is_absolute():
             style_ref = str(root / style_ref)
-        st = load_style(style_ref) if style_ref else {}
+        st = inline_style(style_ref, data)
+        if st is None:
+            st = load_style(style_ref) if style_ref else {}
         self.style_name = Path(str(data.get('style', 'custom'))).stem
         self.style = st
         self.pal = {**DEFAULT_PALETTE, **st.get('palette', {}), **data.get('palette', {})}
@@ -192,7 +229,8 @@ class Spec:
         if name not in self._subs:
             d = {k: v for k, v in self._data.items() if k not in STYLE_KEYS}
             d['style'] = name
-            d.update(copy.deepcopy((self._data.get('style_overrides') or {}).get(name, {})))
+            if inline_style(name, self._data) is None:   # an inline style already carries its own values
+                d.update(copy.deepcopy((self._data.get('style_overrides') or {}).get(name, {})))
             sub = Spec(d, self.root)
             sub.warnings = self.warnings
             self._subs[name] = sub
@@ -633,8 +671,254 @@ def comp_quote(spec, sh):
     return out
 
 
+# ---------------------------------------------------------------- v5.4 magazine / collage components
+
+def _role_or(spec, name, fallback):
+    return name if name in spec.type else fallback
+
+
+def _chip_text(spec, base, part, text, x, y, role, color, fill, pad=0.07, w=None, align='l', alpha=None):
+    """A label on its own colour band: [rect, text]. The band is sized to the measured text."""
+    t = {'type': 'text', 'name': _nm(base, part), 'role': role, 'text': text, 'x': x, 'y': y, 'w': w or 4.0, 'h': 0.5,
+         'color': color, 'align': align}
+    wide, need = text_extent(spec, t)
+    t['w'] = round(w or (wide + 0.04), 3)
+    t['h'] = round(need + 0.02, 3)
+    band = {'type': 'rect', 'name': _nm(base, part + 'k'), 'x': round(x - pad, 3), 'y': round(y - pad * 0.8, 3),
+            'w': round(t['w'] + 2 * pad, 3), 'h': round(t['h'] + 1.6 * pad, 3), 'fill': fill}
+    if alpha is not None:
+        band['alpha'] = alpha
+    return [band, t]
+
+
+def comp_callout(spec, sh):
+    """A leader-line callout: a dot ON the object part, a hairline leader, and the label on a colour chip.
+    at [x, y] = the point on the object (inches); x, y = where the label goes. NAME.ring/.dot/.lead/.labk/.lab/.desc"""
+    base = sh.get('name')
+    ax, ay = sh['at']
+    col = sh.get('color', 'accent')
+    r = float(sh.get('dot', 0.09))
+    role = _role_or(spec, sh.get('role', 'callout'), 'label')
+    chip = sh.get('chip', True)
+    parts = _chip_text(spec, base, 'lab', sh['label'], sh['x'], sh['y'], role,
+                       sh.get('text_color', 'surface' if chip else col), sh.get('chip_fill', col), w=sh.get('w'))
+    if not chip:
+        parts = parts[1:]
+    band = parts[0]
+    if sh.get('desc'):
+        d = {'type': 'text', 'name': _nm(base, 'desc'), 'role': _role_or(spec, 'caption', 'body'), 'text': sh['desc'],
+             'x': sh['x'], 'y': round(band['y'] + band['h'] + 0.06, 3), 'w': sh.get('desc_w', max(1.6, band['w'])), 'h': 0.4,
+             'color': sh.get('desc_color', 'ink')}
+        d['h'] = round(text_height(spec, d, d['w']) + 0.04, 3)
+        parts.append(d)
+    # the leader ends on the nearest edge of the chip (left or right, at mid height)
+    bx, by, bw, bh = band['x'], band['y'], band['w'], band['h']
+    ex = bx if ax <= bx else (bx + bw if ax >= bx + bw else ax)
+    ey = by + bh / 2 if ex != ax else (by if ay < by else by + bh)
+    lead = []
+    if sh.get('elbow') and ex != ax:
+        lead = [{'type': 'line', 'name': _nm(base, 'lead'), 'x1': ax, 'y1': ay, 'x2': ax, 'y2': round(ey, 3), 'color': col,
+                 'width': sh.get('width', 1.25)},
+                {'type': 'line', 'name': _nm(base, 'lead2'), 'x1': ax, 'y1': round(ey, 3), 'x2': round(ex, 3), 'y2': round(ey, 3),
+                 'color': col, 'width': sh.get('width', 1.25)}]
+    else:
+        lead = [{'type': 'line', 'name': _nm(base, 'lead'), 'x1': ax, 'y1': ay, 'x2': round(ex, 3), 'y2': round(ey, 3), 'color': col,
+                 'width': sh.get('width', 1.25)}]
+    ring = {'type': 'ellipse', 'name': _nm(base, 'ring'), 'x': round(ax - 2.2 * r, 3), 'y': round(ay - 2.2 * r, 3),
+            'w': round(4.4 * r, 3), 'h': round(4.4 * r, 3), 'fill': col, 'alpha': 0.22}
+    dot = {'type': 'ellipse', 'name': _nm(base, 'dot'), 'x': round(ax - r, 3), 'y': round(ay - r, 3), 'w': round(2 * r, 3),
+           'h': round(2 * r, 3), 'fill': col, 'line_color': sh.get('dot_line', 'surface'), 'line_width': 1.5}
+    return lead + [ring, dot] + parts
+
+
+SWATCH_CACHE = {}
+
+
+def sample_palette(path, n=5, min_dist=42, vivid=False):
+    """n dominant, mutually distinct colours of a picture (median-cut, then greedy by frequency)."""
+    key = (str(path), n, min_dist, vivid)
+    if key in SWATCH_CACHE:
+        return SWATCH_CACHE[key]
+    from PIL import ImageOps
+    im = Image.open(path)
+    try:
+        im.seek(0)
+    except EOFError:
+        pass
+    im = ImageOps.exif_transpose(im)
+    if 'A' in im.getbands() or im.mode == 'P':
+        # a cut-out: sample the object only, never the transparent page around it
+        rgba = im.convert('RGBA')
+        rgba.thumbnail((240, 240))
+        import numpy as _np
+        arr = _np.asarray(rgba)
+        px = arr[arr[..., 3] >= 160][:, :3]
+        im = Image.fromarray(px.reshape(1, -1, 3).astype('uint8'), 'RGB') if len(px) else Image.new('RGB', (1, 1))
+    else:
+        im = im.convert('RGB')
+        im.thumbnail((200, 200))
+    q = im.quantize(colors=48 if vivid else max(12, n * 4), method=Image.Quantize.MEDIANCUT)
+    pal = q.getpalette()
+    counts = sorted(q.getcolors(), reverse=True)
+    if vivid:   # weight saturated colours up: the red trim or the gold foil, not five greys
+        sat = lambda i: (max(pal[i * 3:i * 3 + 3]) - min(pal[i * 3:i * 3 + 3])) / 255  # noqa: E731
+        counts = sorted(counts, key=lambda ci: -ci[0] * (0.15 + sat(ci[1]) ** 1.5 * 4))
+    picked = []
+    for _, idx in counts:
+        c = tuple(pal[idx * 3:idx * 3 + 3])
+        if all(sum((a - b) ** 2 for a, b in zip(c, p)) ** 0.5 >= min_dist for p in picked):
+            picked.append(c)
+        if len(picked) == n:
+            break
+    out = ['#%02X%02X%02X' % c for c in picked]
+    SWATCH_CACHE[key] = out
+    return out
+
+
+def _ink_on(hexc):
+    r, g, b = (int(hexc[i:i + 2], 16) / 255 for i in (1, 3, 5))
+    lum = 0.2126 * r + 0.7152 * g + 0.0722 * b
+    return '#1A1410' if lum > 0.5 else '#FFFFFF'
+
+
+def comp_swatch(spec, sh):
+    """A palette strip sampled from a photo (or given colours), with hex codes under each chip.
+    image or colors, n, x, y, w, h, dir h|v, gap, hex true, labels [..]. NAME.s{i}/.h{i}"""
+    base = sh.get('name')
+    cols = list(sh.get('colors') or sample_palette(spec.path(sh['image']), int(sh.get('n', 5)), vivid=bool(sh.get('vivid'))))
+    n = len(cols)
+    gap = float(sh.get('gap', 0.08))
+    vertical = sh.get('dir', 'h') == 'v'
+    role = _role_or(spec, 'caption', 'body')
+    out = []
+    for i, c in enumerate(cols):
+        if vertical:
+            ch = (sh['h'] - gap * (n - 1)) / n
+            x, y, w, h = sh['x'], sh['y'] + i * (ch + gap), sh['w'], ch
+        else:
+            cw = (sh['w'] - gap * (n - 1)) / n
+            x, y, w, h = sh['x'] + i * (cw + gap), sh['y'], cw, sh['h']
+        out.append({'type': 'rect', 'name': _nm(base, f's{i}'), 'x': round(x, 3), 'y': round(y, 3), 'w': round(w, 3), 'h': round(h, 3),
+                    'fill': c, 'line_color': sh.get('line', 'surface'), 'line_width': sh.get('line_width', 1.0),
+                    **({'shadow': True} if sh.get('shadow') else {})})
+        lab = (sh.get('labels') or [None] * n)[i] if i < len(sh.get('labels') or []) else None
+        txt = c.upper() if sh.get('hex', True) else ''
+        txt = f'{lab}\n{txt}' if lab and txt else (lab or txt)
+        if txt:
+            # the code sits INSIDE its own chip, in the chip's contrasting ink: never loose on a photo
+            t = {'type': 'text', 'name': _nm(base, f'h{i}'), 'role': role, 'text': txt,
+                 'x': round(x + 0.06, 3), 'y': round(y + 0.04, 3), 'w': round(max(0.3, w - 0.12), 3), 'h': round(max(0.2, h - 0.1), 3),
+                 'color': _ink_on('#' + spec.color(c)), 'anchor': 'b'}
+            if sh.get('size'):
+                t['size'] = sh['size']
+            out.append(t)
+    return out
+
+
+def _grid_pack(items, cols):
+    """Row-major first fit of (span_c, span_r) items on a grid `cols` wide: [(col, row)], rows used."""
+    occ, pos = set(), []
+    for sc, sr in items:
+        sc = min(sc, cols)
+        r = 0
+        while True:
+            spot = next((c for c in range(cols - sc + 1)
+                         if all((c + dc, r + dr) not in occ for dc in range(sc) for dr in range(sr))), None)
+            if spot is not None:
+                break
+            r += 1
+        for dc in range(sc):
+            for dr in range(sr):
+                occ.add((spot + dc, r + dr))
+        pos.append((spot, r))
+    rows = 1 + max((r for _, r in occ), default=0)
+    return pos, rows
+
+
+def comp_photogrid(spec, sh):
+    """A dense multi-frame photo grid: bordered prints with a shadow, optional labels on colour chips.
+    images [path | {path, focus, span [c, r], label}], x, y, w, h, cols, rows, gap, border, frame, tilt [deg...].
+    NAME.f{i} (frame) /.p{i} (photo) /.t{i}k + .t{i} (label chip)"""
+    base = sh.get('name')
+    imgs = [i if isinstance(i, dict) else {'path': i} for i in sh['images']]
+    cols = int(sh.get('cols', max(2, round(len(imgs) ** 0.5 + 0.49))))
+    pos, rows = _grid_pack([tuple(i.get('span', [1, 1])) for i in imgs], cols)
+    rows = int(sh.get('rows', rows))
+    gap, bd = float(sh.get('gap', 0.12)), float(sh.get('border', 0.06))
+    cw = (sh['w'] - gap * (cols - 1)) / cols
+    rh = (sh['h'] - gap * (rows - 1)) / rows
+    tilt = sh.get('tilt') or []
+    role = _role_or(spec, sh.get('label_role', 'label'), 'label')
+    out = []
+    for i, (im, (c, r)) in enumerate(zip(imgs, pos)):
+        sc, sr = im.get('span', [1, 1])
+        x, y = sh['x'] + c * (cw + gap), sh['y'] + r * (rh + gap)
+        w, h = sc * cw + (sc - 1) * gap, sr * rh + (sr - 1) * gap
+        rot = tilt[i % len(tilt)] if tilt else 0
+        frame = {'type': 'rect', 'name': _nm(base, f'f{i}'), 'x': round(x, 3), 'y': round(y, 3), 'w': round(w, 3), 'h': round(h, 3),
+                 'fill': sh.get('frame', 'surface'), 'shadow': sh.get('shadow', True)}
+        photo = {'type': 'image', 'name': _nm(base, f'p{i}'), 'path': im['path'], 'x': round(x + bd, 3), 'y': round(y + bd, 3),
+                 'w': round(w - 2 * bd, 3), 'h': round(h - 2 * bd, 3), 'fit': 'cover', 'focus': im.get('focus', [0.5, 0.5])}
+        for k in ('duotone', 'grayscale', 'brightness', 'contrast'):
+            if k in im:
+                photo[k] = im[k]
+        if rot:
+            frame['rot'] = photo['rot'] = rot
+        out += [frame, photo]
+        if im.get('label'):
+            out += _chip_text(spec, base, f't{i}', im['label'], round(x + bd + 0.14, 3), round(y + h - bd - 0.36, 3), role,
+                              sh.get('label_color', 'surface'), sh.get('chip', 'accent'))
+    return out
+
+
+def comp_nodemap(spec, sh):
+    """A map of red nodes joined by lines, each label on a chip. nodes [{x, y (0..1 of the box), label, big}],
+    links [[a, b], ...] (indexes or labels), x, y, w, h, image (optional map underlay), color, side r|l|t|b.
+    NAME.map / .e{k} (links) / .n{i} (nodes) / .t{i}k + .t{i} (labels)"""
+    base = sh.get('name')
+    col = sh.get('color', 'accent')
+    nodes = sh['nodes']
+    idx = {n.get('id', n.get('label')): i for i, n in enumerate(nodes)}
+    pt = [(sh['x'] + n['x'] * sh['w'], sh['y'] + n['y'] * sh['h']) for n in nodes]
+    out = []
+    if sh.get('image'):
+        out.append({'type': 'image', 'name': _nm(base, 'map'), 'path': sh['image'], 'x': sh['x'], 'y': sh['y'], 'w': sh['w'], 'h': sh['h'],
+                    'fit': 'cover', **{k: sh[k] for k in ('duotone', 'grayscale', 'brightness') if k in sh}})
+    for k, (a, b) in enumerate(sh.get('links', [])):
+        ia, ib = (idx[a] if not isinstance(a, int) else a), (idx[b] if not isinstance(b, int) else b)
+        out.append({'type': 'line', 'name': _nm(base, f'e{k}'), 'x1': round(pt[ia][0], 3), 'y1': round(pt[ia][1], 3),
+                    'x2': round(pt[ib][0], 3), 'y2': round(pt[ib][1], 3), 'color': col, 'width': sh.get('line_width', 1.75),
+                    **({'dash': sh['dash']} if sh.get('dash') else {})})
+    role = _role_or(spec, sh.get('label_role', 'label'), 'label')
+    for i, (n, (px, py)) in enumerate(zip(nodes, pt)):
+        r = float(n.get('r', 0.16 if n.get('big') else 0.1))
+        out.append({'type': 'ellipse', 'name': _nm(base, f'n{i}'), 'x': round(px - r, 3), 'y': round(py - r, 3), 'w': round(2 * r, 3),
+                    'h': round(2 * r, 3), 'fill': col, 'line_color': sh.get('node_line', 'surface'), 'line_width': 2})
+        if n.get('label'):
+            side = n.get('side', sh.get('side', 'r'))
+            lx, ly = {'r': (px + r + 0.16, py - 0.12), 'l': (px - r - 1.6, py - 0.12),
+                      't': (px - 0.5, py - r - 0.45), 'b': (px - 0.5, py + r + 0.14)}[side]
+            parts = _chip_text(spec, base, f't{i}', n['label'], round(lx, 3), round(ly, 3), role,
+                               sh.get('label_color', 'surface'), sh.get('chip', 'veil'))
+            if n.get('desc'):
+                band = parts[0]
+                d = {'type': 'text', 'name': _nm(base, f'd{i}'), 'role': _role_or(spec, 'caption', 'body'), 'text': n['desc'],
+                     'x': parts[1]['x'], 'y': round(band['y'] + band['h'] + 0.05, 3), 'w': float(n.get('desc_w', 2.2)), 'h': 0.4,
+                     'color': sh.get('desc_color', 'ink')}
+                d['h'] = round(text_height(spec, d, d['w']) + 0.04, 3)
+                parts.append(d)
+            if side == 'l':   # right-align the chip to the node
+                dx = (px - r - 0.16) - (parts[0]['x'] + parts[0]['w'])
+                for q in parts:
+                    q['x'] = round(q['x'] + dx, 3)
+            out += parts
+    return out
+
+
 EXPAND = {'heading': comp_heading, 'card': comp_card, 'stat': comp_stat, 'screen': comp_screen,
-          'timeline': comp_timeline, 'bars': comp_bars, 'list': comp_list, 'quote': comp_quote}
+          'timeline': comp_timeline, 'bars': comp_bars, 'list': comp_list, 'quote': comp_quote,
+          'callout': comp_callout, 'swatch': comp_swatch, 'photogrid': comp_photogrid, 'nodemap': comp_nodemap,
+          'construct': lambda spec, sh: __import__('construct').comp_construct(spec, sh)}   # v5.5: construction motion
 
 
 def expand(spec, sh):
@@ -659,7 +943,7 @@ def expand(spec, sh):
         ys = [p[1] for p in sh['points']]
         sh.update({'x': min(xs), 'y': min(ys), 'w': max(xs) - min(xs), 'h': max(ys) - min(ys)})
     if t in EXPAND:
-        for k in ('x', 'y', 'w'):
+        for k in ('x', 'y') if t == 'callout' else ('x', 'y', 'w'):   # a callout chip sizes itself to its label
             if k not in sh:
                 raise SystemExit(f'{t} {sh.get("name")!r}: needs {k} (or "col")')
         prims = []
@@ -814,7 +1098,7 @@ def add_poly(shapes, sh, spec):
     if len(pts) < 2:
         raise SystemExit(f'poly {sh.get("name")!r}: needs at least 2 points')
     fb = shapes.build_freeform(Inches(pts[0][0]), Inches(pts[0][1]), scale=1.0)
-    fb.add_line_segments([(Inches(x), Inches(y)) for x, y in pts[1:]], close=sh.get('closed', True))
+    fb.add_line_segments([(Inches(x), Inches(y)) for x, y in pts[1:]], close=poly_closed(sh))
     shp = fb.convert_to_shape()
     if sh.get('gradient'):
         set_gradient_any(shp, sh['gradient'], sh.get('angle', 90), spec)
@@ -1048,8 +1332,9 @@ def add_shape(shapes, sh, spec):
         raise SystemExit(f'unknown shape type {t!r} (primitives: text image rect ellipse line poly video group; components: {", ".join(COMPONENTS)})')
     if sh.get('name'):
         obj.name = sh['name']
-    if sh.get('rot'):
-        obj.rotation = sh['rot']
+    rot = sh.get('rot', spec.role(sh.get('role')).get('rot') if t == 'text' and sh.get('role') else None)
+    if rot:
+        obj.rotation = rot
     return obj
 
 
@@ -1201,15 +1486,17 @@ def _boxes(spec, shapes, texts, groups, owner=None):
             anchor, align = tp['anchor'], tp['align']
             top = sh['y'] if anchor == 't' else (sh['y'] + sh['h'] - need if anchor == 'b' else sh['y'] + (sh['h'] - need) / 2)
             left = sh['x'] if align == 'l' else (sh['x'] + sh['w'] - wide if align == 'r' else sh['x'] + (sh['w'] - wide) / 2)
-            if sh.get('rot'):   # v5.2: rotate the measured ink box about the shape centre
+            rot = sh.get('rot', spec.role(sh.get('role')).get('rot'))
+            if rot:   # v5.2: rotate the measured ink box about the shape centre
                 import math as _m
-                r = _m.radians(sh['rot'])
+                r = _m.radians(rot)
                 cx0, cy0 = sh['x'] + sh['w'] / 2, sh['y'] + sh['h'] / 2
                 pts = [(left + dx - cx0, top + dy - cy0) for dx in (0, wide) for dy in (0, need)]
                 pts = [(cx0 + px * _m.cos(r) - py * _m.sin(r), cy0 + px * _m.sin(r) + py * _m.cos(r)) for px, py in pts]
                 left, top = min(p[0] for p in pts), min(p[1] for p in pts)
                 wide, need = max(p[0] for p in pts) - left, max(p[1] for p in pts) - top
-            texts.append((sh.get('name') or '(text)', left, top, wide, need, owner))
+            overlay = bool(sh.get('overlay', spec.role(sh.get('role')).get('overlay', False)))   # v5.4: a script accent may cross a title
+            texts.append((sh.get('name') or '(text)', left, top, wide, need, owner, overlay))
 
 
 def _overlap(a, b):
@@ -1228,6 +1515,8 @@ def check_collisions(spec, prims, where, chrome_names):
     seen = set()
     for i, a in enumerate(texts):
         for b in texts[i + 1:]:
+            if a[6] or b[6]:
+                continue
             ox, oy = _overlap(a, b)
             if ox > 0.05 and oy > 0.04 and (a[0], b[0]) not in seen:
                 seen.add((a[0], b[0]))
@@ -1259,8 +1548,11 @@ def build(data, root, base=None):
         for ph in list(sl.placeholders):
             ph._element.getparent().remove(ph._element)
         set_background(sl, spec, s.get('bg', spec.default_bg))
-        if s.get('scene'):
-            sl._element.cSld.set('name', str(s['scene']))
+        if s.get('scene') or s.get('bookend') or s.get('still'):
+            # v5.4: "bookend": true = a declared circular close (image reuse allowed);
+            # "still": true = a deliberately still page (excluded from the moving-depth share)
+            sl._element.cSld.set('name', (str(s.get('scene') or '') + (' [bookend]' if s.get('bookend') else '')
+                                          + (' [still]' if s.get('still') else '')).strip())
         layers = chrome_for(spec, s, n, total)
         chrome_names = {c.get('name') for c in layers['under'] + layers['over']}
         prims = []

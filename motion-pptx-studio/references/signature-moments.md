@@ -68,6 +68,12 @@ Craft rules that made the VinFast figures read:
   cable runs (`wireSvg`). 40+ parts is the floor; the battery pack figure has ~1,300 shapes.
 - **No words in the SVG.** Labels are slide text placed at `film.json` anchors, so they stay editable,
   translatable and searchable.
+- **Anchors and frames are checked (v5.4).** `anchors` may be an object or a function `(t) => ({...})`; values
+  are `[x, y]` or `{x, y}` and must be finite numbers. `frame(t)` must return an SVG string (an array is
+  joined). A helper given an object where it wants a string (e.g. `topTicks({minor, major})` passed on as
+  a path) used to crash with "[object Object]" and a "run setup again" hint; now `film.mjs` stops with
+  `FIGURE ERROR: …` naming the anchor or the frame, and `anatomy_film.py` says the figure, not the setup,
+  needs fixing. A figure that talks about anchors but exports none gets a WARN.
 - **Honest scope.** A generic mechanism (a typical EV pack) is labelled "minh họa / illustration" on the
   slide; never present it as the company's engineering drawing.
 

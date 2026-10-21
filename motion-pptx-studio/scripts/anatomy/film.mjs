@@ -80,7 +80,7 @@ async function main() {
     <body class="iso" data-theme="${theme}" style="${tok}"><div id="f"></div></body></html>`;
   const { frameTree } = await send("Page.getFrameTree");
   await send("Page.setDocumentContent", { frameId: frameTree.frame.id, html });
-  const svgAt = (t) => k.figureSvg({ width: W, height: H, label, body: spec.frame(t) });
+  const svgAt = (t) => k.figureSvg({ width: W, height: H, label, body: frameBody(spec, t) });
   const show = (svg) => send("Runtime.evaluate", { expression: `document.getElementById('f').innerHTML=${JSON.stringify(svg)};1`, returnByValue: true });
   const shoot = async (file) => {
     const { data } = await send("Page.captureScreenshot", { format: "png", clip: { x: 0, y: 0, width: W, height: H, scale: 1 }, captureBeyondViewport: false });
@@ -101,7 +101,7 @@ async function main() {
   if (ev.exceptionDetails) throw new Error("extract failed: " + JSON.stringify(ev.exceptionDetails).slice(0, 400));
   const result = ev.result.value;
   writeFileSync(join(out, "poster-shapes.json"), JSON.stringify({ width: W, height: H, background: result.background, shapes: result.shapes }));
-  writeFileSync(join(out, "film.json"), JSON.stringify({ anchors: spec.anchors || {}, figure: resolve(figPath), width: W, height: H, fps, scale, seconds, frames: n, poster: posterT, theme, tokens, anatomy: home, shapes: result.shapes.length, ms: Date.now() - t0 }, null, 1));
+  writeFileSync(join(out, "film.json"), JSON.stringify({ anchors: anchorsAt(spec, posterT), figure: resolve(figPath), width: W, height: H, fps, scale, seconds, frames: n, poster: posterT, theme, tokens, anatomy: home, shapes: result.shapes.length, ms: Date.now() - t0 }, null, 1));
   console.log(`\nwrote ${n} frames + poster (${result.shapes.length} vector shapes) to ${out} in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   ws.close();
   // wait for Chrome to exit before removing its profile (it keeps writing for a moment: ENOTEMPTY race)
@@ -112,6 +112,41 @@ async function main() {
     try { rmSync(profile, { recursive: true, force: true }); break; }
     catch (e) { if (i === 4) console.error(`note: could not remove ${profile} (${e.code}); harmless`); else await new Promise((ok) => setTimeout(ok, 300)); }
   }
+}
+
+// v5.4: a figure mistake exits 3 with the reason (not "re-run setup", which is exit 2)
+function figureError(msg) {
+  console.error("FIGURE ERROR: " + msg);
+  process.exit(3);
+}
+
+// frame(t) must return SVG markup. A kit helper that returns an object (topTicks gives {minor, major}) and is
+// interpolated into the string shows up as "[object Object]": say so instead of crashing in the extractor.
+function frameBody(spec, t) {
+  if (typeof spec.frame !== "function") figureError("the figure has no frame(t) function");
+  let body = spec.frame(t);
+  if (Array.isArray(body)) body = body.join("");
+  if (typeof body !== "string") figureError(`frame(${t}) returned ${typeof body}, not an SVG string`);
+  const bad = body.indexOf("[object Object]");
+  if (bad >= 0) figureError(`frame(${t}) markup contains "[object Object]" near ${JSON.stringify(body.slice(Math.max(0, bad - 60), bad + 20))}: ` +
+    "a kit helper returned an object (e.g. topTicks returns {minor, major}: interpolate .minor and .major, or lineSvg each part)");
+  return body;
+}
+
+// anchors: an object of [x, y] screen points, or a function (t) => object (evaluated at the poster time).
+// Anything else used to be dropped silently by JSON.stringify; now it is an error that names the anchor.
+function anchorsAt(spec, t) {
+  let a = spec.anchors;
+  if (a === undefined || a === null) return {};
+  if (typeof a === "function") a = a(t);
+  if (typeof a !== "object" || Array.isArray(a)) figureError("anchors must be an object {name: [x, y]} or a function (t) => that object");
+  const outA = {};
+  for (const [name, v] of Object.entries(a)) {
+    const p = Array.isArray(v) ? v : v && typeof v === "object" && "x" in v ? [v.x, v.y] : null;
+    if (!p || p.length < 2 || !Number.isFinite(+p[0]) || !Number.isFinite(+p[1])) figureError(`anchor ${JSON.stringify(name)} is ${JSON.stringify(v)}: give a screen point [x, y] (k.iso([x, y, z], P))`);
+    outA[name] = [+p[0], +p[1]];
+  }
+  return outA;
 }
 
 // Runs in the page: every visible path/circle as polygons in viewBox units with resolved paint.

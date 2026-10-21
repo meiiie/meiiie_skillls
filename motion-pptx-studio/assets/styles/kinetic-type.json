@@ -69,7 +69,7 @@
     },
     "subtitle": {
       "font": "text",
-      "size": 22,
+      "size": 24,
       "line": 1.25,
       "color": "muted"
     },
@@ -81,7 +81,7 @@
     },
     "caption": {
       "font": "text",
-      "size": 10,
+      "size": 11,
       "color": "muted"
     },
     "label": {
@@ -114,7 +114,7 @@
     },
     "pageno": {
       "font": "label",
-      "size": 10,
+      "size": 11,
       "bold": true,
       "color": "muted"
     }
@@ -208,5 +208,27 @@
     "a line typed letter by letter (fx type, 0.1 s per letter), then one word turns red",
     "a hard Cut between full-bleed words on the beat; one word per slide",
     "a word bigger than the slide that Morphs to a readable size"
-  ]
+  ],
+  "fit": {
+    "domains": {
+      "event": 1,
+      "business": 0.3,
+      "technology": 0.4,
+      "aerospace": 0.3
+    },
+    "tones": [
+      "bold",
+      "energetic",
+      "cinematic"
+    ],
+    "material": {
+      "dark": 0.6
+    },
+    "avoid": [
+      {
+        "domain": "heritage",
+        "reason": "poster type that IS the image drowns objects and places that must be seen"
+      }
+    ]
+  }
 }

@@ -52,7 +52,7 @@ DEPTH_MIN = 0.2
 SPLIT_MAX = 4          # v5.3: text-left/photo-right (or the mirror) on this many slides fails
 GEO_SHARE_MAX = 0.3    # v5.3: one geometry fingerprint on more than this share of slides fails (10+ slides)
 
-ENTR = {1: 'appear', 10: 'fade', 2: 'fly', 42: 'rise', 22: 'wipe', 16: 'split', 53: 'zoom', 21: 'wheel'}
+ENTR = {1: 'appear', 10: 'fade', 2: 'fly', 42: 'rise', 22: 'wipe', 16: 'split', 53: 'zoom', 21: 'wheel', 17: 'stretch'}
 EMPH = {6: 'scale', 8: 'spin', 35: 'blink', 32: 'teeter'}
 EXIT = {10: 'fade', 2: 'fly', 53: 'zoom', 22: 'wipe'}
 
@@ -201,11 +201,69 @@ def geometry(slide_root):
     return (pics, cell), split
 
 
+MOVING_MIN_AREA = 0.01   # v5.4: a moving layer smaller than 1% of the slide (a dot drifting) is not depth
+
+
+def _id_boxes(slide_root):
+    """{spid: (kind, x, y, w, h, filled_plate)} of top-level shapes."""
+    tree = slide_root.find('.//' + P + 'spTree')
+    out = {}
+    if tree is None:
+        return out
+    for el in tree:
+        tag = el.tag.split('}')[-1]
+        nv = el.find('.//' + P + 'cNvPr')
+        off, ext = el.find('.//' + A + 'off'), el.find('.//' + A + 'ext')
+        if nv is None or off is None or ext is None:
+            continue
+        is_media = tag == 'pic' or el.find('.//' + A + 'videoFile') is not None
+        has_text = any((t.text or '').strip() for t in el.iter(A + 't'))
+        sppr = el.find(P + 'spPr')
+        textured = el.find('.//' + A + 'blipFill') is not None or (sppr is not None and sppr.find(A + 'gradFill') is not None)
+        out[nv.get('id')] = ('media' if is_media else ('text' if has_text else 'shape'),
+                             _int(off.get('x')) / EMU_W, _int(off.get('y')) / EMU_H,
+                             _int(ext.get('cx')) / EMU_W, _int(ext.get('cy')) / EMU_H, is_media or textured)
+    return out
+
+
+def _moving_targets(slide_root):
+    """spids animated by a path, a loop, a pulse or a video play."""
+    ids = set()
+    timing = slide_root.find(P + 'timing')
+    if timing is None:
+        return ids
+    for ctn in timing.iter(P + 'cTn'):
+        cls = ctn.get('presetClass')
+        loop = ctn.get('repeatCount') == 'indefinite' or any(c.get('repeatCount') == 'indefinite' for c in ctn.iter(P + 'cTn'))
+        if cls == 'path' or cls == 'mediacall' or (cls == 'emph' and loop):
+            for t in ctn.iter(P + 'spTgt'):
+                ids.add(t.get('spid'))
+    return ids
+
+
+def is_still(slide_root):
+    csld = slide_root.find(P + 'cSld')
+    return csld is not None and '[still]' in (csld.get('name') or '')
+
+
 def moving_depth(slide_root, techs):
+    """Plate + moving layer + text. v5.4: the plate is a picture, a video or a textured/gradient shape (a flat
+    rectangle is not a plate), and the moving layer is another shape of >= 1% of the slide that overlaps it."""
     boxes = _boxes(slide_root)
-    plate = any(b[0] in ('media', 'shape') and b[3] * b[4] >= 0.3 for b in boxes)
+    ib = _id_boxes(slide_root)
+    plates = [(k, b) for k, b in ib.items() if b[0] in ('media', 'shape') and b[3] * b[4] >= 0.3 and b[5]]
     fg_text = any(b[0] == 'text' for b in boxes)
-    moving = any(t.startswith('path') or t.endswith('-loop') or t == 'emph:pulse' or t == 'media:video' for t in techs)
+    movers = [ib[i] for i in _moving_targets(slide_root) if i in ib]
+
+    def overlaps(m, p):
+        return min(m[1] + m[3], p[1] + p[3]) > max(m[1], p[1]) and min(m[2] + m[4], p[2] + p[4]) > max(m[2], p[2])
+    moving = any(m[3] * m[4] >= MOVING_MIN_AREA and any(m is not p and overlaps(m, p) for _, p in plates) for m in movers)
+    if not ib:   # no ids to resolve (a synthetic tree): fall back to the technique list
+        plate = any(b[0] in ('media', 'shape') and b[3] * b[4] >= 0.3 for b in boxes)
+        moving = plate and any(t.startswith('path') or t.endswith('-loop') or t == 'emph:pulse' or t == 'media:video' for t in techs)
+    elif any(p[0] == 'media' for _, p in plates) and any(t == 'media:video' for t in techs):
+        moving = True   # the plate itself is a playing film
+    plate = bool(plates) or not ib
     lens = sorted(l for l in path_lengths(slide_root) if l > 0.05)
     parallax = len(lens) >= 2 and lens[-1] >= 1.6 * lens[0]
     return plate and fg_text and moving, parallax
@@ -219,7 +277,7 @@ def audit(slides, describe_transition, strict=False):
         return errors, warns, info
     scale = min(1.0, n / DECK_MIN)
     techs, trans, sigs = Counter(), Counter(), []
-    depth = parallax = 0
+    depth = parallax = stills = 0
     scene_sigs = []   # composition is judged per scene cut: a Morph-entered slide is a camera move inside one composition
     geos, splits = Counter(), {'TL-PR': [], 'PL-TR': []}
     for tag, root in slides:
@@ -236,7 +294,10 @@ def audit(slides, describe_transition, strict=False):
         if tr != 'morph' or not scene_sigs:
             scene_sigs.append((tag, sig))
         d, p = moving_depth(root, t)
-        depth += d
+        if is_still(root):
+            stills += 1
+        else:
+            depth += d
         parallax += p
     total = sum(techs.values())
     top, top_n = (techs.most_common(1)[0] if techs else ('-', 0))
@@ -246,7 +307,7 @@ def audit(slides, describe_transition, strict=False):
     runs = [scene_sigs[i][0] for i in range(2, m) if scene_sigs[i][1] == scene_sigs[i - 1][1] == scene_sigs[i - 2][1]]
     info.append(f'variety: {len(techs)} effect techniques over {total} effect nodes (top {top} {share:.0%}); '
                 f'{len(trans)} transition types; {distinct_sig}/{m} composition signatures across scene cuts; '
-                f'moving depth on {depth}/{n} slides, parallax on {parallax}')
+                f'moving depth on {depth}/{n - stills} slides ({stills} still), parallax on {parallax}')
     info.append('variety census: ' + ', '.join(f'{k}×{v}' for k, v in techs.most_common()))
     top_fp, top_fp_n = geos.most_common(1)[0]
     info.append(f'geometry: {len(geos)} distinct picture/text fingerprints on {n} slides (most common on {top_fp_n}); '
@@ -275,6 +336,10 @@ def audit(slides, describe_transition, strict=False):
                    'vary scale, side and depth (pro-craft.md, "Composition systems")')
     if runs:
         bad.append(f'composition: the same layout signature on 3 scene cuts in a row ending at {runs[:4]}')
-    if depth < DEPTH_MIN * n:
-        bad.append(f'depth: moving depth (plate + moving layer + text) on {depth}/{n} slides (min {DEPTH_MIN:.0%})')
+    moving_n = n - min(stills, n // 4)   # v5.4: declared still pages ("still": true) do not count, up to a quarter
+    if stills > n // 4:
+        bad.append(f'depth: {stills} slides declare "still" (max {n // 4}, a quarter of the deck)')
+    if depth < DEPTH_MIN * moving_n:
+        bad.append(f'depth: moving depth (picture/texture plate + a moving layer over it + text) on {depth}/{moving_n} '
+                   f'slides (min {DEPTH_MIN:.0%}{f"; {stills} still page(s) excluded" if stills else ""})')
     return errors, warns, info

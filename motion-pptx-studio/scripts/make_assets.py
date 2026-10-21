@@ -106,9 +106,12 @@ def voronoi_cracks(w, h, rng, cell=90, width=1.6):
 # ---------------------------------------------------------------- grounds
 
 def ground(kind='lacquer', base='#140B08', tone=None, size=(2400, 1350), grain=0.04, vignette_amt=0.4,
-           seed=1, crackle=0.0, lift=(0.75, 0.2), dots=0.0, grid=0.0, grid_alpha=0.05, dot=0.16, **_):
+           seed=1, crackle=0.0, lift=(0.75, 0.2), dots=0.0, grid=0.0, grid_alpha=0.05, dot=0.16, stains=0.0, fibres=1.0,
+           angle=20, **_):
     """Return an RGB PIL image: a ground that reads as a material, never a flat fill.
-    kinds: lacquer noir paper clean halftone flat blueprint mesh scanline."""
+    kinds: lacquer noir paper clean halftone flat blueprint mesh scanline gradient.
+    v5.4 paper: stains 0..1 (aged blotches and darker edges, the magazine-collage page), fibres (density x).
+    v5.4 gradient: a linear base -> tone wash at `angle` degrees with paper grain (chapter openers)."""
     w, h = size
     rng = np.random.default_rng(seed)
     b = np.array(hexrgb(base), np.float32)
@@ -142,14 +145,27 @@ def ground(kind='lacquer', base='#140B08', tone=None, size=(2400, 1350), grain=0
         fib = Image.new('L', (w, h), 0)
         from PIL import ImageDraw
         dr = ImageDraw.Draw(fib)
-        for _ in range(int(w * h / 900)):
+        for _ in range(int(w * h / 900 * fibres)):
             x, y = rng.random() * w, rng.random() * h
             ang, ln = rng.random() * math.pi, 6 + rng.random() * 26
             dr.line([(x, y), (x + math.cos(ang) * ln, y + math.sin(ang) * ln)], fill=int(40 + rng.random() * 70), width=1)
         f = np.asarray(fib.filter(ImageFilter.GaussianBlur(0.6)), np.float32) / 255
         sign = 1 if b.mean() < 128 else -1
         img += sign * f[..., None] * 18
-        img *= vignette(w, h, vignette_amt * 0.35)[..., None]
+        if stains:
+            blot = fractal(w, h, rng, octaves=4, base=3)
+            img *= (1 - stains * 0.22 * np.clip((blot - 0.45) * 2.2, 0, 1))[..., None]
+            spots = fractal(w, h, rng, octaves=6, base=9)
+            img *= (1 - stains * 0.10 * np.clip((spots - 0.62) * 4, 0, 1))[..., None]
+        img *= vignette(w, h, vignette_amt * (0.35 + 0.5 * stains))[..., None]
+    elif kind == 'gradient':
+        yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+        a = math.radians(angle)
+        u = (xx / w * math.cos(a) + yy / h * math.sin(a))
+        u = (u - u.min()) / max(1e-6, (u.max() - u.min()))
+        img = b + (t - b) * u[..., None]
+        img *= (1 + 0.05 * (fractal(w, h, rng, 5, 4) - 0.5))[..., None]
+        img *= vignette(w, h, vignette_amt * 0.5)[..., None]
     elif kind == 'clean':
         yy = np.linspace(0, 1, h, dtype=np.float32)[:, None, None]
         img = b + (t - b) * yy * 0.6 + np.zeros((h, w, 3), np.float32)

@@ -13,7 +13,9 @@ design/directions.json:
      ... 3 entries ...],
    "chosen": "A", "why": "...", "chapters": "S1-S2 B, S3-S7 A"}
 
-composition: swiss-grid | hero-object | full-bleed | kinetic-number | editorial | split
+composition: FREE TEXT (v5.5): describe the layout you invent ("tall drawn object left, words right"). The
+thumbnail is sketched from "sketch" (swiss-grid | hero-object | full-bleed | kinetic-number | editorial | split)
+or, when absent, from keywords in the composition. "family" names the routed family a direction starts from.
 Writes design/directions.jpg (3 thumbnails side by side, palette swatches and type under each) and, when
 design/directions.md is still the template, fills it from the spec. Then LOOK: if two thumbnails could be
 the same deck in another colour, they are not different directions; change one.
@@ -68,6 +70,22 @@ def wrap(d, text, f, width):
     return lines + ([cur] if cur else [])
 
 
+SKETCHES = ('full-bleed', 'kinetic-number', 'editorial', 'hero-object', 'split', 'swiss-grid')
+SKETCH_WORDS = (('full-bleed', r'bleed|plate|full.?frame|photo fills'), ('kinetic-number', r'number|numeral|figure|stat'),
+                ('hero-object', r'object|diagram|construct|drawn|isometric|cut.?out'), ('split', r'split|column|half|right|left'),
+                ('swiss-grid', r'grid|swiss|modular'), ('editorial', r'.'))
+
+
+def sketch_of(dr):
+    s = dr.get('sketch') or dr.get('composition', '')
+    if s in SKETCHES:
+        return s
+    for k, pat in SKETCH_WORDS:
+        if re.search(pat, str(s), re.I):
+            return k
+    return 'editorial'
+
+
 def thumb(dr, work):
     pal = [rgb(h) for h in dr.get('palette', ['#FFFFFF', '#1464F4', '#111111'])]
     ground, accent = pal[0], pal[1] if len(pal) > 1 else (20, 100, 244)
@@ -80,7 +98,7 @@ def thumb(dr, work):
         pic = Image.open(work / dr['image'])
         pic = ImageOps.exif_transpose(pic)
     d = ImageDraw.Draw(img)
-    comp = dr.get('composition', 'swiss-grid')
+    comp = sketch_of(dr)
     title, kicker, number = dr.get('title', dr.get('name', '')), dr.get('kicker', ''), dr.get('number', '')
     if comp == 'full-bleed':
         if pic:
@@ -186,6 +204,7 @@ def write_md(spec, md):
                   f'- ground: {dr.get("ground", "")}',
                   f'- palette: {" ".join(dr.get("palette", []))}',
                   f'- type: {dr.get("type", ", ".join(Path(f).stem for f in dr.get("fonts", []) if f))}',
+                  f'- family: {dr.get("family", "free")}',
                   f'- composition: {dr.get("composition", "")} — {dr.get("composition_note", "")}',
                   f'- motion: {dr.get("motion", "")}',
                   f'- signature visual: {dr.get("signature", "")}', '']
@@ -205,7 +224,7 @@ def main(argv=None):
     spec = json.loads(spec_p.read_text(encoding='utf-8'))
     if len(spec.get('directions', [])) != 3:
         sys.exit('directions.json needs exactly 3 directions')
-    comps = [d.get('composition') for d in spec['directions']]
+    comps = [sketch_of(d) for d in spec['directions']]
     if len(set(comps)) < 3:
         print(f'WARN two directions share a composition {comps}: are they really different?')
     out = Path(a.out) if a.out else work / 'design/directions.jpg'

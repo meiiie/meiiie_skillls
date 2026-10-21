@@ -13,6 +13,8 @@ Checks (ERROR = must fix, WARN = look at it):
          has fewer distinct subject images than consecutive runs of the same image
   ERROR  layout: the editorial-left template (kicker, left title, caption, image right or full-bleed)
          appears in more than 3 scenes
+  ERROR  caps body: a paragraph of 12+ words in ALL CAPS below 28 pt (v5.4; legibility_audit.py)
+  WARN   text on a photo with no colour band, chip, gradient scrim or toned picture under it (--scrim strict: ERROR)
   ERROR  fewer than 2 font families (Noto Sans Display counts as Noto Sans; Office defaults do not count)
   ERROR  average on-slide words under 8, on a deck of 8 or more slides
   ERROR  no persistent system: no !! shape on 60% of the slides (craft_audit.py)
@@ -181,6 +183,8 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description='Audit a motion deck.')
     ap.add_argument('deck')
     ap.add_argument('--max-mb', type=float, default=25.0)
+    ap.add_argument('--scrim', choices=('warn', 'strict'), default='warn',
+                    help='text on a photo without a band or scrim: WARN (default) or ERROR (the heritage-collage style)')
     ap.add_argument('--anchor', action='append', default=[], help='anchor phrase to count (on-slide text)')
     ap.add_argument('--anchor-count', type=int, default=3)
     ap.add_argument('--expect-slides', type=int)
@@ -364,6 +368,16 @@ def main(argv=None):
         errors += ve
         warns += vw
         info += vi
+    import legibility_audit   # v5.4: text on photos needs a band/scrim; capitals are for headlines only
+    for i, p in enumerate(order, 1):
+        root = xml(src, p)
+        for nm, w, pt in legibility_audit.caps_body(root):
+            errors.append(f'pos {i:2} ({Path(p).name}): caps body: {nm!r} sets {w} words in ALL CAPS at {pt:g} pt '
+                          '(capitals are for headlines, kickers and short labels: use sentence case)')
+        sc = legibility_audit.scrim_missing(root, legibility_audit.cutout_reader(src, p))
+        if sc:
+            (errors if a.scrim == 'strict' else warns).append(
+                f'pos {i:2} ({Path(p).name}): text on a photo without a colour band, chip or gradient scrim: {sc[:4]}')
     import film_audit   # v5.3.1: videos must not hide labels, and a flat film must match its page
     for i, p in enumerate(order, 1):
         root = xml(src, p)

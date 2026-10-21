@@ -547,16 +547,20 @@ def load_pptx_slides(path):
         onslide = '\n'.join(ln['text'] for ln in lines)
         notes = _notes_text(z, part)
         marker = None
+        bookend = False
         csld = t.find(P + 'cSld')
         if csld is not None and (csld.get('name') or '').strip():
             marker = csld.get('name').strip()
+            if BOOKEND_TAG in marker:   # v5.4: a declared circular close ("bookend": true in deck.json)
+                bookend = True
+            marker = re.sub(r'\s*\[(?:bookend|still)\]', '', marker).strip() or None
         else:
             m = re.search(r'(?:Cảnh|Scene)\s*(\d+)', notes, re.I)
             if m:
                 marker = m.group(1)
         slides.append({
             'pics': pics, 'shapes': shapes, 'lines': lines, 'fonts': fonts,
-            'onslide': onslide, 'notes': notes, 'marker': marker,
+            'onslide': onslide, 'notes': notes, 'marker': marker, 'bookend': bookend,
             'sw': sw, 'sh': sh,
         })
     return slides
@@ -744,13 +748,26 @@ def _apply_subject(slides):
         s['editorial'] = _editorial(s)
 
 
+BOOKEND_TAG = '[bookend]'   # build_deck appends it to the slide name for "bookend": true
+BOOKEND_MAX = 2
+
+
 def _reuse_and_runs(slides, audit):
     counts = Counter()
     where = defaultdict(list)
     runs = []
+    seen = set()
+    bookends = [i for i, s in enumerate(slides, 1) if s.get('bookend')]
+    if len(bookends) > BOOKEND_MAX:
+        audit.error(f'image reuse: {len(bookends)} slides declare "bookend" (max {BOOKEND_MAX}: the opening and the circular close): {bookends}')
     for i, s in enumerate(slides, 1):
         sub = s.get('subject')
         h = sub['hash'] if sub else None
+        if h and s.get('bookend') and h in seen and len(bookends) <= BOOKEND_MAX:
+            audit.info(f'image reuse: slide {i} is a declared bookend: it returns to an earlier image ({h}), not counted')
+            continue
+        if h:
+            seen.add(h)
         if h:
             counts[h] += 1
             where[h].append(i)

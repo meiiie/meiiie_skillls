@@ -72,7 +72,7 @@ full list on a credits slide near the end.
 ## 6. Prepare assets
 | Need | Tool |
 |---|---|
-| Museum object on white, to place on a dark slide | `python3 $S/cutout.py in.jpg out.png` (flood fill from the corners; `--rembg` for busy backgrounds) |
+| Museum object on white (or a craft on black space), to place on a page | `python3 $S/cutout.py in.jpg out.png` (v5.4: border-connected background with an edge-detail test, so dark parts of the object such as solar panels or lacquer stay; holes closed and filled; `--defringe 6` un-mixes the old background from the outline; `--bridge 40` also closes wide dark bays that open to the edge, at the cost of filling real gaps; `--tol`, `--close`, `--edge`; EXIF-rotated phone photos come out upright; `--rembg` for busy backgrounds). LOOK at it on a light and a dark page. |
 | Han characters or other text inside a photo | `python3 $S/inpaint_text.py in.jpg out.jpg --box x0,y0,x1,y1 --vblur 61 --preview p.png` |
 | Frames from a video | `python3 $S/video_frames.py v.mp4 --out frames --every 5 --sheet` (or `--scene 0.35`) |
 | Duotone / sepia / mono + colour pair for a muted opening and a bloom | `python3 $S/make_assets.py photo in.jpg --mode duotone --colors "#140B08,#E2BE7C" --aspect 16:9 --pair --out WORK/assets/x.jpg` |

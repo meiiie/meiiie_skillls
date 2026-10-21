@@ -1,5 +1,8 @@
 # Motion grammar (how the deck moves)
 
+> **v5.5:** diagrams and objects are built, not faded: see `references/construction-motion.md` (Anatomy/Manim rules as native PowerPoint: Create → wipe along the stroke, GrowFromEdge → stretch, Write → letter type, Circle Create → wheel sweep, MovingCamera/Transform → Morph between `construct` states, Indicate → indicate). Each deck chooses its own motion grammar in its genome (`references/design-space.md`).
+
+
 "Có khi nhiều slide để phục vụ cho một motion hoàn chỉnh, từng frame và mọi thứ." Professional motion decks
 are animated films cut into slides: each slide is a **keyframe**, and Morph interpolates between them.
 

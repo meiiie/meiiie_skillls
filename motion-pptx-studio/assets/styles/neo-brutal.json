@@ -78,7 +78,7 @@
     },
     "caption": {
       "font": "text",
-      "size": 10,
+      "size": 11,
       "color": "muted"
     },
     "label": {
@@ -112,7 +112,7 @@
     },
     "pageno": {
       "font": "label",
-      "size": 10,
+      "size": 11,
       "bold": true,
       "color": "muted"
     }
@@ -226,5 +226,30 @@
     "step cards slammed down one by one (fx drop) with their hard shadows",
     "a sticker that teeters (emphasis) when the presenter clicks it (trigger)",
     "a slide that Pushes like a sheet of paper on a desk"
-  ]
+  ],
+  "fit": {
+    "domains": {
+      "technology": 0.5,
+      "youth": 0.8,
+      "education": 0.5,
+      "food": 0.5,
+      "software": 0.5
+    },
+    "tones": [
+      "playful",
+      "bold",
+      "energetic"
+    ],
+    "material": {
+      "saturated": 0.8,
+      "bright": 0.5,
+      "cutout": 0.5
+    },
+    "avoid": [
+      {
+        "domain": "heritage",
+        "reason": "hard offset shadows and lime blocks mock a solemn tradition"
+      }
+    ]
+  }
 }

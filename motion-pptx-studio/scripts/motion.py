@@ -282,7 +282,7 @@ def apply(unpacked, cfg, dry=False):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description='One transition per slide + named animations (v5).')
-    ap.add_argument('unpacked', help='unpacked deck directory (contains ppt/slides)')
+    ap.add_argument('unpacked', nargs='?', help='unpacked deck directory (contains ppt/slides); not needed with --list')
     ap.add_argument('--config', help='motion.json (default: UNPACKED/, its parent, or grandparent = WORK/motion.json)')
     ap.add_argument('--dur', default='', help='FILE=ms overrides, e.g. 12=2000,22=1800')
     ap.add_argument('--keep-timing', default='', help='slide FILE numbers whose existing p:timing is preserved')
@@ -295,6 +295,8 @@ def main(argv=None):
         print('transitions:', ', '.join(motionlib.transition_names()))
         print('effects:', ', '.join(sorted(motionlib.PRESETS)))
         return
+    if not a.unpacked:
+        ap.error('the unpacked deck directory is required (only --list works without it)')
     try:
         cfg = load_config(a.unpacked, a.config)
         cfg['dur'].update(parse_dur(a.dur))

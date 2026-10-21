@@ -1,7 +1,16 @@
 {
   "name": "studio-pop",
   "label": "Studio pop: cream and sun-yellow, ink outlines, hard shadows, a playful grotesk",
-  "genres": ["education", "workshop", "youth", "event", "community", "kids", "social campaign", "festival"],
+  "genres": [
+    "education",
+    "workshop",
+    "youth",
+    "event",
+    "community",
+    "kids",
+    "social campaign",
+    "festival"
+  ],
   "palette": {
     "ground": "#FFF4DE",
     "ground2": "#FFD447",
@@ -15,47 +24,233 @@
     "lit": "#1C1A35",
     "veil": "#1C1A35"
   },
-  "fonts": {"display": "Bricolage Grotesque", "text": "Be Vietnam Pro", "label": "Be Vietnam Pro"},
+  "fonts": {
+    "display": "Bricolage Grotesque",
+    "text": "Be Vietnam Pro",
+    "label": "Be Vietnam Pro"
+  },
   "font_files": [
-    {"family": "Bricolage Grotesque", "weights": "400,700"},
-    {"family": "Be Vietnam Pro", "weights": "400,700,400i"}
+    {
+      "family": "Bricolage Grotesque",
+      "weights": "400,700"
+    },
+    {
+      "family": "Be Vietnam Pro",
+      "weights": "400,700,400i"
+    }
   ],
   "type": {
-    "kicker":   {"font": "label", "size": 12, "bold": true, "spacing": 1.5, "caps": true, "color": "head"},
-    "display":  {"font": "display", "size": 100, "bold": true, "line": 0.88, "spacing": -2, "color": "head"},
-    "title":    {"font": "display", "size": 50, "bold": true, "line": 0.92, "spacing": -1, "color": "head"},
-    "subtitle": {"font": "text", "size": 22, "line": 1.25, "color": "muted"},
-    "body":     {"font": "text", "size": 17, "line": 1.35, "color": "ink"},
-    "caption":  {"font": "text", "size": 10, "color": "muted"},
-    "label":    {"font": "label", "size": 11, "bold": true, "spacing": 1, "caps": true, "color": "head"},
-    "numeral":  {"font": "display", "size": 180, "bold": true, "line": 0.82, "spacing": -5, "color": "accent"},
-    "quote":    {"font": "display", "size": 36, "bold": true, "line": 1.05, "color": "head"},
-    "cardtitle":{"font": "display", "size": 26, "bold": true, "line": 1.0, "color": "head"},
-    "pageno":   {"font": "label", "size": 11, "bold": true, "color": "ground"}
+    "kicker": {
+      "font": "label",
+      "size": 12,
+      "bold": true,
+      "spacing": 1.5,
+      "caps": true,
+      "color": "head"
+    },
+    "display": {
+      "font": "display",
+      "size": 100,
+      "bold": true,
+      "line": 0.88,
+      "spacing": -2,
+      "color": "head"
+    },
+    "title": {
+      "font": "display",
+      "size": 50,
+      "bold": true,
+      "line": 0.92,
+      "spacing": -1,
+      "color": "head"
+    },
+    "subtitle": {
+      "font": "text",
+      "size": 26,
+      "line": 1.25,
+      "color": "muted"
+    },
+    "body": {
+      "font": "text",
+      "size": 17,
+      "line": 1.35,
+      "color": "ink"
+    },
+    "caption": {
+      "font": "text",
+      "size": 11,
+      "color": "muted"
+    },
+    "label": {
+      "font": "label",
+      "size": 11,
+      "bold": true,
+      "spacing": 1,
+      "caps": true,
+      "color": "head"
+    },
+    "numeral": {
+      "font": "display",
+      "size": 180,
+      "bold": true,
+      "line": 0.82,
+      "spacing": -5,
+      "color": "accent"
+    },
+    "quote": {
+      "font": "display",
+      "size": 36,
+      "bold": true,
+      "line": 1.05,
+      "color": "head"
+    },
+    "cardtitle": {
+      "font": "display",
+      "size": 26,
+      "bold": true,
+      "line": 1.0,
+      "color": "head"
+    },
+    "pageno": {
+      "font": "label",
+      "size": 11,
+      "bold": true,
+      "color": "ground"
+    }
   },
-  "grid": {"cols": 12, "left": 0.9, "right": 0.9, "top": 0.8, "bottom": 0.8, "gutter": 0.25, "safe": 0.45},
+  "grid": {
+    "cols": 12,
+    "left": 0.9,
+    "right": 0.9,
+    "top": 0.8,
+    "bottom": 0.8,
+    "gutter": 0.25,
+    "safe": 0.45
+  },
   "default_bg": "main",
   "grounds": {
-    "main": {"kind": "halftone", "base": "#FFF4DE", "tone": "#F3DFB6", "dot": 0.16, "grain": 0.02, "seed": 41},
-    "alt":  {"kind": "flat", "base": "#FFD447", "tone": "#F7C52E", "grain": 0.03, "seed": 42}
+    "main": {
+      "kind": "halftone",
+      "base": "#FFF4DE",
+      "tone": "#F3DFB6",
+      "dot": 0.16,
+      "grain": 0.02,
+      "seed": 41
+    },
+    "alt": {
+      "kind": "flat",
+      "base": "#FFD447",
+      "tone": "#F7C52E",
+      "grain": 0.03,
+      "seed": 42
+    }
   },
   "chrome": {
     "over": [
-      {"type": "ellipse", "name": "!!dot", "x": 0.9, "y": 0.56, "w": 0.16, "h": 0.16, "fill": "accent"},
-      {"type": "rect", "name": "!!badge", "x": 11.733, "y": 6.82, "w": 0.7, "h": 0.34, "fill": "ink", "radius": 0.5},
-      {"type": "text", "name": "!!pageno", "text": "{n}", "x": 11.733, "y": 6.82, "w": 0.7, "h": 0.34, "role": "pageno", "align": "c", "anchor": "m"}
+      {
+        "type": "ellipse",
+        "name": "!!dot",
+        "x": 0.9,
+        "y": 0.56,
+        "w": 0.16,
+        "h": 0.16,
+        "fill": "accent"
+      },
+      {
+        "type": "rect",
+        "name": "!!badge",
+        "x": 11.733,
+        "y": 6.82,
+        "w": 0.7,
+        "h": 0.34,
+        "fill": "ink",
+        "radius": 0.5
+      },
+      {
+        "type": "text",
+        "name": "!!pageno",
+        "text": "{n}",
+        "x": 11.733,
+        "y": 6.82,
+        "w": 0.7,
+        "h": 0.34,
+        "role": "pageno",
+        "align": "c",
+        "anchor": "m"
+      }
     ]
   },
-  "card": {"fill": "surface", "fill_alpha": 1.0, "line": "ink", "line_width": 1.75, "radius": 0.08,
-           "lit_fill": "ground2", "lit_line": "ink", "rule": "accent", "dim_alpha": 0.66,
-           "shadow": {"blur": 0, "dist": 6, "dir": 45, "color": "#1C1A35", "alpha": 1.0}},
-  "screen": {"bezel": "#FFFFFF", "line": "#1C1A35", "line_width": 1.75, "radius": 0.06, "bar": "#FFD447"},
-  "shadow": {"blur": 0, "dist": 7, "dir": 45, "color": "#1C1A35", "alpha": 1.0},
-  "photo": {"duotone": null, "veil": 0.5},
-  "motion": {"default_ms": 1100, "bloom_ms": 1700, "stagger_ms": 180},
+  "card": {
+    "fill": "surface",
+    "fill_alpha": 1.0,
+    "line": "ink",
+    "line_width": 1.75,
+    "radius": 0.08,
+    "lit_fill": "ground2",
+    "lit_line": "ink",
+    "rule": "accent",
+    "dim_alpha": 0.66,
+    "shadow": {
+      "blur": 0,
+      "dist": 6,
+      "dir": 45,
+      "color": "#1C1A35",
+      "alpha": 1.0
+    }
+  },
+  "screen": {
+    "bezel": "#FFFFFF",
+    "line": "#1C1A35",
+    "line_width": 1.75,
+    "radius": 0.06,
+    "bar": "#FFD447"
+  },
+  "shadow": {
+    "blur": 0,
+    "dist": 7,
+    "dir": 45,
+    "color": "#1C1A35",
+    "alpha": 1.0
+  },
+  "photo": {
+    "duotone": null,
+    "veil": 0.5
+  },
+  "motion": {
+    "default_ms": 1100,
+    "bloom_ms": 1700,
+    "stagger_ms": 180
+  },
   "signature_ideas": [
     "a tomato-red dot that bounces from slide to slide and becomes the bullet, the pin and the full stop",
     "sticker cards with hard ink shadows that get slapped on and peeled off",
     "a hand-drawn underline (a lifted pen stroke PNG) under the one word that matters"
-  ]
+  ],
+  "fit": {
+    "domains": {
+      "education": 1,
+      "youth": 1,
+      "event": 0.7,
+      "food": 0.5
+    },
+    "tones": [
+      "playful",
+      "energetic",
+      "warm"
+    ],
+    "material": {
+      "saturated": 0.8,
+      "bright": 0.8
+    },
+    "avoid": [
+      {
+        "domain": "aerospace",
+        "reason": "sun-yellow cartoon outlines shrink 70-metre rockets to toys"
+      },
+      {
+        "domain": "heritage",
+        "reason": "cartoon outlines trivialise ritual and history"
+      }
+    ]
+  }
 }

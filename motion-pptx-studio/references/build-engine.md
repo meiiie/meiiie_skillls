@@ -59,20 +59,41 @@ Units are inches on 13.333 × 7.5. Colours are palette roles or `#RRGGBB`; fonts
 | `timeline` | nodes [{t, label, desc}], active, label_w, color | NAME.rail/.prog/.dot{i}/.t{i}/.l{i}/.d{i}; first label left, last right |
 | `bars` | data [{label, value, display}], max, grow 0..1, highlight, gap, color | NAME.base/.bar{i}/.v{i}/.k{i}; values appear when grow = 1 |
 | `list` | items [str or {text, sub}], reveal, focus, numbered, size, rules | NAME.n{i}/.i{i}/.r{i} |
-| `quote` | text, by, size, mark_color | NAME.mark (hanging in the margin)/.text/.by |
+| `quote` | text, by, size, mark_color, mark_size | NAME.mark (hanging in the margin)/.text/.by |
+| `callout` (5.4) | at [x, y] (the part, inches), x, y (label), label, desc, desc_w, color, chip (default true), chip_fill, text_color, elbow, dot, role | NAME.ring/.dot/.lead(/.lead2)/.labk (chip)/.lab/.desc; the leader ends on the nearest chip edge; no w needed |
+| `swatch` (5.4) | image or colors, n, x, y, w, h, dir h/v, gap, hex (default true), labels, vivid, shadow | NAME.s{i} (chips)/.h{i} (codes inside the chip, in its contrasting ink) |
+| `photogrid` (5.4) | images [path or {path, span [c, r], label, focus, duotone…}], cols, rows, gap, border, frame, shadow, tilt [deg…], chip, label_role | NAME.f{i} (print frame)/.p{i} (photo)/.t{i}k + .t{i} (label chip); spans packed row-major |
+| `nodemap` (5.4) | nodes [{id, x, y (0..1 of the box), label, desc, side r/l/t/b, big, r}], links [[a, b]] (ids or indexes), image, color, dash, line_width, chip | NAME.map/.e{k} (links)/.n{i} (nodes)/.t{i}k + .t{i} (labels)/.d{i} |
 In a keyframe, `set` the component (`{"!!b": {"grow": 1}}`), not its parts.
 
 ### A.3b v5 keys (motion beyond Morph, drawn objects, film)
 | Where | Key | Meaning |
 |---|---|---|
 | slide | `"transition"` | `"push"` or `{"type": "curtains", "ms": 1800, "dir": "l"}`; every name in `motion.py --list`; default morph |
-| slide | `"style"` | switch pack for this slide (and keyframes that inherit it); `"style_overrides": {pack: {...}}` at the top |
+| slide | `"style"` | switch pack for this slide (and keyframes that inherit it); `"style_overrides": {pack: {...}}` at the top; a name defined in the deck's `"styles"` (or a `style_overrides` entry that is not a pack) is an inline style, `"extends"` a pack |
+| slide | `"bookend": true` (5.4) | a declared circular close: may reuse the opening photo (max 2 slides) |
+| slide | `"still": true` (5.4) | a deliberately still page (printed chapter, airy opener): left out of the moving-depth share (max a quarter) |
 | shape | `"anim"` | an effect dict or a list (`references/motion-library.md` §2); on a component it applies to every part, `"stagger"` ms apart; unnamed shapes get `fx{n}-{k}` names; inside a group it is ignored with a warning |
 | shape | `"link"` | a slide id: click jumps there (menus, a hand-made Summary Zoom) |
 | shape | `"arrow"`, `"arrow_start"` | arrowheads on a `line` |
-| type | `poly` | `points` [[x, y] …] inches (closed unless `"open": true`), fill/gradient/alpha/line: draw objects (a phin, a cup, a machine part) as editable freeforms |
+| type | `poly` | `points` [[x, y] …] inches (closed unless `"open": true` or `"closed": false`), fill/gradient/alpha/line: draw objects (a phin, a cup, a machine part) as editable freeforms |
 | type | `video` | `path` (MP4), `poster` (else ffmpeg's first frame), `loop`, `autoplay` (default true), `mute`: plays in PowerPoint; renders show the poster |
 `motion_config` writes each slide's transition and effects into motion.json; unknown names are refused at build.
+
+### A.3b2 v5.5 `construct` (construction-based diagrams) and two new effects
+`{"type": "construct", "name": "f9", "parts": [...] | "model": "design/f9.json", "x","y","w","h",
+"state": "rest", "reveal": true | [ids], "total_ms": 5200, "camera": {"focus": id | [u, v], "zoom": 2.4, "at": [x, y]},
+"indicate": [ids], "trace": [{"part": id, "path": [[u, v] ...], "ms": 2600}]}` expands into native shapes named
+`!!<name>.<id>` (iso faces `.left/.right/.top`, cylinders `.body/.top`), so the same component on the next slide
+with another `state` or `camera` Morphs between them (Manim Transform / MovingCamera). Parts: `rect`, `ellipse`,
+`line`, `poly` (`open`), `arc`, `text` (labels: w/h in inches), `image`, `iso_box` `[x, y, z, w, d, h]` (three
+tones), `iso_cyl` (shaded body + top). Each has `id`, `layer` (base / structure / mechanism / control / subject /
+label), `on` (what it rests on), optional `step` (built together), `group`, `lit`, `verb`, `dir` and `states`.
+Build order and verbs are automatic (`references/construction-motion.md`): strokes `create` (wipe along the
+stroke), solids `grow` from the contact edge (Stretch, preset 17), labels `write` (letter by letter), unfilled
+circles `sweep` (wheel), centred parts `zoom`; one lit part per frame (or one `group`) or the build stops.
+New effects anywhere: `{"fx": "stretch", "dir": "b|t|l|r|h|v"}` (grow from an edge) and `{"fx": "indicate"}`
+(Manim Indicate: a 1.14 scale pulse that returns). `preview_motion.py` simulates both and the wheel as a sweep.
 
 ### A.3c No-Morph safe mode (v5.1)
 Deck keys `"compat": "morph"|"safe"|"dual"` and `"safe_transition": "fade"|{"type": "push", "dir": "l"}` go to
