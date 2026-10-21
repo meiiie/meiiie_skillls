@@ -10,11 +10,12 @@ sets the research and imagery minimums listed here.
 | product (launch, demo, developer tool, app) | noir-product | 12 / 2 | 6 / 1 | 5-10 min, 20-35 slides |
 | pitch (investors, contest, grant) | noir-product or boardroom-data | 12 / 3 | 6 / 1 | 3-8 min, 15-30 slides |
 | business (review, report, consulting, finance) | boardroom-data or paper-editorial | 10 / 2 | 4 / 0 | 10-20 min, 15-35 slides |
+| company-profile (a company's story, plants, money, risks) | swiss-blue + one chapter style | 15 / 3 | 8 / 3 | 6-12 min, 20-35 slides |
 | education (lecture, science, explainer, workshop) | paper-editorial or studio-pop | 12 / 3 | 8 / 3 | 10-30 min |
 | event (festival, campaign, community, launch party) | studio-pop | 6 / 2 | 6 / 2 | 3-8 min |
 | other | the closest pack | 10 / 2 | 6 / 2 | |
 
-A pack is a starting point. Change its palette to the subject's own colours (sourced), keep its roles.
+The numbers are advisory habits (gate WARN), not a bar. A pack is a starting point. Change its palette to the subject's own colours (sourced), keep its roles.
 
 ## Heritage and culture
 - **Arc**: a sense, not a title (one sound, one object in darkness) → the object assembles → the
@@ -64,6 +65,18 @@ A pack is a starting point. Change its palette to the subject's own colours (sou
 - **Traps**: tables pasted from Excel, eight-colour pie charts, a chart whose title only names the
   axis, numbers with no period.
 - **Example**: `examples/data-story` (11 keyframes, a fictional chain, illustrative numbers).
+
+## Company profile (v5.3)
+- **Arc**: what the company makes, shown as a mechanism (a signature moment: the line, the product's
+  architecture) → how big it is (plants, deliveries, with periods) → what it costs (audited losses,
+  margins) → the risks it states itself → the open question.
+- **Signature moments**: the production line as an Anatomy machine; the product's core architecture
+  (pack, platform, network) as a second machine; capacity as Manim slabs on a map.
+- **Evidence**: annual report / 20-F / 10-K first, press kits for factory facts (dated), press for
+  events. Audited beats preliminary: when a 6-K and the 20-F differ, use the audited number and say so.
+  A company's own superlatives ("largest", "first") are `[claim]` and are attributed on the slide.
+- **Traps**: a brochure tone; the company's photos as evidence of its claims; one style for 30 slides;
+  logos redrawn or generated; the parent group's other businesses padding the story.
 
 ## Education, science, explainer
 - **Arc**: a question the audience cannot answer yet → a model built step by step (each keyframe

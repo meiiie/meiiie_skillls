@@ -1,5 +1,128 @@
 # Changelog
 
+## 5.3.1
+Review fixes before the 5.3 push: every weakness found in the VinFast v5.3 proof deck becomes a rule or a check.
+- **Anatomy density and contrast**: `anatomy_film.py` audits the poster (solids, share of the frame width and area,
+  edge and face contrast against the card) and writes it to `film.json` → `audit`. Floors: ≥ 120 solids, ≥ 70 % width /
+  40 % area, edges ≥ 4.5:1, faces ≥ 2.2:1 on dark cards. Gate 4/6 turn audit findings into WARN rows and fail edges
+  below 3:1. `references/signature-moments.md` §2 "Density and contrast" says how to fix each one.
+- **Film and page colour**: films are tagged BT.709 (Anatomy and diagram_video), and `check_deck.py --renders DIR`
+  compares the poster border with the rendered page ring around each video (ERROR > 6 levels, WARN > 2).
+  Rule: a film slide gets a solid `bg` equal to the film card.
+- **No label under a film**: `check_deck.py` errors on text that sits below a video in z-order and overlaps it
+  (`scripts/film_audit.py`).
+- **Manim films with an exact editable twin**: the recipe now puts geometry in one `<name>_geom.py` shared by the
+  scene and the deck, so the editable slide equals the film's last frame; render at the slide box's aspect and
+  take the poster from the last real frame.
+- **Build speed**: python-pptx's shape-id scan (O(n²)) and per-child group extent recalculation are patched;
+  the 30-slide VinFast deck builds in about 6 s instead of 133 s. Ids stay unique (tested).
+- **Small fixes**: effect `dir` accepts `u`/`d` (as transitions do) instead of raising KeyError; `quote` takes
+  `mark_size` so the mark can sit on the deck's type scale; SKILL.md craft rules add a ≤ 10-size type scale and
+  the film rules; qa-checklist adds the film checks.
+- Tests: `tests/test_v531.py` (11 tests).
+
+## 5.3.0
+Floor, not ceiling. The v5.2 VinFast test passed every gate and still looked like a template (14 slides of text left,
+photo right on one dark pack). This release adds hand-built signature moments, a second asset source, an
+anti-template phase, slimmer gates and fixes all nine bug groups from that test.
+- **Signature moments (mandatory)**: ≥2 hand-built animated diagrams of the subject's own mechanism per deck
+  (`references/signature-moments.md`, template `assets/templates/signature-moments.md`). Tools: **Anatomy**
+  (isometric machine kit, MIT; `setup_anatomy.sh`, `anatomy_film.py` + `anatomy/film.mjs` film it headless over
+  CDP and convert the poster into native freeforms for an editable keyframe) and **ManimGX**. Gate 4 checks the
+  plan (mechanism sentence, no stock clichés, cited facts, poster, editable part); gate 6 checks the films are
+  embedded (sha256 in the pptx media), at least 3 s long and actually move. `signature_fallback: <reason>` in
+  brief.md allows a diagram_video.
+- **Codex image generation** as the second asset source (`gen_assets_codex.py`): textures, grounds, generic objects
+  and plates only; logos, real people, clichés and fake factual images are refused by a prompt lint. Every file
+  lands in `assets/gen/` with a JSON sidecar and an "AI-generated" CREDITS row; gate 2 fails unlabelled ones. When
+  Codex is unavailable the script says so and the deck falls back to licensed photos and procedural grounds.
+- **Anti-template phase**: `directions.py` renders three art directions as thumbnails (`design/directions.jpg`);
+  gate 3 fails unless they are three real alternatives (palettes differ, ≥25 words each) and one is chosen with a
+  reason. Decks of 20+ slides must shift style at scene level (gate 4). `variety_audit.py` gains a geometry
+  fingerprint: text-left/photo-right (or the mirror) on 4+ slides is an ERROR in every mode, and one
+  fingerprint on more than 30% of a 10+ slide deck is an ERROR. The fingerprint also records full-bleed plates and
+  big native drawings, so a diagram slide is not mistaken for a bare title.
+- **Slimmer gates**: hard rows (FAIL) are kept for facts and sources, licences and labels, and render integrity;
+  counts, quotas and freshness are advisory (WARN, `Gate.want()`). SKILL.md gains "Skill is a floor, not a ceiling".
+- **Fixes from the v5.2 test (NOTES.md, all with tests in `tests/test_v53.py`)**: markdown tables with escaped `\|`
+  and rows broken across lines are reported, and gate 4 fails malformed rows; a scene column no longer counts as a
+  source ID; on-slide numbers must cite a fact; the do-not-say list no longer counts as facts; unsourced fact rows
+  fail; `company-profile` deliverable kind; `latest_round` picks rounds numerically; `studio.py build --group`
+  sequences and cleans each group and gate 5 runs for every rendered group (`--upto`); contact sheets write a
+  manifest so freshness is checked by content; `fetch_commons.py` defaults to Commons, has short Openverse
+  timeouts and normalises MPO/EXIF/CMYK/huge images on keep; `build_deck.py` converts PowerPoint-unsafe images;
+  `preview_motion.py --max-seconds`; `python` → `python3` across docs and scripts.
+- New references: `signature-moments.md`, `art-directions.md`; updates to asset-sourcing (Codex §6b, logos §6c),
+  genres (company profile), research-protocol, craft (fonts), pro-craft (Morph share applies to scene cuts only).
+- Proof: a 30-slide VinFast company profile rebuilt with v5.3 (three directions, three signature films).
+
+## 5.2.0
+Pro craft: variety, composition and flavour. The phin sample was judged "better, but not truly professional" (too
+little animation variety, weak composition, too little flavour, too little overall variety); this release turns those
+four gaps into rules and measurements.
+- **`references/pro-craft.md`** (new, cited: Kurzgesagt, Eames *Powers of Ten*, Duarte, Fluent 2 motion, Microsoft
+  Learn easing, BrightCarbon and CreativePro parallax, Microsoft Morph tips, NASA media guidelines). Covers the
+  motion verb per scene, the cut grammar, eight composition systems, three planes and parallax, sub-styles, the
+  narrative device and the harsh-critique ritual.
+- **`scripts/variety_audit.py`** (new): names every effect node's technique, counts transition types, composition
+  signatures per scene cut and moving depth/parallax. Thresholds: ≥10 techniques, top ≤35%, ≥5 transitions,
+  ≥60% compositions, no 3 equal in a row, ≥20% moving depth (decks of 15+ slides).
+- **`check_deck.py --variety {warn,strict,off}`** (default warn) prints the variety line and census; strict makes
+  misses errors. Calibration: Earth deck passes (18 techniques, top 28%, 11 transitions, 12/14, depth 13/22). The
+  phin sample warns on depth. The catru reference warns 4 times (3 techniques, fade 73%, 1 transition) and still exits 0.
+- **Rotation-aware layout checks**: `build_deck.py` safe-area and collision checks and `craft_audit.py` safe area
+  use the rotated box for `rot` text. The overflow check still uses the unrotated box the text is set in. Vertical
+  numerals no longer raise false warnings.
+- **`preview_motion.py`**: sprite crop is clamped to the image bounds (fixes DecompressionBombError on huge
+  Morph zoom shapes).
+- **`gates.py` gate 6**: `talk_minutes: 6 (default chosen …)` is parsed to the number. Before, the free text
+  made `words_budget.py` fail and gate 6 reported a false time overrun.
+- `qa-checklist.md` §4b variety gates; SKILL.md reference map row; `examples/earth-fall` (22-slide Vietnamese
+  Powers-of-Ten deck, four sub-styles, two Manim films).
+
+## 5.1.0
+No-Morph safe mode. Morph plays only in PowerPoint 365/2019+; 2016, Google Slides, Keynote and LibreOffice fell
+back to a plain fade where shared shapes jump.
+- **`compat`** deck key (`morph` default | `safe` | `dual`) and `safe_transition`, written to motion.json
+  (`build_deck.py`), documented in SKILL.md, motion-library.md §4b, build-engine.md A.3c, qa-checklist.md §4.
+- **`compat.py`**: Morph → classic rebuild from the geometry of shared `!!` shapes: moved → appear/zoom + motion
+  path from the old place (`from_offset` paths in `motionlib.py`), resized → zoom, changed text → type/word,
+  new layer → fade; `dual` keeps Morph with a push/wipe/fade `mc:Fallback` (`transition_xml` `fallback`).
+  Applied by `motion.py`; authored entrances/paths are never overwritten.
+- **No-Morph gate** (`check_deck.py --compat`, auto from motion.json; `--nomorph-render DIR`): ERROR on Morph left
+  in safe mode and on Morph-authored shared moves with no classic replacement; renders a Morph-stripped copy and
+  compares each slide's end state with the intended render; WARN on overlapping end-state text. `studio.py build`
+  runs it when the deck sets compat.
+- Example: `examples/phin-multistyle/build-safe.sh` (`make_deck.py safe`). Tests: `tests/test_compat.py`.
+
+## 5.0.0
+v4 made decks look designed, but with one motion (Morph) and five packs that a starter deck showed as recolours of
+one layout. v5 widens the motion vocabulary to what professional motion decks actually use (research: slidewppt.vn
+decks, Office transition/animation XML, ManimGX, the "anatomy" idea), makes each style a layout grammar, and adds
+hand-built architecture films with an editable fallback. Backward compatible: v4 specs build unchanged.
+
+- **Creativity rule** (SKILL.md, styles.md §0): no default template or motion; `## Style choice` (with a rejected
+  pack) and `## Motion vocabulary` (≥ 2 techniques beyond Morph/fade) in art-direction.md, checked by Gate 3.
+- **Motion library** (`motionlib.py`, `references/motion-library.md`): 49 transitions (core, p14, p15 prstTrans,
+  morph) with fallbacks; effects entrance (fade, fly, drop, float, wipe, split, zoom, wheel, type, word), emphasis
+  (pulse, grow, spin, teeter, blink), exit, motion paths and orbits, loops, click groups, triggers, media.
+  Player support table and fallbacks for PowerPoint 365/2019/2016, Google Slides, Keynote, LibreOffice.
+- **Engine** (`build_deck.py`): slide `transition` and `style` (per-chapter packs, `style_overrides`); shape `anim`
+  (staggered over component parts), `link`; `poly` freeforms; `video` with poster and duration; line arrows;
+  explicit transition ms wins over template durations (`motion.py`).
+- **Styles**: five new packs with their own grammar docs (`references/styles/`): kinetic-type, blueprint,
+  swiss-blue (the white-blue option), neo-brutal, retro-terminal; three palette-only packs in
+  `assets/styles-experimental/`. All fonts OFL with Vietnamese coverage checked. New grounds `blueprint`, `mesh`,
+  `scanline` (`make_assets.py`).
+- **Diagram films** (`diagram_video.py`, `references/diagram-video.md`): nodes and edges JSON → MP4 (pop in, draw
+  on, flowing dots, breathing lit node) + poster + an editable shape fragment with native effects; ManimGX route.
+- **Verification**: `check_deck.py` effect census, ERROR on effects targeting missing shapes or duplicate ids, WARN on
+  motion monotony; `verify_motion.py` (LibreOffice round trip of authored effects); `preview_motion.py` (a labelled
+  SIMULATION MP4 from per-shape sprites and the parsed timing: entrances, emphasis, paths, iterate, morph
+  interpolation, transition approximations).
+- **Example** `examples/phin-multistyle` (18 slides, six styles, CC photos, drawn phin, diagram film).
+- Tests: `tests/test_motionlib_v5.py`.
+
 ## 4.0.0
 v3 blocked decks that were wrong (unsourced, unlicensed, the wrong instrument, over time, a photo held still) but did
 not teach or produce decks that look designed, and its own `check_deck.py` failed the accepted ca trù deck

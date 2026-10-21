@@ -1,33 +1,38 @@
-"""Add one Morph transition per slide plus named entrance / blink animations.
+"""One transition per slide (Morph by default, or any native transition) plus named animations.
+
+v5: the slide can use any of ~48 native transitions (push, curtains, origami, vortex, zoom ...) and
+shapes can carry entrance, emphasis, exit, motion-path, letter-by-letter, trigger and video effects.
+The XML comes from motionlib.py; this script decides WHAT goes on each slide.
 
 Naming contract (set the shape name in the selection pane or cNvPr/@name):
   !!name              persistent layer. The same name on neighbouring slides = Morph pairs it.
   @fade<N>-label      fade in, N = order on the slide (1, 2, 3 ...)
   @float<N>-label     float up + fade in
-  @wipe<N>-label      wipe from the left (good for rules / lines / underlines)
-  @blink<N>-label     endless blink (cursor, signal light) starting in order N
-  A shape can be both persistent and animated only through a group: put the @shape
-  inside a group named !!x, or keep them separate shapes.
+  @wipe<N>[l|r|t|b]-  wipe from the left (or the side given)
+  @fly<N>[l|r|t|b]-   fly in from the bottom (or the side given)
+  @zoom<N>-label      zoom in from the centre        @split<N>[h|v]-   split out
+  @type<N>-label      text appears letter by letter  @word<N>-label    text fades in word by word
+  @rise<N>-  @drop<N>-  @wheel<N>-  @appear<N>-
+  @blink<N>-label     endless blink                  @pulse<N>- / @spin<N>-  endless pulse / spin
+  Anything richer (paths, orbits, delays, clicks, triggers, exits, several effects on one shape,
+  effects on !! shapes) goes in motion.json "effects", which build_deck.py writes from "anim" keys.
 
 Usage:
-  python motion.py UNPACKED_DIR [--config motion.json] [--dur 12=2000,22=1800]
+  python3 motion.py UNPACKED_DIR [--config motion.json] [--dur 12=2000,22=1800]
                    [--keep-timing 50,51] [--default-ms 1300] [--stagger 220] [--dry-run]
 
-UNPACKED_DIR is the unpacked deck (contains ppt/slides). Durations and kept timings
-are keyed by slide FILE number (slideN.xml), never by deck position, so they survive
-re-ordering. If --config is not given, motion.json is looked up in UNPACKED_DIR and
-its parent folder. Command-line values win over the config file.
+motion.json (keys are slide FILE numbers, slideN.xml -> "N"):
+  {"default_ms": 1300, "stagger_ms": 220,
+   "dur": {"12": 2000}, "option": {"7": "byChar"}, "keep_timing": [50],
+   "transition": {"5": {"type": "curtains", "ms": 1600}, "9": "push"},
+   "effects": {"3": [{"shape": "!!dot", "fx": "path", "path": [[0, 0], [2.5, -0.8]], "ms": 1800, "delay": 400},
+                     {"shape": "Tiêu đề", "fx": "type", "click": 1}]},
+   "media": {"4": {"!!bg-video": {"loop": true, "mute": true, "autoplay": true}}}}
+Durations, options and transitions: command line > motion.json > style default (Morph 1300 ms).
+Embedded videos (p:pic with a:videoFile) always get autoplay + loop + mute unless media says otherwise.
 
-motion.json example:
-  {"default_ms": 1300, "dur": {"12": 2000, "22": 2000}, "option": {"7": "byChar"}, "keep_timing": [50]}
-  option: byObject (default) | byWord | byChar. byChar lets a paired text box morph letter by
-  letter ("2009" -> "2024"); byWord moves words that the two slides share.
-build_deck.py writes motion.json next to the built deck from per-slide "ms", "morph" and
-"keep_timing" keys, so the numbers stay correct when slides are added.
-
-Re-runs are safe: every earlier transition (Morph wrapper or plain) is removed first,
-so a slide always ends with exactly one transition. p:timing is rebuilt from names,
-EXCEPT on slides listed in keep_timing, whose hand-made timing is preserved.
+Re-runs are safe: every earlier transition is removed first, so a slide always ends with exactly
+one transition. p:timing is rebuilt from names and effects, EXCEPT on slides listed in keep_timing.
 """
 import argparse
 import json
@@ -37,22 +42,21 @@ from pathlib import Path
 
 from lxml import etree
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import compat  # noqa: E402
+import motionlib  # noqa: E402
+
 NS = {
     'p': 'http://schemas.openxmlformats.org/presentationml/2006/main',
     'a': 'http://schemas.openxmlformats.org/drawingml/2006/main',
     'mc': 'http://schemas.openxmlformats.org/markup-compatibility/2006',
 }
 P = '{%s}' % NS['p']
+A = '{%s}' % NS['a']
 MC = '{%s}' % NS['mc']
 DEFAULT_MS = 1300
 STAGGER_MS = 220
-TRANS = (
-    '<mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">'
-    '<mc:Choice xmlns:p159="http://schemas.microsoft.com/office/powerpoint/2015/09/main" Requires="p159">'
-    '<p:transition xmlns:p="%s" xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main" spd="slow" p14:dur="{dur}"><p159:morph option="{opt}"/></p:transition></mc:Choice>'
-    '<mc:Fallback><p:transition xmlns:p="%s" spd="slow"><p:fade/></p:transition></mc:Fallback></mc:AlternateContent>'
-) % (NS['p'], NS['p'])
-ANIM_RE = re.compile(r'@(fade|float|wipe|blink)(\d+)-')
+SHAPE_TAGS = {'sp', 'pic', 'grpSp', 'cxnSp', 'graphicFrame'}
 
 
 def file_num(path):
@@ -88,42 +92,17 @@ def load_config(unpacked, path):
                 'option': {int(k): str(v) for k, v in cfg.get('option', {}).items()},
                 'keep_timing': {int(x) for x in cfg.get('keep_timing', [])},
                 'stagger': int(cfg.get('stagger_ms', STAGGER_MS)),
+                'transition': {int(k): v for k, v in cfg.get('transition', {}).items()},
+                'effects': {int(k): v for k, v in cfg.get('effects', {}).items()},
+                'media': {int(k): v for k, v in cfg.get('media', {}).items()},
+                'compat': compat.check_mode(cfg.get('compat')),
+                'safe_transition': cfg.get('safe_transition'),
                 'source': str(c),
             }
         if path:
             raise SystemExit('config not found: ' + str(c))
-    return {'default_ms': DEFAULT_MS, 'dur': {}, 'option': {}, 'keep_timing': set(), 'stagger': STAGGER_MS, 'source': None}
-
-
-def eff(kind, spid, delay, ids, txt):
-    n = lambda: str(next(ids))
-    tgt = f'<p:tgtEl><p:spTgt spid="{spid}"/></p:tgtEl>'
-    if kind == 'blink':
-        # Emphasis "Blink" (preset 35), repeats forever.
-        return (f'<p:par><p:cTn id="{n()}" presetID="35" presetClass="emph" presetSubtype="0" repeatCount="indefinite" fill="hold" nodeType="withEffect">'
-                f'<p:stCondLst><p:cond delay="{delay}"/></p:stCondLst><p:childTnLst>'
-                f'<p:anim calcmode="discrete" valueType="str"><p:cBhvr override="childStyle"><p:cTn id="{n()}" dur="1000" fill="hold"/>{tgt}'
-                '<p:attrNameLst><p:attrName>style.visibility</p:attrName></p:attrNameLst></p:cBhvr>'
-                '<p:tavLst><p:tav tm="0"><p:val><p:strVal val="hidden"/></p:val></p:tav><p:tav tm="50000"><p:val><p:strVal val="visible"/></p:val></p:tav></p:tavLst></p:anim>'
-                '</p:childTnLst></p:cTn></p:par>')
-    vis = (f'<p:set><p:cBhvr><p:cTn id="{n()}" dur="1" fill="hold"><p:stCondLst><p:cond delay="0"/></p:stCondLst></p:cTn>{tgt}'
-           '<p:attrNameLst><p:attrName>style.visibility</p:attrName></p:attrNameLst></p:cBhvr><p:to><p:strVal val="visible"/></p:to></p:set>')
-    grp = ' grpId="0"' if txt else ''
-    if kind == 'fade':
-        pid, sub, inner = 10, 0, f'<p:animEffect transition="in" filter="fade"><p:cBhvr><p:cTn id="{n()}" dur="800"/>{tgt}</p:cBhvr></p:animEffect>'
-    elif kind == 'wipe':
-        pid, sub, inner = 22, 8, f'<p:animEffect transition="in" filter="wipe(left)"><p:cBhvr><p:cTn id="{n()}" dur="700"/>{tgt}</p:cBhvr></p:animEffect>'
-    else:  # float in (up)
-        def anim(attr, a, b):
-            return (f'<p:anim calcmode="lin" valueType="num"><p:cBhvr><p:cTn id="{n()}" dur="1000" fill="hold"/>{tgt}'
-                    f'<p:attrNameLst><p:attrName>{attr}</p:attrName></p:attrNameLst></p:cBhvr><p:tavLst>'
-                    f'<p:tav tm="0"><p:val><p:strVal val="{a}"/></p:val></p:tav><p:tav tm="100000"><p:val><p:strVal val="{b}"/></p:val></p:tav></p:tavLst></p:anim>')
-        pid, sub = 42, 0
-        inner = (f'<p:animEffect transition="in" filter="fade"><p:cBhvr><p:cTn id="{n()}" dur="1000"/>{tgt}</p:cBhvr></p:animEffect>'
-                 + anim('ppt_x', '#ppt_x', '#ppt_x') + anim('ppt_y', '#ppt_y+.06', '#ppt_y'))
-    head = n()
-    return (f'<p:par><p:cTn id="{head}" presetID="{pid}" presetClass="entr" presetSubtype="{sub}" fill="hold"{grp} nodeType="withEffect">'
-            f'<p:stCondLst><p:cond delay="{delay}"/></p:stCondLst><p:childTnLst>{vis}{inner}</p:childTnLst></p:cTn></p:par>')
+    return {'default_ms': DEFAULT_MS, 'dur': {}, 'option': {}, 'keep_timing': set(), 'stagger': STAGGER_MS,
+            'transition': {}, 'effects': {}, 'media': {}, 'compat': 'morph', 'safe_transition': None, 'source': None}
 
 
 def strip_transitions(root):
@@ -139,23 +118,6 @@ def strip_transitions(root):
     return removed
 
 
-def build_timing(anims, num, stagger):
-    ids = iter(range(3, 100000))
-    base = 500 if num == 1 else 350
-    pars = [eff(kind, spid, base + (order - 1) * stagger, ids, txt) for order, kind, spid, txt in anims]
-    entr = [a for a in anims if a[1] != 'blink']
-    bld = ''.join(f'<p:bldP spid="{s}" grpId="0"/>' for _, k, s, t in entr if t)
-    return (f'<p:timing xmlns:p="{NS["p"]}"><p:tnLst><p:par><p:cTn id="1" dur="indefinite" restart="never" nodeType="tmRoot"><p:childTnLst>'
-            '<p:seq concurrent="1" nextAc="seek"><p:cTn id="2" dur="indefinite" nodeType="mainSeq"><p:childTnLst>'
-            f'<p:par><p:cTn id="{next(ids)}" fill="hold"><p:stCondLst><p:cond delay="indefinite"/><p:cond evt="onBegin" delay="0"><p:tn val="2"/></p:cond></p:stCondLst><p:childTnLst>'
-            f'<p:par><p:cTn id="{next(ids)}" fill="hold"><p:stCondLst><p:cond delay="0"/></p:stCondLst><p:childTnLst>'
-            + ''.join(pars).replace('nodeType="withEffect"', 'nodeType="afterEffect"', 1) +
-            '</p:childTnLst></p:cTn></p:par></p:childTnLst></p:cTn></p:par>'
-            '</p:childTnLst></p:cTn><p:prevCondLst><p:cond evt="onPrev" delay="0"><p:tgtEl><p:sldTgt/></p:tgtEl></p:cond></p:prevCondLst>'
-            '<p:nextCondLst><p:cond evt="onNext" delay="0"><p:tgtEl><p:sldTgt/></p:tgtEl></p:cond></p:nextCondLst></p:seq>'
-            '</p:childTnLst></p:cTn></p:par></p:tnLst>' + (f'<p:bldLst>{bld}</p:bldLst>' if bld else '') + '</p:timing>')
-
-
 def insert_after(root, new_elems):
     """Place elements after cSld/clrMapOvr (schema order: cSld, clrMapOvr, transition, timing, extLst)."""
     anchor = root.find(P + 'clrMapOvr')
@@ -167,67 +129,172 @@ def insert_after(root, new_elems):
         idx += 1
 
 
+def top_level(root):
+    """{name: (spid, element)} for the slide's top-level shapes (PowerPoint animates only those)."""
+    tree = root.find('p:cSld/p:spTree', NS)
+    out = {}
+    for el in tree:
+        if etree.QName(el).localname not in SHAPE_TAGS:
+            continue
+        c = el.find('.//p:cNvPr', NS)
+        if c is not None:
+            out.setdefault(c.get('name') or '', (c.get('id'), el))
+    return out
+
+
+def is_text(el):
+    return etree.QName(el).localname == 'sp' and el.find('p:txBody', NS) is not None and ''.join(el.find('p:txBody', NS).itertext()).strip() != ''
+
+
+def plan_slide(root, num, cfg, warnings):
+    tops = top_level(root)
+    effects, texts = [], set()
+    order_items = []
+    nested = []
+    for c in root.iter(P + 'cNvPr'):
+        name = c.get('name') or ''
+        e = motionlib.effect_from_name(name, cfg['stagger'])
+        if name.startswith('@') and not e:
+            warnings.append(f'slide{num}: "{name}" starts with @ but is not a known effect name '
+                            f'(@fade|float|wipe|fly|zoom|split|type|word|rise|drop|wheel|appear|blink|pulse|spin<N>-label)')
+            continue
+        if not e:
+            continue
+        if name not in tops or tops[name][0] != c.get('id'):
+            nested.append(name)
+            continue
+        order_items.append((e, tops[name]))
+    if nested:
+        warnings.append(f'slide{num}: animated names inside a group are ignored (PowerPoint animates only top-level shapes): {nested}')
+    base = 500 if num == 1 else 350
+    for e, (spid, el) in order_items:
+        e['delay'] = base + (e.pop('order') - 1) * cfg['stagger']
+        effects.append((e, spid))
+        if is_text(el):
+            texts.add(spid)
+    for e in cfg['effects'].get(num, []):
+        e = dict(e)
+        nm = e.pop('shape', None)
+        if nm not in tops:
+            warnings.append(f'slide{num}: effect for {nm!r}: no top-level shape with that name (in a group? renamed?)')
+            continue
+        spid, el = tops[nm]
+        if e.get('trigger'):
+            if e['trigger'] not in tops:
+                warnings.append(f'slide{num}: trigger {e["trigger"]!r} not found')
+                continue
+            e['trigger_spid'] = tops[e['trigger']][0]
+        if 'delay' not in e:
+            e['delay'] = base + (int(e.pop('order', 1)) - 1) * cfg['stagger']
+        else:
+            e.pop('order', None)
+        effects.append((e, spid))
+        if is_text(el):
+            texts.add(spid)
+    media = []
+    mcfg = cfg['media'].get(num, {})
+    for nm, (spid, el) in tops.items():
+        if etree.QName(el).localname == 'pic' and el.find('.//a:videoFile', NS) is not None:
+            m = {'spid': spid, 'loop': True, 'mute': True, 'autoplay': True, 'ms': 10000}
+            m.update(mcfg.get(nm, {}))
+            media.append(m)
+    return effects, media, texts
+
+
 def apply(unpacked, cfg, dry=False):
     slides = Path(unpacked) / 'ppt' / 'slides'
     if not slides.is_dir():
         raise SystemExit('no slides directory: ' + str(slides))
     report, warnings = [], []
-    for f in sorted(slides.glob('slide*.xml'), key=file_num):
+    files = sorted(slides.glob('slide*.xml'), key=file_num)
+    mode = cfg.get('compat', 'morph')
+    geo = {file_num(f): compat.shapes(etree.parse(str(f)).getroot()) for f in files} if mode != 'morph' else {}
+    nums = [file_num(f) for f in files]
+    rebuilt = 0
+    for f in files:
         num = file_num(f)
         tree = etree.parse(str(f))
         root = tree.getroot()
-        anims, morphs = [], []
-        for c in root.iter(P + 'cNvPr'):
-            name = c.get('name') or ''
-            m = ANIM_RE.match(name)
-            if m:
-                sp = c.getparent().getparent()
-                has_text = sp.tag == P + 'sp' and sp.find('p:txBody', NS) is not None and ''.join(sp.itertext()).strip() != ''
-                anims.append((int(m.group(2)), m.group(1), c.get('id'), has_text))
-            elif name.startswith('@'):
-                warnings.append(f'slide{num}: "{name}" starts with @ but does not match @fade|float|wipe|blink<N>-label')
-            elif name.startswith('!!'):
-                morphs.append(name)
+        morphs = [c.get('name') for c in root.iter(P + 'cNvPr') if (c.get('name') or '').startswith('!!')]
         dups = sorted({n for n in morphs if morphs.count(n) > 1})
         if dups:
             warnings.append(f'slide{num}: duplicate !! names on one slide {dups} (Morph cannot pair them reliably)')
-        anims.sort(key=lambda a: a[0])
         strip_transitions(root)
         keep = num in cfg['keep_timing']
         old_timing = root.find(P + 'timing')
+        if old_timing is not None:
+            root.remove(old_timing)
+        tspec = cfg['transition'].get(num, 'morph')
+        if isinstance(tspec, str):
+            tspec = {'type': tspec}
+        tspec = dict(tspec)
+        slide_cfg = cfg
+        if mode != 'morph' and tspec.get('type', 'morph') == 'morph':
+            # no-Morph safe mode: rebuild this Morph as a classic transition + effects (compat.py)
+            i = nums.index(num)
+            prev = geo[nums[i - 1]] if i else {}
+            # shapes whose authored effects already enter or travel keep them; emphasis-only shapes still get a path
+            taken = {e.get('shape') for e in cfg['effects'].get(num, [])
+                     if motionlib.PRESETS.get(e.get('fx', 'fade'), ('entr',))[0] in ('entr', 'path')}
+            ms = int(tspec.get('ms', cfg['dur'].get(num, cfg['default_ms'])))
+            opt = tspec.get('option', cfg['option'].get(num, 'byObject'))
+            try:
+                tspec, extra = compat.plan(prev, geo[num], mode, ms, opt, taken, cfg.get('safe_transition'))
+            except ValueError as e:
+                raise SystemExit(f'slide{num}: {e}')
+            if not prev:
+                extra = []
+            if extra and not keep:
+                slide_cfg = dict(cfg, effects=dict(cfg['effects']))
+                slide_cfg['effects'][num] = list(cfg['effects'].get(num, [])) + [
+                    {k: v for k, v in e.items() if k != '_why'} for e in extra]
+                rebuilt += len(extra)
+        effects, media, texts = plan_slide(root, num, slide_cfg, warnings)
         if keep:
-            if old_timing is not None:
-                root.remove(old_timing)  # re-inserted after the new transition
             timing_el = old_timing
         else:
-            if old_timing is not None:
-                root.remove(old_timing)
-            timing_el = etree.fromstring(build_timing(anims, num, cfg['stagger'])) if anims else None
-        dur = cfg['dur'].get(num, cfg['default_ms'])
-        opt = cfg.get('option', {}).get(num, 'byObject')
-        if opt not in ('byObject', 'byWord', 'byChar'):
-            raise SystemExit(f'slide{num}: morph option must be byObject, byWord or byChar (got {opt!r})')
-        new = [etree.fromstring(TRANS.replace('{dur}', str(dur)).replace('{opt}', opt))]
+            xml = motionlib.build_timing(effects, media, texts)
+            timing_el = etree.fromstring(xml) if xml else None
+        # an explicit "ms" on the slide's transition wins; then dur (deck "ms" / --dur); then default_ms
+        tspec.setdefault('ms', cfg['dur'].get(num, cfg['default_ms']))
+        if tspec.get('type', 'morph') == 'morph':
+            tspec.setdefault('option', cfg['option'].get(num, 'byObject'))
+        try:
+            trans = etree.fromstring(motionlib.transition_xml(tspec, cfg['default_ms']))
+        except ValueError as e:
+            raise SystemExit(f'slide{num}: {e}')
+        new = [trans]
         if timing_el is not None:
             new.append(timing_el)
         insert_after(root, new)
         if not dry:
             tree.write(str(f), xml_declaration=True, encoding='UTF-8', standalone=True)
-        kinds = ','.join(f'{k}{o}' for o, k, _, _ in anims)
-        report.append(f'slide{num}: morph {dur}ms' + (f' {opt}' if opt != 'byObject' else '') + f', anims [{kinds}]' + (' timing KEPT' if keep else '') + f', !! {sorted(set(morphs))}')
+        kinds = ','.join(sorted({e.get('fx', '?') for e, _ in effects}))
+        tname = tspec.get('type', 'morph')
+        extra = f' {tspec["option"]}' if tname == 'morph' and tspec.get('option', 'byObject') != 'byObject' else ''
+        report.append(f'slide{num}: {tname} {tspec["ms"]}ms{extra}, {len(effects)} effects [{kinds}]'
+                      + (f', {len(media)} video' if media else '') + (' timing KEPT' if keep else '')
+                      + f', !! {sorted(set(morphs))}')
+    if mode != 'morph':
+        report.append(f'compat={mode}: {rebuilt} classic effect(s) synthesized from Morph pairs')
     return report, warnings
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description='One Morph transition per slide + named entrances/blink.')
+    ap = argparse.ArgumentParser(description='One transition per slide + named animations (v5).')
     ap.add_argument('unpacked', help='unpacked deck directory (contains ppt/slides)')
     ap.add_argument('--config', help='motion.json (default: UNPACKED/, its parent, or grandparent = WORK/motion.json)')
     ap.add_argument('--dur', default='', help='FILE=ms overrides, e.g. 12=2000,22=1800')
     ap.add_argument('--keep-timing', default='', help='slide FILE numbers whose existing p:timing is preserved')
-    ap.add_argument('--default-ms', type=int, help='default Morph duration')
+    ap.add_argument('--default-ms', type=int, help='default transition duration')
     ap.add_argument('--stagger', type=int, help='ms between entrance orders')
     ap.add_argument('--dry-run', action='store_true')
+    ap.add_argument('--list', action='store_true', help='print the transition and effect names, then exit')
     a = ap.parse_args(argv)
+    if a.list:
+        print('transitions:', ', '.join(motionlib.transition_names()))
+        print('effects:', ', '.join(sorted(motionlib.PRESETS)))
+        return
     try:
         cfg = load_config(a.unpacked, a.config)
         cfg['dur'].update(parse_dur(a.dur))

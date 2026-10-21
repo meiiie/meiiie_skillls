@@ -3,6 +3,9 @@
 "Có khi nhiều slide để phục vụ cho một motion hoàn chỉnh, từng frame và mọi thứ." Professional motion decks
 are animated films cut into slides: each slide is a **keyframe**, and Morph interpolates between them.
 
+Morph is one technique among many: transitions between scenes, entrances, emphasis loops, motion paths,
+letter-by-letter type, triggers, hyperlink menus and video live in `motion-library.md` (v5).
+
 ## 1. Vocabulary
 | Term | Meaning |
 |---|---|
@@ -89,4 +92,4 @@ Check: `check_deck.py` reports morph ms, entrances and shared layers per slide, 
 
 ## 8. Limits (say them to the user)
 LibreOffice renders static frames only: Morph, entrances and blink are visible **only in PowerPoint 365 / 2019+**
-(Keynote and Google Slides ignore Morph). The render proves layout; the user must play the deck in PowerPoint.
+(Keynote and Google Slides ignore Morph; their support for each transition is in `motion-library.md` §1). The render proves layout; the user must play the deck in PowerPoint.

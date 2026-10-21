@@ -1,6 +1,6 @@
 """Extract frames from a video (the user's product video or a reference talk) for auditing.
 
-  python video_frames.py VIDEO --out frames/ [--every 5] [--scene 0.35] [--width 854] [--sheet]
+  python3 video_frames.py VIDEO --out frames/ [--every 5] [--scene 0.35] [--width 854] [--sheet]
      --every N   one frame every N seconds (default 5)
      --scene T   instead: a frame at every scene change above threshold T (0.2-0.5)
      --sheet     also write frames/contact.jpg with time-coded labels

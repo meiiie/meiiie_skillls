@@ -53,8 +53,9 @@ A signature is not a logo in the corner. It moves, it means something, and it pa
 
 ## 4. Type
 
-Two families, three at most (a display face, a text face, an optional mono or label face), static
-TTFs with full coverage of the on-slide language (`fetch_fonts.py`, `check_fonts.py --lang vi`).
+Two families, three at most (a display face, a text face, an optional mono or label face). Chapter
+style packs inherit the deck's fonts; a chapter may add ONE display face of its own (four families in
+the whole deck, never more). Static TTFs with full coverage of the on-slide language (`fetch_fonts.py`, `check_fonts.py --lang vi`).
 
 | Role | Size (pt) | Line | Notes |
 |---|---|---|---|
@@ -125,7 +126,9 @@ The speaker carries the sentences; the slide carries the proof and the image.
 
 - Title ≤ 8 words, stating the conclusion ("Tháng 7 là bước ngoặt", not "Doanh thu theo tháng").
 - Body ≤ 30 words per keyframe, ≤ 3 lines per block; list ≤ 3 items visible.
-- Every number carries its unit and its source (a source line in the chrome, a caption, or the notes).
+- Every number carries its unit and its source: a short human source line in the chrome or a caption
+  ("Nguồn: 20-F 2025"), and its fact ID in the storyboard's source column. Fact IDs never appear on the
+  slide (SKILL.md rule 2); the readable source line does.
 - Fact IDs stay off the slide: they trace in the storyboard's `source` column and in the notes.
 - An anchor phrase (5-8 words) appears on 3-4 slides: setup, middle, end.
 

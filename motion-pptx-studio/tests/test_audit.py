@@ -160,3 +160,55 @@ def test_reference_deck_passes():
     code, out = run_check(REF, '--anchor', 'Nghe thì lạ, hiểu rồi thương', '--anchor-count', '4')
     assert code == 0, out[-3000:]
     assert 'hold beat' in out
+
+
+# ---- v5.2 variety audit -------------------------------------------------------------------------
+
+def _mono_slides(n=15):
+    return [{'notes': 'n', 'transition': {'type': 'fade'}, 'shapes': [
+        {'type': 'text', 'name': '!!t', 'text': f'Tiêu đề số {i}', 'x': 1, 'y': 1, 'w': 8, 'h': 1, 'size': 30,
+         'font': 'DejaVu Serif', 'anim': {'fx': 'fade', 'ms': 500}},
+        {'type': 'text', 'name': f'b{i}', 'text': 'Thân bài với nhiều chữ hơn để vượt ngưỡng tối thiểu.',
+         'x': 1, 'y': 3, 'w': 8, 'h': 1, 'size': 16, 'font': 'DejaVu Sans', 'anim': {'fx': 'fade', 'ms': 500, 'delay': 300}}]}
+        for i in range(n)]
+
+
+def test_monotone_deck_warns_on_variety(build, tmp_path):
+    deck = finish(build, tmp_path, {'slides': _mono_slides()})
+    code, out = run_check(deck)
+    assert 'variety:' in out and 'transition types' in out
+    assert 'of all effects' in out          # fade 100%
+    assert 'composition: the same layout signature' in out
+
+
+def test_monotone_deck_fails_under_strict_variety(build, tmp_path):
+    deck = finish(build, tmp_path, {'slides': _mono_slides()})
+    code, out = run_check(deck, '--variety', 'strict')
+    assert code == 1
+
+
+def test_variety_off_is_silent(build, tmp_path):
+    deck = finish(build, tmp_path, {'slides': _mono_slides()})
+    code, out = run_check(deck, '--variety', 'off')
+    assert 'variety:' not in out
+
+
+def test_variety_audit_counts_techniques():
+    import variety_audit
+    from lxml import etree
+    P = 'http://schemas.openxmlformats.org/presentationml/2006/main'
+    empty = etree.fromstring(f'<p:sld xmlns:p="{P}"><p:cSld><p:spTree/></p:cSld></p:sld>')
+    e, w, i = variety_audit.audit([('s1', empty)], lambda r: ('fade', None))
+    assert not e and not w and i[0].startswith('variety: 0 effect techniques')
+
+
+def test_rotated_text_uses_rotated_box_for_safe_area(build, tmp_path):
+    import build_deck
+    spec = {'slides': [{'notes': 'n', 'shapes': [
+        {'type': 'text', 'name': 'vert', 'text': '29.400 km', 'rot': 270, 'x': -1.6, 'y': 3.0, 'w': 5.6, 'h': 1.3,
+         'size': 60, 'font': 'DejaVu Serif'}]}]}
+    out, _, text = build(spec, 'rot')
+    assert 'vert: outside the safe area' not in text
+    spec['slides'][0]['shapes'][0]['rot'] = 0
+    out, _, text = build(spec, 'rot0')
+    assert 'vert: outside the safe area' in text

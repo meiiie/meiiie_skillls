@@ -5,7 +5,7 @@ Why: the most common defect in generated decks is text that overflows its box or
 one word onto a line of its own. A render shows it only if you look at the right slide;
 this catches it on every slide, before the render.
 
-  python typeset.py "Cormorant SemiBold" 54 6.0 "Một tiếng hát, hai nhạc cụ đệm" [--bold] [--line 0.9]
+  python3 typeset.py "Cormorant SemiBold" 54 6.0 "Một tiếng hát, hai nhạc cụ đệm" [--bold] [--line 0.9]
 
 Fonts are resolved with fontconfig (fc-match). When the family is not installed the
 measurement is skipped and `font_missing` is reported, because a fallback font would

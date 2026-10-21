@@ -3,13 +3,13 @@
 Two steps on purpose: (1) pull many candidates and LOOK at them on a contact sheet,
 (2) keep only the ones you verified against the fact file, which writes the CREDITS row.
 
-  python fetch_commons.py search "ca trù" [--source commons,openverse] [--limit 40]
+  python3 fetch_commons.py search "ca trù" [--source commons|commons,openverse] [--limit 40]
          [--out assets/candidates] [--min-width 1000] [--allow-nc]
       -> downloads thumbnails to OUT/, writes OUT/candidates.json + OUT/candidates.tsv
          (filename<TAB>licence · author, usable by contact_sheet.py --captions) and
          OUT/contact.jpg. Search in BOTH the local language and English
          ("ca trù", "ca tru", "đàn đáy", "dan day", "Ca tru singing").
-  python fetch_commons.py keep CANDIDATE_ID --as 04_dan_day_real.jpg --why "3 strings, 3 staggered pegs (UNESCO 00309)"
+  python3 fetch_commons.py keep CANDIDATE_ID --as 04_dan_day_real.jpg --why "3 strings, 3 staggered pegs (UNESCO 00309)"
          [--candidates assets/candidates/candidates.json] [--dest assets] [--credits assets/CREDITS.md]
          [--uncertain]
       -> downloads the full-size file to DEST (or DEST/_uncertain/ with --uncertain) and appends
@@ -36,10 +36,49 @@ from pathlib import Path
 UA = {'User-Agent': 'motion-pptx-studio/2.0 (asset research for a presentation; https://github.com/meiiie/meiiie_skillls)'}
 
 
-def get(url, binary=False, tries=3):
+OPENVERSE_TIMEOUT = 12
+MAX_SIDE = 2560
+
+
+def normalise_image(data, target, keep_full=None):
+    """v5.3: one PowerPoint-safe file at keep time: EXIF rotation applied, MPO/TIFF/WebP/CMYK -> RGB JPEG
+    (or PNG when it has alpha), long side <= MAX_SIDE. The original bytes go to keep_full when given.
+    Returns (path written, note)."""
+    import io
+    from PIL import Image, ImageOps
+    im = Image.open(io.BytesIO(data))
+    im.load()
+    fmt = (im.format or '').upper()
+    notes = []
+    if fmt == 'MPO':
+        notes.append('MPO (multi-picture) -> first frame')
+        im.seek(0)
+    exif_o = im.getexif().get(0x0112, 1) if hasattr(im, 'getexif') else 1
+    im = ImageOps.exif_transpose(im)
+    if exif_o not in (None, 1):
+        notes.append(f'EXIF orientation {exif_o} applied')
+    alpha = im.mode in ('RGBA', 'LA') or (im.mode == 'P' and 'transparency' in im.info)
+    if target.suffix.lower() not in ('.jpg', '.jpeg', '.png'):
+        target = target.with_suffix('.png' if alpha else '.jpg')
+    if max(im.size) > MAX_SIDE:
+        if keep_full is not None:
+            keep_full.parent.mkdir(parents=True, exist_ok=True)
+            keep_full.write_bytes(data)
+            notes.append(f'original {im.size[0]}x{im.size[1]} kept in {keep_full}')
+        im.thumbnail((MAX_SIDE, MAX_SIDE), Image.LANCZOS)
+        notes.append(f'downscaled to {im.size[0]}x{im.size[1]}')
+    if target.suffix.lower() in ('.jpg', '.jpeg'):
+        im = im.convert('RGB')
+        im.save(target, quality=90, optimize=True)
+    else:
+        im.save(target, optimize=True)
+    return target, '; '.join(notes) or 'as downloaded'
+
+
+def get(url, binary=False, tries=3, timeout=60):
     for k in range(tries):
         try:
-            with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=60) as r:
+            with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=timeout) as r:
                 data = r.read()
                 return data if binary else json.loads(data.decode('utf-8'))
         except Exception as e:  # rate limits / transient errors
@@ -92,7 +131,8 @@ def commons(query, limit):
 
 def openverse(query, limit):
     params = {'q': query, 'page_size': min(limit, 20), 'mature': 'false'}
-    d = get('https://api.openverse.org/v1/images/?' + urllib.parse.urlencode(params))
+    # v5.3: Openverse often hangs from cloud boxes; short timeout, one retry, then move on
+    d = get('https://api.openverse.org/v1/images/?' + urllib.parse.urlencode(params), tries=2, timeout=OPENVERSE_TIMEOUT)
     out = []
     for r in d.get('results', []):
         lic = (r.get('license') or '').lower()
@@ -217,23 +257,12 @@ def cmd_keep(a):
     dest.mkdir(parents=True, exist_ok=True)
     target = dest / a.as_name
     data = get(c['url'], binary=True)
-    src_ext = Path(urllib.parse.urlparse(c['url']).path).suffix.lower()
-    if src_ext in ('.tif', '.tiff', '.webp', '.bmp') or target.suffix.lower() not in ('.jpg', '.jpeg', '.png'):
-        try:
-            import io
-            from PIL import Image
-            im = Image.open(io.BytesIO(data))
-            im.load()
-            if target.suffix.lower() not in ('.jpg', '.jpeg', '.png'):
-                target = target.with_suffix('.jpg')
-            if target.suffix.lower() in ('.jpg', '.jpeg'):
-                im = im.convert('RGB')
-            im.save(target, quality=92)
-            print(f'converted {src_ext} -> {target.suffix} (PowerPoint-safe)')
-        except Exception as e:  # keep raw bytes if Pillow cannot read it
-            print('WARN: could not convert:', e)
-            target.write_bytes(data)
-    else:
+    try:   # v5.3: rotation, MPO, size are fixed HERE, before any 25 MB deck check can trip on them
+        full = Path('media_orig/full') / Path(a.as_name).name if not a.no_downscale else None
+        target, note = normalise_image(data, target, None if a.no_downscale else full)
+        print('kept as', target.name, '—', note)
+    except Exception as e:  # keep raw bytes only if Pillow cannot read it at all
+        print('WARN: could not normalise image (kept raw bytes; check it opens in PowerPoint):', e)
         target.write_bytes(data)
     credits = Path(a.credits)
     if not credits.is_file():
@@ -262,7 +291,7 @@ def main(argv=None):
     sub = ap.add_subparsers(dest='cmd', required=True)
     s = sub.add_parser('search')
     s.add_argument('query')
-    s.add_argument('--source', default='commons,openverse')
+    s.add_argument('--source', default='commons', help='commons (default) and/or openverse (opt-in: slow/flaky from many hosts)')
     s.add_argument('--limit', type=int, default=40)
     s.add_argument('--out', default='assets/candidates')
     s.add_argument('--min-width', type=int, default=0, help='skip images narrower than this (default keeps all; small ones are tagged inset/icon only)')
@@ -278,6 +307,7 @@ def main(argv=None):
     s.add_argument('--credits', default='assets/CREDITS.md')
     s.add_argument('--uncertain', action='store_true', help='licence ok but subject unverified: never caption it as the subject')
     s.add_argument('--force', action='store_true')
+    s.add_argument('--no-downscale', action='store_true', help='keep the full resolution (the deck will be bigger)')
     a = ap.parse_args(argv)
     cmd_search(a) if a.cmd == 'search' else cmd_keep(a)
 

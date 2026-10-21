@@ -1,7 +1,7 @@
 """Download the OFL fonts a style pack needs, as static TTFs, and install them for rendering.
 
-  python fetch_fonts.py --style noir-product --out WORK/fonts [--install] [--check vi]
-  python fetch_fonts.py --family "Be Vietnam Pro:400,700" --out WORK/fonts --install
+  python3 fetch_fonts.py --style noir-product --out WORK/fonts [--install] [--check vi]
+  python3 fetch_fonts.py --family "Be Vietnam Pro:400,700" --out WORK/fonts --install
 
 Why: a deck rendered with a fallback font is judged on the wrong typography, and a
 deck delivered without its fonts falls back on the presenter's machine. Every style

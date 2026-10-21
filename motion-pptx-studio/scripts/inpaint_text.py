@@ -1,6 +1,6 @@
 """Remove unwanted script (e.g. Han characters on couplets / plaques, brand text on a mat) from a photo region.
 
-  python inpaint_text.py IN.jpg OUT.jpg --box x0,y0,x1,y1 [--box ...] [--thr 20] [--dilate 5]
+  python3 inpaint_text.py IN.jpg OUT.jpg --box x0,y0,x1,y1 [--box ...] [--thr 20] [--dilate 5]
                          [--radius 9] [--vblur 0] [--flatten] [--preview crop.png]
   --box      pixel rectangle(s) holding the text (find them on a render or with an image viewer)
   --thr      how much brighter/darker than the local background a stroke must be (lower = more aggressive)

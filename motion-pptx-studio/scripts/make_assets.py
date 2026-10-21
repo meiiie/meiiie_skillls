@@ -4,16 +4,16 @@ Every deck needs the same raw materials: a ground that is not a flat fill, a her
 in one consistent finish, parts that Morph can assemble, photos graded into the palette,
 and a few textures. Make them here instead of improvising them per deck.
 
-  python make_assets.py ground  --kind lacquer|noir|paper|clean|halftone|flat --base "#140B08" [--tone "#2B1710"]
+  python3 make_assets.py ground  --kind lacquer|noir|paper|clean|halftone|flat --base "#140B08" [--tone "#2B1710"]
                                 [--crackle 0.5] [--grain 0.05] [--vignette 0.4] [--style noir-product --name main] --out ground.jpg
-  python make_assets.py foil    SRC.svg|SRC.png --finish gold|silver|copper|bronze|ink|chalk|neon|metal --out hero.png
+  python3 make_assets.py foil    SRC.svg|SRC.png --finish gold|silver|copper|bronze|ink|chalk|neon|metal --out hero.png
                                 [--color "#D9B26A"] [--size 1600] [--seed 3]
-  python make_assets.py layers  object.svg --out-dir assets/parts [--finish gold]     # one PNG per top-level <g id>
-  python make_assets.py photo   SRC.jpg --out assets/hero.jpg --mode duotone|mono|sepia|grade|color
+  python3 make_assets.py layers  object.svg --out-dir assets/parts [--finish gold]     # one PNG per top-level <g id>
+  python3 make_assets.py photo   SRC.jpg --out assets/hero.jpg --mode duotone|mono|sepia|grade|color
                                 [--colors "#140B08,#E2BE7C"] [--aspect 16:9] [--focus 0.5,0.4] [--vignette 0.3]
                                 [--grain 0.02] [--pair] [--min-size 2400]
-  python make_assets.py glow    --color "#FFB020" --size 1600 --out glow.png [--softness 0.35]
-  python make_assets.py pattern --kind woven|dots|stripes|hatch|chevron|grid --color "#D9B26A" --size 2400x300
+  python3 make_assets.py glow    --color "#FFB020" --size 1600 --out glow.png [--softness 0.35]
+  python3 make_assets.py pattern --kind woven|dots|stripes|hatch|chevron|grid --color "#D9B26A" --size 2400x300
                                 [--finish gold] --out band.png
 
 Drawings: write the object as an SVG in black on a transparent canvas, one <g id="part">
@@ -107,7 +107,8 @@ def voronoi_cracks(w, h, rng, cell=90, width=1.6):
 
 def ground(kind='lacquer', base='#140B08', tone=None, size=(2400, 1350), grain=0.04, vignette_amt=0.4,
            seed=1, crackle=0.0, lift=(0.75, 0.2), dots=0.0, grid=0.0, grid_alpha=0.05, dot=0.16, **_):
-    """Return an RGB PIL image: a ground that reads as a material, never a flat fill."""
+    """Return an RGB PIL image: a ground that reads as a material, never a flat fill.
+    kinds: lacquer noir paper clean halftone flat blueprint mesh scanline."""
     w, h = size
     rng = np.random.default_rng(seed)
     b = np.array(hexrgb(base), np.float32)
@@ -171,6 +172,37 @@ def ground(kind='lacquer', base='#140B08', tone=None, size=(2400, 1350), grain=0
     elif kind == 'flat':
         cloud = fractal(w, h, rng, octaves=3, base=2)
         img = b + (t - b) * cloud[..., None] * 0.5
+    elif kind == 'blueprint':
+        # drafting sheet: minor grid every `grid` inches, a major line every 4th, a soft centre lift
+        yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+        d = np.sqrt(((xx / w - 0.5) * (w / h)) ** 2 + (yy / h - 0.45) ** 2)
+        img = b + (t - b) * np.exp(-(d / 0.9) ** 2)[..., None]
+        step = max(4, int(w / 13.333 * (grid or 0.25)))
+        m = np.zeros((h, w), np.float32)
+        m[:, ::step] = grid_alpha or 0.07
+        m[::step, :] = grid_alpha or 0.07
+        m[:, ::step * 4] = 2.2 * (grid_alpha or 0.07)
+        m[::step * 4, :] = 2.2 * (grid_alpha or 0.07)
+        ink = 255 if b.mean() < 128 else 0
+        img += (ink - img) * m[..., None]
+    elif kind == 'mesh':
+        # glass/tech: two or three soft colour fields on a dark base (tone, plus `blobs` hex list)
+        yy, xx = np.mgrid[0:h, 0:w].astype(np.float32) / h
+        img = b + np.zeros((h, w, 3), np.float32)
+        cols = [t] + [np.array(hexrgb(c), np.float32) for c in (_.get('blobs') or [])]
+        for c in cols:
+            cx, cy, r = rng.random() * w / h, rng.random(), 0.35 + rng.random() * 0.35
+            g = np.exp(-(((xx - cx) ** 2 + (yy - cy) ** 2) / r ** 2))
+            img += (c - img) * (g * 0.75)[..., None]
+        img *= vignette(w, h, vignette_amt * 0.5)[..., None]
+    elif kind == 'scanline':
+        # CRT terminal: phosphor glow in the middle, horizontal scanlines
+        yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+        d = np.sqrt(((xx / w - 0.5) * (w / h)) ** 2 + (yy / h - 0.5) ** 2)
+        img = b + (t - b) * np.exp(-(d / 0.8) ** 2)[..., None]
+        period = max(3, int(h / 270))
+        img *= (1 - 0.18 * ((yy.astype(int) % period) == 0))[..., None]
+        img *= vignette(w, h, vignette_amt)[..., None]
     else:
         raise SystemExit(f'unknown ground kind {kind!r}')
     if grain:

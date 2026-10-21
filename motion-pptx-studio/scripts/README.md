@@ -29,4 +29,4 @@
 | `deliver.py` | 6 | deliver/: pptx + docx + fonts (+ README, OFL) + CREDITS + zip |
 Companion skills carry copies of some of these; `bash ../sync_companions.sh` refreshes them from this folder.
 
-Tests: `python -m pytest tests -q` (set `MOTION_REF_DECK=/path/NEKO_CORE_CaTru_motion.pptx` to include the reference-deck regression).
+Tests: `python3 -m pytest tests -q` (set `MOTION_REF_DECK=/path/NEKO_CORE_CaTru_motion.pptx` to include the reference-deck regression).

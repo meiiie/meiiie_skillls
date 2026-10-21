@@ -2,13 +2,13 @@
 
 ## 1. Finish the deck
 ```bash
-python $S/finish_dedupe.py WORK/deck/unpacked          # identical media merged, oversized images downscaled
-python $S/ooxml.py clean WORK/deck/unpacked            # unused slides + orphan media removed
-python $S/motion.py WORK/deck/unpacked                 # once more, after the last edit
-python $S/ooxml.py pack WORK/deck/unpacked WORK/deck/final.pptx
-python $S/check_deck.py WORK/deck/final.pptx --anchor "…" --max-mb 25
+python3 $S/finish_dedupe.py WORK/deck/unpacked          # identical media merged, oversized images downscaled
+python3 $S/ooxml.py clean WORK/deck/unpacked            # unused slides + orphan media removed
+python3 $S/motion.py WORK/deck/unpacked                 # once more, after the last edit
+python3 $S/ooxml.py pack WORK/deck/unpacked WORK/deck/final.pptx
+python3 $S/check_deck.py WORK/deck/final.pptx --anchor "…" --max-mb 25
 bash   $S/render.sh WORK/deck/final.pptx WORK/renders/final-1     # look at every tile one last time
-python $S/words_budget.py measure WORK/deck/final.pptx --target 6:00
+python3 $S/words_budget.py measure WORK/deck/final.pptx --target 6:00
 ```
 - Credits slide: every CC BY/BY-SA image with author, title, licence, source; "(đã chỉnh sửa)" for edits; fonts (OFL).
 - Compare CREDITS.md with the media actually embedded (`ooxml.py inventory` lists the pictures): no missing credit, no stale row.
@@ -16,9 +16,9 @@ python $S/words_budget.py measure WORK/deck/final.pptx --target 6:00
 
 ## 2. Package
 ```bash
-python $S/deliver.py WORK --deck WORK/deck/final.pptx --name CaTru_Motion --title "Ca trù — kịch bản thuyết trình" \
+python3 $S/deliver.py WORK --deck WORK/deck/final.pptx --name CaTru_Motion --title "Ca trù — kịch bản thuyết trình" \
        [--scenes WORK/scenes.json] [--subtitle "Đội …"]
-python $S/gates.py check WORK --gate 6
+python3 $S/gates.py check WORK --gate 6
 ```
 `WORK/deliver/` then contains:
 | File | What |

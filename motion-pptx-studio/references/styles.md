@@ -5,7 +5,20 @@ fonts, type roles, grid, grounds, chrome, card and screen looks, shadow, photo t
 tempo and signature ideas. `build_deck.py` applies it to every slide, so a deck written against roles
 and components looks designed before any slide-by-slide work.
 
-`assets/reference/styles-gallery.jpg` shows the same starter deck in all five packs.
+`assets/reference/styles-gallery.jpg` shows the v4 starter deck in the first five packs (a system check, not a showcase).
+
+## 0. Choose, do not default (v5 creativity rule)
+
+There is no default template. For every deck write `## Style choice` in `design/art-direction.md`: the pack(s)
+chosen, the scenes each covers and why the subject asks for it, and at least one pack you rejected and why
+(Gate 3 checks it). A deck may change style per chapter (`"style"` on a slide; `"style_overrides"` per pack):
+the sample `examples/phin-multistyle` uses six, one per mini-chapter, and keeps the talk one film through a
+shared signature (a drop) and a circular close.
+
+**A pack is a layout grammar, not a palette.** The `studio.py new` starter deck is a system check (fonts,
+grounds, chrome, contrast) and looks the same in every pack on purpose; never ship it or show it as the style.
+Each pack's own compositions and motion are in `references/styles/<pack>.md`; build those, by hand, from
+shapes, photos and drawn objects (`make_deck.py`). Fewer styles done well beat many recolours.
 
 ## 1. The packs
 
@@ -16,9 +29,18 @@ and components looks designed before any slide-by-slide work.
 | `paper-editorial` | warm paper, ink serif, vermilion bar + running head | Fraunces / Inter | reports, essays, keynotes, research, data stories |
 | `boardroom-data` | cool light ground with a faint grid, deep teal signal, source line in the chrome | Plus Jakarta Sans / Inter | business reviews, finance, consulting, investor updates |
 | `studio-pop` | cream halftone and sun yellow, ink outlines, hard offset shadows, page badge | Bricolage Grotesque / Be Vietnam Pro | education, workshops, youth, events, campaigns |
+| `kinetic-type` (v5) | black stage, condensed caps 110–150 pt that are the picture, one signal red | Anton / Inter / Space Mono | hooks, manifestos, chapter cards, the close · `styles/kinetic-type.md` |
+| `blueprint` (v5) | drafting-blue sheet with grid, hairline drawings, mono callouts, one amber part | Space Grotesk / Be Vietnam Pro / JetBrains Mono | anatomy, architecture, systems, processes · `styles/blueprint.md` |
+| `swiss-blue` (v5) | white paper, one cobalt, full-bleed numeral field, hand-built unit grids and slope charts | Archivo / Inter / IBM Plex Mono | data stories, research, engineering, public sector · `styles/swiss-blue.md` |
+| `neo-brutal` (v5) | bone/lime, tilted photo stickers with ink borders and hard shadows, tag strips | Dela Gothic One / Space Grotesk / Space Mono | recipes, how-tos, workshops, youth · `styles/neo-brutal.md` |
+| `retro-terminal` (v5) | phosphor on CRT scanlines, prompt chrome, typed commands | VT323 / IBM Plex Mono | credits, developer and computing stories · `styles/retro-terminal.md` |
+
+`assets/styles-experimental/` holds three more packs (glass-tech, papercut-collage, desktop-os) that have a
+palette, fonts and grounds (`mesh`, `paper`) but no demonstrated composition yet (load one by path, `--style $S/../assets/styles-experimental/glass-tech.json`): design their grammar before
+using them, and never with the starter layout.
 
 Every font is OFL with full Vietnamese coverage (checked with `check_fonts.py --lang vi`).
-`python scripts/fetch_fonts.py --style <pack> --out WORK/fonts --install --check vi` fetches static TTFs
+`python3 scripts/fetch_fonts.py --style <pack> --out WORK/fonts --install --check vi` fetches static TTFs
 (npm registry first, then google/fonts) and installs them for rendering.
 
 ## 2. Using and changing a pack

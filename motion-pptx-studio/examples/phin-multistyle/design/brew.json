@@ -1,0 +1,18 @@
+{"x": 0.9, "y": 2.05, "w": 11.533, "h": 4.45, "seconds": 9,
+ "palette": {"bg": "#0D2D52", "node": "#123A66", "line": "#E8F1FF", "ink": "#FFFFFF", "muted": "#B4CAE8", "accent": "#FFB627", "grid": "#FFFFFF"},
+ "font": "Space Grotesk", "label_pt": 15,
+ "nodes": [
+  {"id": "bot", "label": "Bột cà phê", "sub": "rang · xay thô", "x": 0.1, "y": 0.25, "w": 2.3, "h": 0.95},
+  {"id": "nuoc", "label": "Nước nóng", "sub": "rót hai lần", "x": 0.1, "y": 3.25, "w": 2.3, "h": 0.95},
+  {"id": "phin", "label": "Phin", "sub": "ủ · nén · nhỏ giọt", "x": 3.35, "y": 1.65, "w": 2.5, "h": 1.15, "lit": true},
+  {"id": "giot", "label": "Giọt cốt", "sub": "đặc, đắng", "x": 6.5, "y": 1.7, "w": 2.0, "h": 1.05, "kind": "pill"},
+  {"id": "sua", "label": "Sữa đặc", "sub": "nằm sẵn đáy ly", "x": 6.5, "y": 3.25, "w": 2.0, "h": 0.95, "kind": "db"},
+  {"id": "ly", "label": "Cà phê sữa đá", "sub": "+ đá, khuấy đều", "x": 9.2, "y": 1.65, "w": 2.25, "h": 1.15, "kind": "box"}
+ ],
+ "edges": [
+  {"from": "bot", "to": "phin", "route": "hv", "label": "cho vào phin"},
+  {"from": "nuoc", "to": "phin", "route": "hv", "label": "rót từ từ"},
+  {"from": "phin", "to": "giot"},
+  {"from": "giot", "to": "ly"},
+  {"from": "sua", "to": "ly", "route": "hv", "dash": true, "flow": false}
+ ]}

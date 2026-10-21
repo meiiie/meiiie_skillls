@@ -1,6 +1,6 @@
 """Cut an object out of a plain (museum / studio) background -> transparent PNG cropped to the object.
 
-  python cutout.py IN.jpg OUT.png [--tol 28] [--feather 1.5] [--pad 20] [--rembg]
+  python3 cutout.py IN.jpg OUT.png [--tol 28] [--feather 1.5] [--pad 20] [--rembg]
   --tol      colour distance from the corner background that still counts as background
   --rembg    use the rembg model instead (pip install rembg; for busy backgrounds)
 Flood-fills from the four corners, so the object's own light areas (inside) are kept.

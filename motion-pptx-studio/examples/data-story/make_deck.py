@@ -6,7 +6,7 @@ comes back at full size for the close. Bars grow, a list reveals one reason at a
 timeline walks the plan. "Quán Gió" is a fictional chain; every number is illustrative and
 the source line says so.
 
-  python make_deck.py && python ../../scripts/studio.py build .
+  python3 make_deck.py && python3 ../../scripts/studio.py build .
 """
 import json
 from pathlib import Path

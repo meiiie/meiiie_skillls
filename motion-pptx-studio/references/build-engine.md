@@ -7,10 +7,10 @@ Two ways to build, both ending in the same `ooxml.py` + `motion.py` + `check_dec
 
 ### A.1 The loop
 ```bash
-python $S/studio.py new WORK --kind product --style noir-product --title "…" --fonts   # once
+python3 $S/studio.py new WORK --kind product --style noir-product --title "…" --fonts   # once
 # edit WORK/deck.json (or a make_deck.py that writes it), then:
-python $S/studio.py build WORK --group g1        # build → motion → pack → render → audit; new renders/g1-N each time
-python $S/studio.py compare WORK WORK/renders/g1-1
+python3 $S/studio.py build WORK --group g1        # build → motion → pack → render → audit; new renders/g1-N each time
+python3 $S/studio.py compare WORK WORK/renders/g1-1
 ```
 `build` prints the layout warnings (text that does not fit, a single word on a last line, text
 outside the safe area, texts that overlap, text running over a card), the audit (ERROR/WARN) and
@@ -62,10 +62,31 @@ Units are inches on 13.333 × 7.5. Colours are palette roles or `#RRGGBB`; fonts
 | `quote` | text, by, size, mark_color | NAME.mark (hanging in the margin)/.text/.by |
 In a keyframe, `set` the component (`{"!!b": {"grow": 1}}`), not its parts.
 
+### A.3b v5 keys (motion beyond Morph, drawn objects, film)
+| Where | Key | Meaning |
+|---|---|---|
+| slide | `"transition"` | `"push"` or `{"type": "curtains", "ms": 1800, "dir": "l"}`; every name in `motion.py --list`; default morph |
+| slide | `"style"` | switch pack for this slide (and keyframes that inherit it); `"style_overrides": {pack: {...}}` at the top |
+| shape | `"anim"` | an effect dict or a list (`references/motion-library.md` §2); on a component it applies to every part, `"stagger"` ms apart; unnamed shapes get `fx{n}-{k}` names; inside a group it is ignored with a warning |
+| shape | `"link"` | a slide id: click jumps there (menus, a hand-made Summary Zoom) |
+| shape | `"arrow"`, `"arrow_start"` | arrowheads on a `line` |
+| type | `poly` | `points` [[x, y] …] inches (closed unless `"open": true`), fill/gradient/alpha/line: draw objects (a phin, a cup, a machine part) as editable freeforms |
+| type | `video` | `path` (MP4), `poster` (else ffmpeg's first frame), `loop`, `autoplay` (default true), `mute`: plays in PowerPoint; renders show the poster |
+`motion_config` writes each slide's transition and effects into motion.json; unknown names are refused at build.
+
+### A.3c No-Morph safe mode (v5.1)
+Deck keys `"compat": "morph"|"safe"|"dual"` and `"safe_transition": "fade"|{"type": "push", "dir": "l"}` go to
+motion.json. `motion.py` reads the geometry of every top-level `!!` shape on consecutive slides and, on each
+Morph slide, calls `compat.plan()`: safe → core transition + synthesized `appear/zoom + path` (path starts at the
+old centre, `"from_offset": true`), `type/word` for changed text, `fade` for new layers; dual → Morph whose
+`mc:Fallback` is push/wipe/fade plus fade entrances on new `!!` shapes only. Authored entrances/paths on a shape
+are never overwritten; `keep_timing` slides only get the transition change. Report line:
+`compat=safe: N classic effect(s) synthesized from Morph pairs`.
+
 ### A.4 Generate deck.json from a script when geometry depends on geometry
 When parts must line up (strings locked to an instrument's neck, a cursor that becomes a panel the
 size of the screen), write a small `make_deck.py` that computes the boxes and writes `deck.json`, as the
-three examples do. Change one number (where the instrument stands) and every keyframe follows.
+examples do (`examples/phin-multistyle/make_deck.py`: six styles, drawn phin, diagram fragment, unit grid). Change one number (where the instrument stands) and every keyframe follows.
 
 ### A.5 Notes on the output
 - Text boxes have zero insets and no autofit; components size their boxes from the real font
@@ -81,13 +102,13 @@ three examples do. Change one number (where the instrument stands) and every key
 Use this when the user gives a template, when you build a family deck with another tool (pptxgenjs,
 Anthropic's pptx skill, a managed slide service), or for effects the JSON spec lacks.
 ```bash
-python $S/ooxml.py ensure-notes deck.pptx                    # every slide gets a notes page
-python $S/ooxml.py unpack deck.pptx WORK/deck/unpacked
-python $S/ooxml.py inventory WORK/deck/unpacked              # shape ids, names, kinds, x/y/w/h (in), text
-python $S/ooxml.py sequence WORK/deck/unpacked slide1.xml slide1.xml slide1.xml slide2.xml   # duplicate = keyframes
-python $S/ooxml.py order WORK/deck/unpacked                  # position → file (+ !! layers)
-python $S/ooxml.py notes-set WORK/deck/unpacked WORK/notes.md   # '##### N' blocks by POSITION
-python $S/ooxml.py clean WORK/deck/unpacked                  # drop unused slides + orphan media
+python3 $S/ooxml.py ensure-notes deck.pptx                    # every slide gets a notes page
+python3 $S/ooxml.py unpack deck.pptx WORK/deck/unpacked
+python3 $S/ooxml.py inventory WORK/deck/unpacked              # shape ids, names, kinds, x/y/w/h (in), text
+python3 $S/ooxml.py sequence WORK/deck/unpacked slide1.xml slide1.xml slide1.xml slide2.xml   # duplicate = keyframes
+python3 $S/ooxml.py order WORK/deck/unpacked                  # position → file (+ !! layers)
+python3 $S/ooxml.py notes-set WORK/deck/unpacked WORK/notes.md   # '##### N' blocks by POSITION
+python3 $S/ooxml.py clean WORK/deck/unpacked                  # drop unused slides + orphan media
 ```
 - Rename shapes to `!!name` / `@fade1-x` in the slide XML (`p:cNvPr name="…"`); positions are EMU (914400 per inch).
 - Edit with a small Python + lxml script per group (keep it in `WORK/notes/gN_edit.py`, so it can be re-run).

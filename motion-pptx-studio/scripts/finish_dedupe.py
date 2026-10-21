@@ -1,7 +1,7 @@
 """Merge byte-identical ppt/media files and downscale wide images when the folder is large.
 
 Usage:
-  python finish_dedupe.py UNPACKED_DIR [--max-bytes 22000000] [--max-width 2560]
+  python3 finish_dedupe.py UNPACKED_DIR [--max-bytes 22000000] [--max-width 2560]
 
 UNPACKED_DIR is the unpacked deck (it contains ppt/media). Identical files are
 replaced by the first name in each hash group (shortest name, then alphabetical).

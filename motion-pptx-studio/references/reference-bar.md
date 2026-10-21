@@ -35,8 +35,8 @@ fails this deck is a wrong change (`MOTION_REF_DECK=/path/NEKO_CORE_CaTru_motion
 ## 3. Comparing your deck with the bar
 
 ```bash
-python $S/studio.py compare WORK WORK/renders/g2-1            # writes WORK/design/compare-N.jpg
-python $S/studio.py compare WORK WORK/renders/g2-1 --ref assets/reference/styles-gallery.jpg
+python3 $S/studio.py compare WORK WORK/renders/g2-1            # writes WORK/design/compare-N.jpg
+python3 $S/studio.py compare WORK WORK/renders/g2-1 --ref assets/reference/styles-gallery.jpg
 ```
 Answer in `notes/<group>.md`:
 1. At thumbnail size, does the deck read as one piece? (ground, chrome, signature, type)

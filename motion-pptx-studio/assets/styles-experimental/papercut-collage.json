@@ -1,0 +1,222 @@
+{
+  "name": "papercut-collage",
+  "label": "Paper-cut collage: kraft ground, layered torn-paper freeform shapes, rounded hand type, warm craft palette",
+  "genres": [
+    "food",
+    "travel",
+    "children",
+    "culture",
+    "storytelling",
+    "community",
+    "festival"
+  ],
+  "palette": {
+    "ground": "#EFE2C8",
+    "ground2": "#2F5D46",
+    "surface": "#FBF6EC",
+    "ink": "#2B2118",
+    "head": "#2B2118",
+    "muted": "#5A4834",
+    "faint": "#D8C6A3",
+    "accent": "#B53A1F",
+    "accent2": "#2F5D46",
+    "lit": "#F2B636",
+    "veil": "#2B2118"
+  },
+  "fonts": {
+    "display": "Baloo 2",
+    "text": "Be Vietnam Pro",
+    "label": "Patrick Hand"
+  },
+  "font_files": [
+    {
+      "family": "Baloo 2",
+      "weights": "400,700"
+    },
+    {
+      "family": "Be Vietnam Pro",
+      "weights": "400,700"
+    },
+    {
+      "family": "Patrick Hand",
+      "weights": "400"
+    }
+  ],
+  "type": {
+    "kicker": {
+      "font": "label",
+      "size": 12,
+      "bold": true,
+      "spacing": 1.5,
+      "caps": true,
+      "color": "accent"
+    },
+    "display": {
+      "font": "display",
+      "size": 84,
+      "bold": true,
+      "line": 0.9,
+      "spacing": -1,
+      "color": "head"
+    },
+    "title": {
+      "font": "display",
+      "size": 46,
+      "bold": true,
+      "line": 0.95,
+      "spacing": 0,
+      "color": "head"
+    },
+    "subtitle": {
+      "font": "text",
+      "size": 22,
+      "line": 1.25,
+      "color": "muted"
+    },
+    "body": {
+      "font": "text",
+      "size": 17,
+      "line": 1.35,
+      "color": "ink"
+    },
+    "caption": {
+      "font": "text",
+      "size": 10,
+      "color": "muted"
+    },
+    "label": {
+      "font": "label",
+      "size": 13,
+      "spacing": 0.5,
+      "color": "muted"
+    },
+    "numeral": {
+      "font": "display",
+      "size": 170,
+      "bold": true,
+      "line": 0.82,
+      "spacing": -4,
+      "color": "accent"
+    },
+    "quote": {
+      "font": "display",
+      "size": 36,
+      "bold": true,
+      "line": 1.08,
+      "color": "head"
+    },
+    "cardtitle": {
+      "font": "display",
+      "size": 24,
+      "bold": true,
+      "line": 1.0,
+      "color": "head"
+    },
+    "pageno": {
+      "font": "label",
+      "size": 15,
+      "color": "muted"
+    }
+  },
+  "grid": {
+    "cols": 12,
+    "left": 0.9,
+    "right": 0.9,
+    "top": 0.8,
+    "bottom": 0.8,
+    "gutter": 0.25,
+    "safe": 0.45
+  },
+  "default_bg": "main",
+  "grounds": {
+    "main": {
+      "kind": "paper",
+      "base": "#EFE2C8",
+      "tone": "#E2CFAA",
+      "grain": 0.03,
+      "vignette": 0.35,
+      "seed": 121
+    },
+    "alt": {
+      "kind": "paper",
+      "base": "#2F5D46",
+      "tone": "#264D3A",
+      "grain": 0.03,
+      "vignette": 0.35,
+      "seed": 122
+    }
+  },
+  "chrome": {
+    "over": [
+      {
+        "type": "text",
+        "name": "!!pageno",
+        "text": "~ {n} ~",
+        "x": 10.933,
+        "y": 6.88,
+        "w": 1.5,
+        "h": 0.25,
+        "role": "pageno",
+        "align": "r"
+      }
+    ]
+  },
+  "card": {
+    "fill": "surface",
+    "fill_alpha": 1.0,
+    "line": "faint",
+    "line_width": 0.75,
+    "radius": 0.04,
+    "lit_fill": "#FFF1CC",
+    "lit_line": "accent",
+    "rule": "accent",
+    "dim_alpha": 0.6,
+    "shadow": {
+      "blur": 10,
+      "dist": 5,
+      "dir": 70,
+      "color": "#3B2A14",
+      "alpha": 0.35
+    }
+  },
+  "screen": {
+    "bezel": "#FBF6EC",
+    "line": "#D8C6A3",
+    "line_width": 0.75,
+    "radius": 0.04,
+    "bar": "#F2B636"
+  },
+  "shadow": {
+    "blur": 10,
+    "dist": 5,
+    "dir": 70,
+    "color": "#3B2A14",
+    "alpha": 0.35
+  },
+  "photo": {
+    "duotone": null,
+    "veil": 0.45
+  },
+  "motion": {
+    "default_ms": 1100,
+    "bloom_ms": 1600,
+    "stagger_ms": 160,
+    "transitions": [
+      "morph",
+      "peeloff",
+      "pagecurl",
+      "fade"
+    ],
+    "effects": [
+      "rise",
+      "float",
+      "teeter",
+      "wheel"
+    ]
+  },
+  "signature_ideas": [
+    "paper layers (poly shapes) rise one after another to build a landscape (parallax via Morph at different distances)",
+    "a Page Curl / Peel Off transition between story chapters",
+    "a cut-out sun that slowly spins (spin loop)"
+  ]
+}

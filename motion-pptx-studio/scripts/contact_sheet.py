@@ -1,12 +1,13 @@
 """Tile images into labelled contact sheets (slide renders, asset candidates, video frames).
 
 Usage:
-  python contact_sheet.py INPUT [INPUT ...] --out contact.jpg [--cols 4] [--width 480]
+  python3 contact_sheet.py INPUT [INPUT ...] --out contact.jpg [--cols 4] [--width 480]
          [--per-sheet 0] [--label name|index|none] [--captions captions.tsv]
 
 INPUT is image files and/or folders (jpg/jpeg/png/webp, sorted naturally).
 --per-sheet N splits into contact-1.jpg, contact-2.jpg ... (0 = one sheet).
 --captions is a TSV of "filename<TAB>caption" (e.g. licence + author) printed under each tile.
+Writes OUT.json (the files on the sheet) next to it; gate 2 compares it with assets/.
 Always LOOK at the sheet afterwards: the sheet exists so a human-like eye checks every image.
 """
 import argparse
@@ -31,6 +32,14 @@ def collect(inputs):
         elif p.suffix.lower() in EXT:
             files.append(p)
     return files
+
+
+def write_manifest(out, files):
+    """v5.3: <sheet>.json lists what the sheet shows (name, size, mtime), so gate 2 can tell a stale
+    sheet by content instead of by file times (copying or touching files no longer fools it)."""
+    import json
+    rows = [{'name': f.name, 'bytes': f.stat().st_size} for f in files]
+    Path(out).with_suffix('.json').write_text(json.dumps({'files': rows}, ensure_ascii=False, indent=1), encoding='utf-8')
 
 
 def font(size):
@@ -98,6 +107,7 @@ def main(argv=None):
             sheet(files[n:n + a.per_sheet], out.with_name(f'{out.stem}-{n // a.per_sheet + 1}{out.suffix}'), a.cols, a.width, a.label, caps)
     else:
         sheet(files, out, a.cols, a.width, a.label, caps)
+    write_manifest(out, files)
 
 
 if __name__ == '__main__':

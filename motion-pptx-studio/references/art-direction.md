@@ -8,7 +8,7 @@ from the research, and proven with renders next to the reference before the stor
 Choose the pack closest to the kind and the subject (`styles.md`, `genres.md`), then make it the
 subject's own:
 ```bash
-python $S/studio.py new WORK --kind heritage --style lacquer-heritage --title "…" --fonts
+python3 $S/studio.py new WORK --kind heritage --style lacquer-heritage --title "…" --fonts
 ```
 `design/style.json` is your copy. Change palette values to sourced colours, swap a font only for one that
 passes the glyph check, keep the roles. Write `- style: <pack>` and every change in `art-direction.md`.
@@ -21,7 +21,7 @@ turn and the close, how it is split into `!!` parts. Write it under `## Signatur
 ## 3. Fonts
 - **Two families, not two files of one family.** Gate 3 reads the name table (typographic family, else family) and folds it: weight, width, and the words Display / Condensed / Text are stripped. Noto Sans and Noto Sans Display count as one family. Calibri, Arial, Times New Roman, Cambria and Aptos do not count.
 - **Coverage first.** Vietnamese needs ă â đ ê ô ơ ư plus 5 tone marks on every vowel, including stacked marks (ẫ ỡ ự).
-  `python $S/studio.py fonts WORK --style <pack>` (fetch + install + `check_fonts.py --lang vi` → `design/font-check.txt`),
+  `python3 $S/studio.py fonts WORK --style <pack>` (fetch + install + `check_fonts.py --lang vi` → `design/font-check.txt`),
   then **look at the sample**: marks must not collide or fall back to another font.
   - Rejected in practice: Bodoni Moda (no ơ ư ỹ ẫ); Great Vibes (marks clash with the swashes). JetBrains Mono lacks ✓, so write "ok".
   - Proven pairs (all in the packs): Cormorant + Josefin Sans; Space Grotesk + Be Vietnam Pro (+ JetBrains Mono);
@@ -29,7 +29,7 @@ turn and the close, how it is split into `!!` parts. Write it under `## Signatur
 - **Static instances only.** PowerPoint handles variable fonts badly. `fetch_fonts.py` gets static TTFs
   (npm `@expo-google-fonts/<family>` or google/fonts `static/`). By hand:
   ```bash
-  python -m fontTools.varLib.instancer "Family[wght].ttf" wght=600 -o Family-SemiBold.ttf --update-name-table
+  python3 -m fontTools.varLib.instancer "Family[wght].ttf" wght=600 -o Family-SemiBold.ttf --update-name-table
   ```
   Use the instance's family name in the deck. Ship the OFL text with the fonts.
 - Install the fonts locally before rendering, otherwise LibreOffice renders a fallback, the layout warnings
@@ -49,11 +49,11 @@ turn and the close, how it is split into `!!` parts. Write it under `## Signatur
 Content motifs come only from the TRUE list in `research/accuracy.md`. Generic decoration (lacquer,
 paper, grain, halftone) is allowed as a ground or a band, never as content.
 ```bash
-python $S/make_assets.py ground --style lacquer-heritage --name alt --out WORK/assets/ground-alt.jpg
-python $S/make_assets.py foil drawings/hero.svg --finish gold --out WORK/assets/hero.png
-python $S/make_assets.py layers drawings/hero.svg --finish gold --out-dir WORK/assets/hero   # one PNG per <g id>
-python $S/make_assets.py photo raw/place.jpg --mode duotone --colors "#140B08,#E2BE7C" --aspect 16:9 --pair --out WORK/assets/place.jpg
-python $S/make_assets.py pattern --kind woven --finish gold --size 2400x300 --out WORK/assets/band.png
+python3 $S/make_assets.py ground --style lacquer-heritage --name alt --out WORK/assets/ground-alt.jpg
+python3 $S/make_assets.py foil drawings/hero.svg --finish gold --out WORK/assets/hero.png
+python3 $S/make_assets.py layers drawings/hero.svg --finish gold --out-dir WORK/assets/hero   # one PNG per <g id>
+python3 $S/make_assets.py photo raw/place.jpg --mode duotone --colors "#140B08,#E2BE7C" --aspect 16:9 --pair --out WORK/assets/place.jpg
+python3 $S/make_assets.py pattern --kind woven --finish gold --size 2400x300 --out WORK/assets/band.png
 ```
 
 ## 6. Layered objects (what will move)
@@ -75,9 +75,9 @@ two scene ids: `- colour arc: S1-S4 #0E0A07 → S6-S11 #F1E4C8`.
 `studio.py new` writes a five-slide starter (a title, a highlight walk pair, a bar grow pair). Edit it into
 your direction: real title, your signature, your ground, one real visual. Then:
 ```bash
-python $S/studio.py build WORK --group sample
+python3 $S/studio.py build WORK --group sample
 cp WORK/renders/sample-1/slide-01.jpg WORK/renders/sample-1/slide-03.jpg WORK/design/samples/
-python $S/studio.py compare WORK WORK/renders/sample-1
+python3 $S/studio.py compare WORK WORK/renders/sample-1
 ```
 Answer the compare questions in `art-direction.md` (`reference-bar.md` §3). If two directions are
 plausible, render both and choose, or show both to the user. Change direction now, not after 40 slides.

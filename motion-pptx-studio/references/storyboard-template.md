@@ -5,7 +5,7 @@ the gate checks it.
 
 ## 1. Header (top of `WORK/storyboard.md`)
 ```
-- target: 6 min · budget: 754 words   (python $S/words_budget.py plan --minutes 6 --slides 34)
+- target: 6 min · budget: 754 words   (python3 $S/words_budget.py plan --minutes 6 --slides 34)
 - anchor: "Hỏi trước, rồi mới làm." (on 3 slides: setup / middle / end)
 - colour arc: S1-S4 #0E0A07 → S5-S8 #F1E4C8 (two backgrounds, two scene spans; "muted then bloom" alone fails)
 - circular close: slides 33–34 = title and boot keyframes again; the cat shrinks back into the cursor

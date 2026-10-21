@@ -21,15 +21,26 @@ Checks (ERROR = must fix, WARN = look at it):
          under 40% of slides citing a fact ID on the slide or in the notes (with --facts)
   WARN   slides without speaker notes; !! names that never pair; fonts used but not installed;
          images wider than 2560 px; byte-identical media (run finish_dedupe.py)
-  INFO   per-slide Morph duration, entrance count, shared !! layers, measured keyframe deltas
+  ERROR  animation XML that targets a shape id not on the slide, or repeats a timing node id
+  WARN   motion monotony: 12+ slides, >85% Morph, no emphasis/path/exit/letter/video effect
+  WARN   variety (v5.2, --variety strict makes these ERRORs; 15+ slides, scaled down for smaller decks):
+         < 10 distinct effect techniques, one technique > 35% of effect nodes, < 5 transition types,
+         < 60% distinct layout signatures across scene cuts or 3 equal cuts in a row,
+         < 20% of slides with moving depth (plate + moving layer + text)
+  ERROR  no-Morph (v5.1, --compat or motion.json "compat"): in safe mode any Morph left, or a shared !! shape
+         that moves with no classic replacement (path/entrance); with --nomorph-render DIR the deck is
+         rendered with every Morph replaced by its fallback and each slide must match the --renders end state
+  WARN   no-Morph: visible text boxes that overlap in a slide's end state
+  INFO   per-slide transition (Morph or which other) and duration, effect census, entrance count, shared !! layers, measured keyframe deltas
 
 A PDF has no !! names or transitions. On a PDF the keyframe, image-reuse, layout, font-family
 and word-count checks still run from the rendered pages and the embedded images.
 
 Usage:
-  python check_deck.py DECK.pptx|UNPACKED_DIR|DECK.pdf [--max-mb 25] [--anchor "Hỏi trước, rồi mới làm."]
+  python3 check_deck.py DECK.pptx|UNPACKED_DIR|DECK.pdf [--max-mb 25] [--anchor "Hỏi trước, rồi mới làm."]
          [--anchor-count 3] [--expect-slides 34] [--forbid-notes] [--extra-forbid "歌籌,MIT"]
-         [--renders DIR] [--facts research/facts.md]
+         [--renders DIR] [--facts research/facts.md] [--compat morph|safe|dual] [--nomorph-render DIR]
+         [--variety warn|strict|off]
 Exit code 1 when any ERROR is found.
 """
 import argparse
@@ -44,6 +55,9 @@ from collections import Counter
 from pathlib import Path
 
 from lxml import etree
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import motionlib  # noqa: E402
 
 NS = {
     'p': 'http://schemas.openxmlformats.org/presentationml/2006/main',
@@ -132,6 +146,37 @@ def installed_fonts():
     return fams
 
 
+def nomorph_render(src, deck, out_dir, intended=None):
+    """Write DECK with every Morph replaced by its mc:Fallback, render it (render.sh) and compare it with the
+    intended render folder. Returns (errors, infos)."""
+    import compat
+    import tempfile
+    out = Path(out_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    stripped = out / (Path(deck).stem + '-nomorph.pptx')
+    n = 0
+    with zipfile.ZipFile(stripped, 'w', zipfile.ZIP_DEFLATED) as z:
+        for name in src.names():
+            data = src.read(name)
+            if re.fullmatch(r'ppt/slides/slide\d+\.xml', name):
+                root = etree.fromstring(data)
+                k = compat.strip_morph(root)
+                if k:
+                    n += k
+                    data = etree.tostring(root, xml_declaration=True, encoding='UTF-8', standalone=True)
+            z.writestr(name, data)
+    infos = [f'no-Morph copy: {n} Morph transition(s) replaced by their fallback -> {stripped}']
+    r = subprocess.run(['bash', str(Path(__file__).resolve().parent / 'render.sh'), str(stripped), str(out)],
+                       capture_output=True, text=True)
+    if r.returncode or not list(out.glob('slide-*.jpg')):
+        return [f'no-Morph render failed: {(r.stderr or r.stdout).strip()[-300:]}'], infos
+    if not intended:
+        infos.append('no-Morph render done; pass --renders to compare it with the intended end states')
+        return [], infos
+    e, i = compat.compare_renders(intended, out)
+    return e, infos + i
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description='Audit a motion deck.')
     ap.add_argument('deck')
@@ -144,6 +189,12 @@ def main(argv=None):
     ap.add_argument('--no-han-check', action='store_true', help='allow CJK characters (only if the user wants them)')
     ap.add_argument('--renders', help='slide-NN images from render.sh; used when a stuck photo needs a pixel measurement')
     ap.add_argument('--facts', help='facts.md; fact-ID coverage is an error only when this (or a nearby facts.md) exists')
+    ap.add_argument('--compat', choices=('morph', 'safe', 'dual'),
+                    help='no-Morph mode to audit (default: "compat" in a motion.json next to the deck, else morph)')
+    ap.add_argument('--nomorph-render', help='render the deck with Morph stripped into this folder and compare it with --renders')
+    ap.add_argument('--variety', choices=('warn', 'strict', 'off'), default='warn',
+                    help='v5.2 variety audit (techniques, max share, transitions, composition, moving depth): '
+                         'warn (default) or strict (errors); see variety_audit.py and references/pro-craft.md')
     a = ap.parse_args(argv)
     if Path(a.deck).suffix.lower() == '.pdf':
         from visual_audit import audit_path, print_audit
@@ -160,6 +211,7 @@ def main(argv=None):
     seen_names = Counter()
     fonts = Counter()
     anchor_hits = Counter()
+    tr_census, fx_census = Counter(), Counter()
     for pos, part in enumerate(order, 1):
         t = xml(src, part)
         fname = Path(part).name
@@ -176,11 +228,16 @@ def main(argv=None):
             dur = tr.get('{http://schemas.microsoft.com/office/powerpoint/2010/main}dur') or dur
         timing = t.find(P + 'timing')
         custom = ''
+        tr_name, _ms = motionlib.describe_transition(t)
+        cen = motionlib.timing_census(t)
+        for e in cen['errors']:
+            errors.append(f'{tag}: {e}')
+        tr_census[tr_name] += 1
+        fx_census.update({k: v for k, v in cen.items() if k != 'errors' and v})
+        extra_fx = ', '.join(f'{v} {k}' for k, v in cen.items() if k not in ('errors', 'entr', 'click') and v)
         if timing is not None:
             s = etree.tostring(timing).decode()
             n_entr = s.count('presetClass="entr"')
-            if 'repeatCount="indefinite"' in s:
-                custom = ' +loop(blink)'
         else:
             n_entr = 0
         # names / kinds
@@ -227,8 +284,18 @@ def main(argv=None):
             warns.append(f'{tag}: no speaker notes')
         elif a.forbid_notes and not a.no_han_check and HAN.search(ntxt):
             errors.append(f'{tag}: CJK characters in notes')
-        info.append(f'{tag}: {"morph" if morph is not None else "NO-MORPH"} {dur or "-"}ms, {n_entr} entrances{custom}, '
+        info.append(f'{tag}: {"morph" if morph is not None else "NO-MORPH " + tr_name} {dur or "-"}ms, {n_entr} entrances{custom}'
+                    f'{", " + extra_fx if extra_fx else ""}, '
                     f'{len(set(names))} !! layers, {shared} shared with previous')
+    # motion vocabulary: a deck that only ever morphs and fades is the template look the skill avoids
+    n_sl = len(order)
+    if n_sl >= 12:
+        non_morph_fx = fx_census['emph'] + fx_census['path'] + fx_census['exit'] + fx_census['iterate'] + fx_census['media']
+        if tr_census['morph'] / n_sl > 0.85 and not non_morph_fx and len(tr_census) <= 2:
+            warns.append(f'motion monotony: {tr_census["morph"]}/{n_sl} slides Morph and no emphasis, path, exit, '
+                         'letter or video effect: pick 2-3 signature techniques from references/motion-library.md')
+    info.append('motion vocabulary: transitions ' + ', '.join(f'{k}×{v}' for k, v in tr_census.most_common())
+                + ('; effects ' + ', '.join(f'{k}×{v}' for k, v in fx_census.most_common()) if fx_census else ''))
     lonely = sorted(n for n, k in seen_names.items() if k == 1)
     if lonely:
         warns.append(f'!! names used on only one slide (no Morph partner, fine for one-offs): {lonely[:25]}')
@@ -267,6 +334,48 @@ def main(argv=None):
     for ph in a.anchor:
         if anchor_hits[ph] != a.anchor_count:
             warns.append(f'anchor phrase {ph!r} on {anchor_hits[ph]} slides (plan: {a.anchor_count})')
+    import compat
+    mode, morph_slides = a.compat, None
+    for mj in (Path(a.deck).parent / 'motion.json', Path(a.deck).parent.parent / 'motion.json'):
+        if mj.is_file():
+            try:
+                import json
+                cfg = json.loads(mj.read_text(encoding='utf-8'))
+            except ValueError:
+                break
+            mode = mode or cfg.get('compat')
+            tr = cfg.get('transition', {})
+
+            def _is_morph(n):
+                t = tr.get(str(n), 'morph')
+                return (t if isinstance(t, str) else t.get('type', 'morph')) == 'morph'
+            nums = [int(re.sub(r'\D', '', Path(p).name)) for p in order]
+            morph_slides = {i for i, n in enumerate(nums) if _is_morph(n)}
+            break
+    mode = mode or 'morph'
+    ce, cw, ci = compat.audit([(f'pos {i:2} ({Path(p).name})', xml(src, p)) for i, p in enumerate(order, 1)], mode, morph_slides)
+    errors += ce
+    warns += cw
+    info += ci
+    if a.variety != 'off':
+        import variety_audit
+        ve, vw, vi = variety_audit.audit([(f'pos {i:2} ({Path(p).name})', xml(src, p)) for i, p in enumerate(order, 1)],
+                                         motionlib.describe_transition, strict=a.variety == 'strict')
+        errors += ve
+        warns += vw
+        info += vi
+    import film_audit   # v5.3.1: videos must not hide labels, and a flat film must match its page
+    for i, p in enumerate(order, 1):
+        root = xml(src, p)
+        errors += [f'pos {i:2} ({Path(p).name}): {e}' for e in film_audit.video_covers_text(root)]
+        if a.renders:
+            fe, fw = film_audit.film_edge_match(src.read, p, root, Path(a.renders) / f'slide-{i:02}.jpg')
+            errors += [f'pos {i:2} ({Path(p).name}): {e}' for e in fe]
+            warns += [f'pos {i:2} ({Path(p).name}): {w}' for w in fw]
+    if a.nomorph_render:
+        ce, ci = nomorph_render(src, a.deck, a.nomorph_render, a.renders)
+        errors += ce
+        info += ci
     from visual_audit import audit_path
     vis = audit_path(a.deck, a.renders, a.facts)
     from craft_audit import audit_craft
