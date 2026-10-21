@@ -1,5 +1,85 @@
 # Changelog
 
+## 5.5.0
+Open-ended by construction: the skill routes each deck to a fitting direction before design, invents the
+deck's own system from a genome, and builds diagrams the way Anatomy and Manim do. Darren's v5.4 review ("the
+collage style does not fit SpaceX") is now a gate.
+- **Self-routing (gate 3)**: new `route.py` / `studio.py route WORK [--choose X --why …] [--apply]` analyses the
+  brief's topic, audience, tone and kind, the facts and credits (bilingual lexicons) and MEASURES the pictures
+  (luminance, saturation, warm/cool, archival prints, cut-outs, pre-1970 dates). Every family carries a `fit`
+  block (domains, tones, material, `avoid` with written reasons) and is scored (0.45 subject + 0.20 tone + 0.35
+  material); mismatches are rejected in writing (heritage collage for aerospace, noir/swiss/glass for heritage…);
+  `design/routing.md` records the ranking and the decision. Gate 3 FAILs without routing or when the deck's
+  family was rejected; WARNs when routing is stale, the deck uses another family, or fit < 0.60.
+  `studio.py new` no longer needs `--style` and refuses a rejected one.
+- **Genome / design space**: new `genome.py compile|distance|axes`. `design/genome.json` decides each axis
+  (palette sampled from the hook photo, type ratio and faces, grid, material, chrome corners, motion grammar,
+  image treatment, signature, colour arc, motifs, layers) with a reason and compiles `design/style.json` plus
+  `design/art-direction.md`. Contrast is enforced against the ground as it renders (stained paper edges,
+  vignette), the type scale stays ≤ 8 sizes. `distance` measures how different two decks are (fonts, sizes,
+  effects, transitions, layout occupancy, rendered colour). New `references/design-space.md` (with the audit of
+  everything that forced fixed output in v5.4).
+- **Construction motion**: new `construct` component (`scripts/construct.py`, `references/construction-motion.md`):
+  a part model (rect, ellipse, line, poly, arc, text, image, iso_box, iso_cyl) with layers, `on`, steps, groups,
+  states; automatic build order (base → structure → mechanism → controls → subject, labels after their part),
+  Manim verbs mapped to native effects (Create → wipe along the stroke, GrowFromEdge → stretch from the
+  contact edge, Write → letter type, Circle Create → wheel, LaggedStart fitted to `total_ms`, Indicate, trace),
+  a camera (focus/zoom/at) and states that Morph between slides on one rest-geometry fit; one lit part per frame.
+- **Engine**: `stretch` (entrance preset 17, from t/b/l/r/h/v) and `indicate` (scale pulse) effects;
+  `variety_audit` knows stretch; `preview_motion.py` simulates stretch and draws the wheel as a clockwise sweep.
+- **directions.py**: free-text composition with a `sketch` hint and a `family` per direction (directions are
+  routing candidates).
+- **Fix**: `route.py` read years in file names only before a dot was excluded (`…_1905.jpg` gave no date).
+- **Proof**: two 7-slide samples from the same skill, routed automatically: `v55-spacex` (noir-product genome
+  "night return", heritage-collage rejected for aerospace) and `v55-doson` (heritage-collage genome "summer
+  1905", noir/swiss/glass rejected for heritage), each with construction diagrams, camera moves and state
+  transforms; `genome.py distance` between them is reported in the sample notes.
+- Tests: `tests/test_v55.py` (15).
+
+## 5.4.0
+Fixes every bug, ambiguity and weakness from the SpaceX v5.3.1 test (`spacex-test/NOTES.md` §3, 22 items) and adds a
+first-class heritage magazine / collage style measured from the Ôn Lăng reference deck and its public critique.
+- **Full-deck builds by default** (bug 1): `studio.py build WORK` without `--group` builds every slide into
+  `deck/unpacked` (+ `preview-all.pptx`, `renders/all-N`); a group build works in `deck/unpacked-<group>` and never
+  overwrites it, so Phase 6 can no longer pack a 7–9 slide "final". New `studio.py final WORK` runs Phase 6 in one
+  step and refuses to pack a deck whose slide count differs from deck.json.
+- **Deck-level gate 5** (bug 2): `gates.py check WORK --gate 5 --group all` (and `--upto 5+`) checks
+  `preview-all.pptx` (current, complete) with check_deck, so deck-wide layout repetition fails before Phase 6.
+  `--upto` ends with a SUMMARY and the first FAIL; `--stop-on-fail` stops there (weakness 22).
+- **Bookend reuse** (bug 3): `"bookend": true` on a slide (≤ 2) lets a circular close return to the opening photo.
+- **Anatomy** (bugs 4, 5): anchors as a function or an object, `{x, y}` or `[x, y]`, validated; a non-string
+  frame or an object passed as a path stops with `FIGURE ERROR` (exit 3), not a "re-run setup" hint.
+- **Small fixes**: poly `"open": true` works (bug 6); `motion.py --list` needs no folder (bug 7); gate 2 counts real
+  photos with whole words (no more domAIn/trAIn/aperTURE, bug 8); gate 3 reads the "Motifs and textures"
+  heading only and drops negated clauses ("never fly") from the motion vocabulary (bug 9); gate 2 names CREDITS rows
+  that sit outside the table (bug 10); `contact_sheet.py` and `cutout.py` apply EXIF rotation (bug 11);
+  `preview_motion.py --max-seconds` fits every slide (holds shrink first, `--cut` = old behaviour), `--lang vi`
+  label, `--label-size` (bug 13); `studio.py compare` picks the reference by deck kind (ca trù only for heritage),
+  accepts a folder of reference images and `--layout side` (bug 17).
+- **cutout.py rewritten** (bug 12): border-connected background with an edge-detail test (dark object parts stay),
+  closing + hole fill, a background halo peel, `--defringe` (outline un-mixed from the old background, default 6 px),
+  `--bridge` for wide dark bays, scipy with a PIL fallback.
+- **Custom styles** (bug 14): `"styles": {"name": {"extends": pack, ...}}` in deck.json, and `style_overrides` entries
+  that are not packs define styles too; experimental packs load by name.
+- **One number for keyframe runs** (bug 15): "at least half of the scenes" everywhere (SKILL.md, storyboard template,
+  pro-craft, gate 4).
+- **Type-scale headroom** (bug 16): every pack ≤ 8 sizes (caption = label = page number, subtitle = card title).
+- **Moving depth that means something** (bug 18): the plate must be a picture, video or textured/gradient shape and
+  the moving layer ≥ 1% of the slide and over it; `"still": true` pages (≤ a quarter) leave the share.
+- **Gate 4 layout note** (bug 19) says the storyboard label count is advisory and check_deck's geometry decides.
+- **Size headroom** (weakness 21): gate 5 warns above 80% of the limit, gate 6 fails above it and warns above 85%.
+- **heritage-collage pack** (weakness 20 + the collage brief): aged paper (`paper` ground `stains`, `fibres`) and
+  `gradient` grounds; Anton caps titles with 1–2 accent runs, a `script` role (Dancing Script, rotated, may cross
+  a title: role-level `rot` and `overlay`), a `callout` role; components `callout` (dot + leader + chip),
+  `swatch` (palette sampled from a photo or a cut-out), `photogrid` (bordered prints, spans, tilt, chip labels),
+  `nodemap` (red nodes, links, chip labels). `references/styles/heritage-collage.md` documents the grammar.
+- **Legibility audit** (`scripts/legibility_audit.py`, the critique's two rules): a paragraph of 12+ words in ALL CAPS
+  below 28 pt is an ERROR in check_deck and a FAIL row in gates 5/6; text on a photo without a band, chip, gradient or
+  toned photo is a WARN (`--scrim strict` = ERROR; a FAIL row for heritage-collage decks). Transparent cut-outs do
+  not count as photos.
+- Proof: `/workspace/collage-v54` (7-slide collage sample), `/workspace/smoke40-v54` (40-slide full build).
+- Tests: `tests/test_v54.py` (35 tests).
+
 ## 5.3.1
 Review fixes before the 5.3 push: every weakness found in the VinFast v5.3 proof deck becomes a rule or a check.
 - **Anatomy density and contrast**: `anatomy_film.py` audits the poster (solids, share of the frame width and area,

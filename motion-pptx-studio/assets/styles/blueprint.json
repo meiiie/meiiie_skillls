@@ -69,7 +69,7 @@
     },
     "subtitle": {
       "font": "text",
-      "size": 22,
+      "size": 24,
       "line": 1.25,
       "color": "muted"
     },
@@ -81,7 +81,7 @@
     },
     "caption": {
       "font": "text",
-      "size": 10,
+      "size": 11,
       "color": "muted"
     },
     "label": {
@@ -116,7 +116,7 @@
     },
     "pageno": {
       "font": "label",
-      "size": 10,
+      "size": 11,
       "bold": true,
       "color": "muted"
     }
@@ -236,5 +236,34 @@
     "an exploded view: parts are drawn as editable shapes, then Morph pulls them apart along the axis",
     "dimension lines and callouts wipe in like a pen drawing them; the one amber part pulses",
     "a flow dot travels a motion path through the system diagram"
-  ]
+  ],
+  "fit": {
+    "domains": {
+      "engineering": 1,
+      "aerospace": 0.8,
+      "technology": 0.8,
+      "science": 0.8,
+      "software": 0.6
+    },
+    "tones": [
+      "technical",
+      "precise",
+      "calm"
+    ],
+    "material": {
+      "diagram": 1,
+      "cool": 0.6,
+      "cutout": 0.4
+    },
+    "avoid": [
+      {
+        "domain": "food",
+        "reason": "drafting-blue schematics make a meal look like a spare part"
+      },
+      {
+        "domain": "youth",
+        "reason": "a technical sheet reads as homework to a young audience"
+      }
+    ]
+  }
 }

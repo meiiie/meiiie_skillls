@@ -36,7 +36,7 @@ def test_studio_new_builds_a_starter(tmp_path):
     spec = json.loads((work / 'deck.json').read_text())
     assert spec['style'] == 'design/style.json' and len(spec['slides']) == 5
     code, out = call(studio.main, ['build', str(work), '--no-render'])
-    assert (work / 'deck' / 'preview-g1.pptx').exists()
+    assert (work / 'deck' / 'preview-all.pptx').exists()   # v5.4: no --group = the whole deck
     assert 'RESULT' in out and 'system:' in out
     assert code == 0, out
 

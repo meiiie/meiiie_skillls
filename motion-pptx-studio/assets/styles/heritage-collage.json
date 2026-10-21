@@ -1,0 +1,301 @@
+{
+  "name": "heritage-collage",
+  "label": "Heritage magazine / collage: aged paper and terracotta gradients, heavy caps titles with a script accent line, object cut-outs, dense bordered photo grids, leader-line callouts, palette swatches, red-node maps",
+  "genres": [
+    "heritage",
+    "culture",
+    "architecture",
+    "museum",
+    "travel",
+    "history",
+    "craft",
+    "school-report",
+    "product-anatomy"
+  ],
+  "palette": {
+    "ground": "#ECDFC1",
+    "ground2": "#5E2210",
+    "surface": "#FBF5E6",
+    "ink": "#2A1D15",
+    "head": "#22150E",
+    "muted": "#4E3A2C",
+    "faint": "#D2BE96",
+    "accent": "#962018",
+    "accent2": "#9C4409",
+    "lit": "#F0B43C",
+    "veil": "#22150E"
+  },
+  "fonts": {
+    "display": "Anton",
+    "text": "Be Vietnam Pro",
+    "label": "Barlow Condensed",
+    "script": "Dancing Script"
+  },
+  "font_files": [
+    {
+      "family": "Anton",
+      "weights": "400"
+    },
+    {
+      "family": "Be Vietnam Pro",
+      "weights": "400,700"
+    },
+    {
+      "family": "Barlow Condensed",
+      "weights": "600,700"
+    },
+    {
+      "family": "Dancing Script",
+      "weights": "700"
+    }
+  ],
+  "type": {
+    "kicker": {
+      "font": "label",
+      "size": 13,
+      "bold": true,
+      "spacing": 2.5,
+      "caps": true,
+      "color": "accent"
+    },
+    "display": {
+      "font": "display",
+      "size": 96,
+      "line": 0.86,
+      "spacing": 0.5,
+      "caps": true,
+      "color": "head"
+    },
+    "title": {
+      "font": "display",
+      "size": 50,
+      "line": 0.9,
+      "spacing": 0.3,
+      "caps": true,
+      "color": "head"
+    },
+    "subtitle": {
+      "font": "text",
+      "size": 24,
+      "line": 1.2,
+      "color": "muted"
+    },
+    "body": {
+      "font": "text",
+      "size": 15,
+      "line": 1.4,
+      "color": "ink"
+    },
+    "caption": {
+      "font": "text",
+      "size": 11,
+      "line": 1.25,
+      "color": "muted"
+    },
+    "label": {
+      "font": "label",
+      "size": 11,
+      "bold": true,
+      "spacing": 1.5,
+      "caps": true,
+      "color": "muted"
+    },
+    "callout": {
+      "font": "label",
+      "size": 13,
+      "bold": true,
+      "spacing": 2,
+      "caps": true,
+      "color": "surface"
+    },
+    "script": {
+      "font": "script",
+      "size": 40,
+      "bold": true,
+      "line": 1.0,
+      "color": "accent",
+      "rot": -4,
+      "overlay": true
+    },
+    "numeral": {
+      "font": "display",
+      "size": 170,
+      "line": 0.8,
+      "color": "accent"
+    },
+    "quote": {
+      "font": "script",
+      "size": 40,
+      "bold": true,
+      "line": 1.1,
+      "color": "head"
+    },
+    "cardtitle": {
+      "font": "display",
+      "size": 24,
+      "line": 1.0,
+      "caps": true,
+      "color": "head"
+    },
+    "pageno": {
+      "font": "label",
+      "size": 11,
+      "bold": true,
+      "spacing": 1,
+      "color": "ink"
+    }
+  },
+  "grid": {
+    "cols": 12,
+    "left": 0.7,
+    "right": 0.7,
+    "top": 0.6,
+    "bottom": 0.6,
+    "gutter": 0.2,
+    "safe": 0.35
+  },
+  "default_bg": "main",
+  "grounds": {
+    "main": {
+      "kind": "paper",
+      "base": "#EEDFBE",
+      "tone": "#E2CFA4",
+      "grain": 0.04,
+      "stains": 0.4,
+      "fibres": 1.4,
+      "seed": 41
+    },
+    "page": {
+      "kind": "paper",
+      "base": "#F3E8CF",
+      "tone": "#E2CDA2",
+      "grain": 0.03,
+      "stains": 0.3,
+      "seed": 42
+    },
+    "terracotta": {
+      "kind": "gradient",
+      "base": "#5E2210",
+      "tone": "#D98A3D",
+      "angle": 22,
+      "seed": 43
+    },
+    "ember": {
+      "kind": "gradient",
+      "base": "#22150E",
+      "tone": "#8A3216",
+      "angle": 200,
+      "seed": 44
+    }
+  },
+  "chrome": {
+    "over": [
+      {
+        "type": "rect",
+        "name": "!!rule",
+        "x": 0.7,
+        "y": 0.42,
+        "w": 0.5,
+        "h": 0.07,
+        "fill": "accent"
+      },
+      {
+        "type": "text",
+        "name": "!!pageno",
+        "text": "{n}",
+        "x": 12.033,
+        "y": 6.82,
+        "w": 0.6,
+        "h": 0.25,
+        "role": "pageno",
+        "align": "r"
+      }
+    ]
+  },
+  "card": {
+    "fill": "surface",
+    "fill_alpha": 1.0,
+    "line": "faint",
+    "line_width": 0.75,
+    "radius": 0.0,
+    "lit_fill": "#FFFFFF",
+    "lit_line": "accent",
+    "rule": "accent",
+    "dim_alpha": 0.66,
+    "shadow": {
+      "blur": 18,
+      "dist": 5,
+      "dir": 90,
+      "color": "#3A2412",
+      "alpha": 0.22
+    }
+  },
+  "screen": {
+    "bezel": "#FBF5E6",
+    "line": "#D2BE96",
+    "line_width": 0.75,
+    "radius": 0.0,
+    "bar": "#EFE3C8"
+  },
+  "shadow": {
+    "blur": 24,
+    "dist": 8,
+    "dir": 80,
+    "color": "#2A1608",
+    "alpha": 0.32
+  },
+  "photo": {
+    "veil": 0.5
+  },
+  "motion": {
+    "default_ms": 1200,
+    "bloom_ms": 1800,
+    "stagger_ms": 140
+  },
+  "signature_ideas": [
+    "an object cut-out that is pulled off the page and annotated part by part (callouts wipe in from the dot outward)",
+    "the palette strip sampled from the photo: chips drop in one by one, then the page recolours to them",
+    "a red-node map whose lines draw from node to node as the story travels",
+    "an airy terracotta chapter opener with a giant caps title and a script line written across it"
+  ],
+  "rules": {
+    "text_on_photo": "always on a colour band, chip or gradient scrim (gate: legibility)",
+    "caps": "headlines, kickers and labels only; never a body paragraph (gate: legibility)",
+    "accents": "1-2 accent colours inside titles (runs), never a third",
+    "rhythm": "dense pages alternate with airy chapter openers"
+  },
+  "fit": {
+    "domains": {
+      "heritage": 1,
+      "culture": 0.9,
+      "travel": 0.8,
+      "history": 0.8,
+      "food": 0.5
+    },
+    "tones": [
+      "warm",
+      "nostalgic",
+      "playful"
+    ],
+    "material": {
+      "warm": 1,
+      "archival": 0.8,
+      "cutout": 0.6,
+      "muted": 0.4
+    },
+    "avoid": [
+      {
+        "domain": "aerospace",
+        "reason": "aged paper, terracotta gradients and a script accent read as nostalgia and craft; launch hardware shot cold and high-contrast against night sky needs precision and scale, not a scrapbook"
+      },
+      {
+        "domain": "software",
+        "reason": "a magazine scrapbook has nothing to say about code"
+      },
+      {
+        "domain": "finance",
+        "reason": "collage softness undercuts figures that must read as exact"
+      }
+    ]
+  }
+}

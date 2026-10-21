@@ -7,7 +7,17 @@ and components looks designed before any slide-by-slide work.
 
 `assets/reference/styles-gallery.jpg` shows the v4 starter deck in the first five packs (a system check, not a showcase).
 
-## 0. Choose, do not default (v5 creativity rule)
+## 0. v5.5: packs are families, the deck is routed and then invented
+
+A pack is no longer something a deck "uses". It is a **family**: a starting point with a `fit` block
+(`domains`, `tones`, `material`, `avoid` with a written reason per domain) that `route.py` scores against the
+brief and the measured pictures (`references/design-space.md`). The router rejects families that are wrong for
+the subject (gate 3 fails if the deck is built in one), and the chosen family seeds `design/genome.json`,
+where every axis (palette from the photos, type, grid, material, chrome, motion grammar, composition) is
+re-decided for this deck. Use `studio.py route WORK --apply` to copy the family as a base; then
+`genome.py compile` produces the deck's own `design/style.json`. Never ship a family unchanged.
+
+## 0b. Choose, do not default (v5 creativity rule)
 
 There is no default template. For every deck write `## Style choice` in `design/art-direction.md`: the pack(s)
 chosen, the scenes each covers and why the subject asks for it, and at least one pack you rejected and why
@@ -34,6 +44,7 @@ shapes, photos and drawn objects (`make_deck.py`). Fewer styles done well beat m
 | `swiss-blue` (v5) | white paper, one cobalt, full-bleed numeral field, hand-built unit grids and slope charts | Archivo / Inter / IBM Plex Mono | data stories, research, engineering, public sector · `styles/swiss-blue.md` |
 | `neo-brutal` (v5) | bone/lime, tilted photo stickers with ink borders and hard shadows, tag strips | Dela Gothic One / Space Grotesk / Space Mono | recipes, how-tos, workshops, youth · `styles/neo-brutal.md` |
 | `retro-terminal` (v5) | phosphor on CRT scanlines, prompt chrome, typed commands | VT323 / IBM Plex Mono | credits, developer and computing stories · `styles/retro-terminal.md` |
+| `heritage-collage` (v5.4) | aged paper and terracotta gradients, heavy caps titles with a script accent line, object cut-outs, dense bordered photo grids, leader-line callouts, palette swatches, red-node maps | Anton / Be Vietnam Pro / Barlow Condensed + Dancing Script (`script`) | heritage, architecture, museums, travel, school reports, product anatomy · `styles/heritage-collage.md` |
 
 `assets/styles-experimental/` holds three more packs (glass-tech, papercut-collage, desktop-os) that have a
 palette, fonts and grounds (`mesh`, `paper`) but no demonstrated composition yet (load one by path, `--style $S/../assets/styles-experimental/glass-tech.json`): design their grammar before
@@ -63,6 +74,17 @@ at it. Change the copy, never the pack:
 Deck-level keys override the pack: `"palette"`, `"fonts"`, `"type"`, `"grid"`, `"card"`, `"screen"`,
 `"shadow"`, `"motion"`; `"chrome"` replaces the pack's chrome, `"chrome_add"` appends to it.
 
+**Custom styles inside deck.json (v5.4).** A style does not have to be a file. `"styles": {"<name>": {...}}`
+defines one by name; `"extends": "<pack or path>"` starts from a pack and the rest overrides it (a style
+without `extends` is a full spec). Use the name as the deck `"style"` or on any slide. A
+`"style_overrides"` entry whose name is not a shipped pack is read the same way, so
+`"style_overrides": {"zine": {"extends": "neo-brutal", "palette": {...}}}` plus `"style": "zine"` on a
+chapter works (before 5.4 it stopped with "style not found"). Shipped packs keep the old meaning:
+`"style_overrides": {"paper-editorial": {...}}` tweaks that pack when a slide switches to it.
+
+**Type scale headroom (v5.4).** Every shipped pack uses at most 8 distinct sizes (caption = label = page
+number, subtitle = card title), so a deck can add two sizes of its own and still pass the ≤ 10 rule.
+
 ## 3. A style from a brand board
 
 1. Sample the brand's colours (logo, site, guidelines) into the roles: ground, surface, ink, head,
@@ -82,9 +104,9 @@ Deck-level keys override the pack: `"palette"`, `"fonts"`, `"type"`, `"grid"`, `
 | `palette` | ground, ground2, surface, ink, head, muted, faint, accent, accent2, lit, veil |
 | `fonts` | display, text, label (family names as installed) |
 | `font_files` | `[{"family", "weights": "400,700,400i"}]` for fetch_fonts / deliver |
-| `type` | roles: kicker, display, title, subtitle, body, caption, label, numeral, quote, cardtitle, pageno (+ your own); each {font, size, bold, italic, spacing, line, caps, color} |
+| `type` | roles: kicker, display, title, subtitle, body, caption, label, numeral, quote, cardtitle, pageno (+ your own: `script`, `callout` in heritage-collage); each {font, size, bold, italic, spacing, line, caps, color, rot (text rotation, v5.4), overlay (may cross other text without an overlap warning, v5.4)} |
 | `grid` | cols, left, right, top, bottom, gutter, safe (inches) |
-| `default_bg`, `grounds` | ground name for every slide; recipes {kind lacquer/noir/paper/clean/halftone/flat, base, tone, grain, vignette, crackle, lift, dots, grid, grid_alpha, dot, seed} or file paths |
+| `default_bg`, `grounds` | ground name for every slide; recipes {kind lacquer/noir/paper/clean/halftone/flat/gradient, base, tone, grain, vignette, crackle, lift, dots, grid, grid_alpha, dot, seed; paper: stains 0..1, fibres; gradient: angle} or file paths |
 | `chrome` | {"under": [...], "over": [...]} shapes |
 | `card` | fill, fill_alpha, line (null = open card), line_width, radius, lit_fill, lit_line, rule, dim_alpha, shadow, lit_shadow |
 | `screen` | bezel, line, line_width, radius, bar |
@@ -92,3 +114,5 @@ Deck-level keys override the pack: `"palette"`, `"fonts"`, `"type"`, `"grid"`, `
 | `photo` | duotone [dark, light], veil |
 | `motion` | default_ms, bloom_ms, stagger_ms |
 | `signature_ideas` | prompts for the signature, not rules |
+| `rules` | optional prose rules the pack's audits enforce (heritage-collage: text on photo, caps, accents, rhythm) |
+| deck `styles` | v5.4: inline styles by name, `{"extends": pack, ...overrides}` or a full spec |

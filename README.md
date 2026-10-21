@@ -9,7 +9,7 @@
 | [meiiie-interactive-webgl](meiiie-interactive-webgl/SKILL.md) | Available | Semantic 3D objects, reversible assembly, accessible controls and explicit render checks. |
 | [meiiie-operating-office](meiiie-operating-office/SKILL.md) | Available | Task-scoped coordination with one accountable lead, bounded specialist work and evidence-based review. |
 | [neko-wiii-product-studio](neko-wiii-product-studio/SKILL.md) | Available | Neko Core and Wiii ownership, shared contracts and integration acceptance. |
-| [motion-pptx-studio](motion-pptx-studio/SKILL.md) | Available | v5.3.1 designed, researched PowerPoint decks for any kind of talk: style packs, a motion library beyond Morph, signature moments (Anatomy, Manim, Codex), art directions, hard and soft gates, film and variety audits, a deck engine and a timed speaker script. |
+| [motion-pptx-studio](motion-pptx-studio/SKILL.md) | Available | v5.5 designed, researched PowerPoint decks for any kind of talk: self-routing, a per-deck design genome, construction motion, a heritage-collage style, signature moments, and hard and soft gates. |
 | [heritage-visual-research](heritage-visual-research/SKILL.md) | Available | Sourced facts, true/wrong motif lists, anatomy checks and licensed images for cultural topics. |
 | [presentation-speech-craft](presentation-speech-craft/SKILL.md) | Available | Hook, anchor phrase, pauses, circular close, word budget and a speaker-script document. |
 
@@ -47,7 +47,7 @@ The accepted product direction and historical audit findings guide current inspe
 
 ## Motion PPTX Studio
 
-[Motion PPTX Studio](motion-pptx-studio/SKILL.md) (v5.3.1) builds a PowerPoint deck as a short film shot on one set: a
+[Motion PPTX Studio](motion-pptx-studio/SKILL.md) (v5.5) builds a PowerPoint deck as a short film shot on one set: a
 style pack holds the system (material ground, chrome, grid, type roles), one signature object carries the deck, and
 each scene uses a chosen motion vocabulary — Morph keyframes when PowerPoint 365/2019+ will play them, otherwise
 classic transitions, entrances, paths and type. It covers product launches, pitches, business reviews and data stories,
@@ -55,11 +55,11 @@ lectures, events and heritage topics with one pipeline, gated from brief to deli
 [gates.py](motion-pptx-studio/scripts/gates.py)). The no-default-template rule is Gate 3: a written style
 choice (including a rejected pack) and at least two techniques beyond Morph.
 
-- Ten [style packs](motion-pptx-studio/references/styles.md): lacquer-heritage, noir-product, paper-editorial,
-  boardroom-data, studio-pop, plus kinetic-type, blueprint, swiss-blue, neo-brutal and retro-terminal. Each of
-  the new packs is a layout grammar, with OFL fonts that cover Vietnamese
-  ([gallery](motion-pptx-studio/assets/reference/styles-gallery.jpg) of the first five). Three experimental packs
-  (glass-tech, papercut-collage, desktop-os) are palette-only until their grammar is designed.
+- Eleven [style packs](motion-pptx-studio/references/styles.md): lacquer-heritage, noir-product, paper-editorial,
+  boardroom-data, studio-pop, kinetic-type, blueprint, swiss-blue, neo-brutal, retro-terminal, and
+  heritage-collage (aged paper, script, photogrid). Each pack is a layout grammar, with OFL fonts that cover
+  Vietnamese ([gallery](motion-pptx-studio/assets/reference/styles-gallery.jpg) of the first five). Three experimental
+  packs (glass-tech, papercut-collage, desktop-os) are palette-only until their grammar is designed.
 - A [motion library](motion-pptx-studio/references/motion-library.md) of 49 transitions and 24 effects.
   `compat` is `morph` (default), `safe` or `dual`: Morph is converted to classic animation automatically, and a
   no-Morph render gate checks that safe mode leaves no Morph behind.
@@ -80,6 +80,11 @@ choice (including a rejected pack) and at least two techniques beyond Morph.
   three [art directions](motion-pptx-studio/references/art-directions.md) before a style is chosen, and hard gates
   only for facts, licences and render integrity. v5.3.1 adds a film audit (no label under a video, poster colour
   against the page) and density and contrast floors for Anatomy posters.
+- v5.4 builds the full deck by default, adds a deck-level gate 5, a legibility audit, and the heritage-collage pack.
+  v5.5 routes each deck before design (`route.py`, gate 3), compiles a per-deck
+  [design genome](motion-pptx-studio/references/design-space.md), and builds diagrams with
+  [construction motion](motion-pptx-studio/references/construction-motion.md). A rejected family, such as heritage
+  collage for aerospace, fails the gate.
   [Worked examples](motion-pptx-studio/examples/README.md) include the six-style phin deck and the earth-fall deck.
 
 Morph plays in PowerPoint 365 / 2019+. PowerPoint 2016, Google Slides, Keynote and LibreOffice need `compat: safe`

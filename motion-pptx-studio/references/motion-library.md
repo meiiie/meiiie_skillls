@@ -1,5 +1,8 @@
 # Motion library (v5): beyond Morph
 
+> **v5.5:** diagrams and objects are built, not faded: see `references/construction-motion.md` (Anatomy/Manim rules as native PowerPoint: Create → wipe along the stroke, GrowFromEdge → stretch, Write → letter type, Circle Create → wheel sweep, MovingCamera/Transform → Morph between `construct` states, Indicate → indicate). Each deck chooses its own motion grammar in its genome (`references/design-space.md`).
+
+
 Morph is one tool. The slidewppt.vn decks we measured (6 public decks, `research/REPORT.md`) use Morph on a
 minority of slides; they lean on Fade/Push transitions, Fly/Float/Fade entrances, motion paths, letter-by-letter
 text, hyperlink menus and GIF/audio. Award-level decks pick **2–4 signature techniques per deck** and repeat them

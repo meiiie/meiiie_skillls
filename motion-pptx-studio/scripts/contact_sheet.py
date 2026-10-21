@@ -14,7 +14,7 @@ import argparse
 import re
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageOps, ImageDraw, ImageFont
 
 EXT = {'.jpg', '.jpeg', '.png', '.webp'}
 
@@ -55,7 +55,12 @@ def sheet(files, out, cols, width, label, captions):
     thumbs = []
     for i, f in enumerate(files, 1):
         try:
-            im = Image.open(f).convert('RGB')
+            im = Image.open(f)
+            try:
+                im.seek(0)                       # MPO: first frame
+            except EOFError:
+                pass
+            im = ImageOps.exif_transpose(im).convert('RGB')   # v5.4: same orientation as build_deck
         except Exception as e:  # unreadable candidate: show it as a grey tile
             im = Image.new('RGB', (16, 9), (90, 90, 90))
             print('unreadable', f, e)

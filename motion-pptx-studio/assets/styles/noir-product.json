@@ -1,7 +1,15 @@
 {
   "name": "noir-product",
   "label": "Noir product: near-black stage, one amber signal, grotesk display and a mono label",
-  "genres": ["product", "launch", "developer tool", "ai", "software", "startup demo", "hardware"],
+  "genres": [
+    "product",
+    "launch",
+    "developer tool",
+    "ai",
+    "software",
+    "startup demo",
+    "hardware"
+  ],
   "palette": {
     "ground": "#0A0B0D",
     "ground2": "#121419",
@@ -15,49 +23,254 @@
     "lit": "#FFFFFF",
     "veil": "#0A0B0D"
   },
-  "fonts": {"display": "Space Grotesk", "text": "Be Vietnam Pro", "label": "JetBrains Mono"},
+  "fonts": {
+    "display": "Space Grotesk",
+    "text": "Be Vietnam Pro",
+    "label": "JetBrains Mono"
+  },
   "font_files": [
-    {"family": "Space Grotesk", "weights": "400,700"},
-    {"family": "Be Vietnam Pro", "weights": "400,700,400i"},
-    {"family": "JetBrains Mono", "weights": "400,700"}
+    {
+      "family": "Space Grotesk",
+      "weights": "400,700"
+    },
+    {
+      "family": "Be Vietnam Pro",
+      "weights": "400,700,400i"
+    },
+    {
+      "family": "JetBrains Mono",
+      "weights": "400,700"
+    }
   ],
   "type": {
-    "kicker":   {"font": "label", "size": 11, "bold": true, "spacing": 2, "caps": true, "color": "accent"},
-    "display":  {"font": "display", "size": 88, "bold": true, "line": 0.92, "spacing": -1.5, "color": "head"},
-    "title":    {"font": "display", "size": 44, "bold": true, "line": 0.98, "spacing": -0.5, "color": "head"},
-    "subtitle": {"font": "text", "size": 20, "line": 1.25, "color": "muted"},
-    "body":     {"font": "text", "size": 15, "line": 1.35, "color": "ink"},
-    "caption":  {"font": "label", "size": 9, "color": "muted"},
-    "label":    {"font": "label", "size": 10, "spacing": 1, "caps": true, "color": "muted"},
-    "numeral":  {"font": "display", "size": 160, "bold": true, "line": 0.85, "spacing": -4, "color": "head"},
-    "quote":    {"font": "display", "size": 32, "line": 1.1, "color": "head"},
-    "cardtitle":{"font": "display", "size": 24, "bold": true, "line": 1.0, "color": "head"},
-    "code":     {"font": "label", "size": 13, "color": "accent2"},
-    "pageno":   {"font": "label", "size": 10, "spacing": 1, "color": "muted"}
+    "kicker": {
+      "font": "label",
+      "size": 11,
+      "bold": true,
+      "spacing": 2,
+      "caps": true,
+      "color": "accent"
+    },
+    "display": {
+      "font": "display",
+      "size": 88,
+      "bold": true,
+      "line": 0.92,
+      "spacing": -1.5,
+      "color": "head"
+    },
+    "title": {
+      "font": "display",
+      "size": 44,
+      "bold": true,
+      "line": 0.98,
+      "spacing": -0.5,
+      "color": "head"
+    },
+    "subtitle": {
+      "font": "text",
+      "size": 24,
+      "line": 1.25,
+      "color": "muted"
+    },
+    "body": {
+      "font": "text",
+      "size": 15,
+      "line": 1.35,
+      "color": "ink"
+    },
+    "caption": {
+      "font": "label",
+      "size": 10,
+      "color": "muted"
+    },
+    "label": {
+      "font": "label",
+      "size": 10,
+      "spacing": 1,
+      "caps": true,
+      "color": "muted"
+    },
+    "numeral": {
+      "font": "display",
+      "size": 160,
+      "bold": true,
+      "line": 0.85,
+      "spacing": -4,
+      "color": "head"
+    },
+    "quote": {
+      "font": "display",
+      "size": 32,
+      "line": 1.1,
+      "color": "head"
+    },
+    "cardtitle": {
+      "font": "display",
+      "size": 24,
+      "bold": true,
+      "line": 1.0,
+      "color": "head"
+    },
+    "code": {
+      "font": "label",
+      "size": 11,
+      "color": "accent2"
+    },
+    "pageno": {
+      "font": "label",
+      "size": 10,
+      "spacing": 1,
+      "color": "muted"
+    }
   },
-  "grid": {"cols": 12, "left": 0.9, "right": 0.9, "top": 0.85, "bottom": 0.7, "gutter": 0.25, "safe": 0.45},
+  "grid": {
+    "cols": 12,
+    "left": 0.9,
+    "right": 0.9,
+    "top": 0.85,
+    "bottom": 0.7,
+    "gutter": 0.25,
+    "safe": 0.45
+  },
   "default_bg": "main",
   "grounds": {
-    "main": {"kind": "noir", "base": "#0A0B0D", "tone": "#1A1F27", "lift": [0.78, 0.18], "grain": 0.035, "dots": 0.05, "seed": 11},
-    "alt":  {"kind": "noir", "base": "#0B0C10", "tone": "#3A2A0C", "lift": [0.25, 0.85], "grain": 0.035, "dots": 0.0, "seed": 12}
+    "main": {
+      "kind": "noir",
+      "base": "#0A0B0D",
+      "tone": "#1A1F27",
+      "lift": [
+        0.78,
+        0.18
+      ],
+      "grain": 0.035,
+      "dots": 0.05,
+      "seed": 11
+    },
+    "alt": {
+      "kind": "noir",
+      "base": "#0B0C10",
+      "tone": "#3A2A0C",
+      "lift": [
+        0.25,
+        0.85
+      ],
+      "grain": 0.035,
+      "dots": 0.0,
+      "seed": 12
+    }
   },
   "chrome": {
     "over": [
-      {"type": "line", "name": "!!rule", "x1": 0.9, "y1": 0.56, "x2": 12.433, "y2": 0.56, "color": "faint", "width": 0.75},
-      {"type": "rect", "name": "!!mark", "x": 0.9, "y": 0.505, "w": 0.11, "h": 0.11, "fill": "accent"},
-      {"type": "text", "name": "!!pageno", "text": "{n} / {total}", "x": 10.933, "y": 6.88, "w": 1.5, "h": 0.25, "role": "pageno", "align": "r"}
+      {
+        "type": "line",
+        "name": "!!rule",
+        "x1": 0.9,
+        "y1": 0.56,
+        "x2": 12.433,
+        "y2": 0.56,
+        "color": "faint",
+        "width": 0.75
+      },
+      {
+        "type": "rect",
+        "name": "!!mark",
+        "x": 0.9,
+        "y": 0.505,
+        "w": 0.11,
+        "h": 0.11,
+        "fill": "accent"
+      },
+      {
+        "type": "text",
+        "name": "!!pageno",
+        "text": "{n} / {total}",
+        "x": 10.933,
+        "y": 6.88,
+        "w": 1.5,
+        "h": 0.25,
+        "role": "pageno",
+        "align": "r"
+      }
     ]
   },
-  "card": {"fill": "surface", "fill_alpha": 1.0, "line": "faint", "line_width": 0.75, "radius": 0.05,
-           "lit_fill": "#1F232A", "lit_line": "accent", "rule": "accent", "dim_alpha": 0.66,
-           "shadow": {"blur": 24, "dist": 8, "dir": 90, "color": "#000000", "alpha": 0.5}},
-  "screen": {"bezel": "#16191E", "line": "#2A2F37", "line_width": 0.75, "radius": 0.06, "bar": "#1E2228"},
-  "shadow": {"blur": 30, "dist": 10, "dir": 90, "color": "#000000", "alpha": 0.55},
-  "photo": {"duotone": ["#0A0B0D", "#E9ECF1"], "veil": 0.55},
-  "motion": {"default_ms": 1100, "bloom_ms": 1800, "stagger_ms": 180},
+  "card": {
+    "fill": "surface",
+    "fill_alpha": 1.0,
+    "line": "faint",
+    "line_width": 0.75,
+    "radius": 0.05,
+    "lit_fill": "#1F232A",
+    "lit_line": "accent",
+    "rule": "accent",
+    "dim_alpha": 0.66,
+    "shadow": {
+      "blur": 24,
+      "dist": 8,
+      "dir": 90,
+      "color": "#000000",
+      "alpha": 0.5
+    }
+  },
+  "screen": {
+    "bezel": "#16191E",
+    "line": "#2A2F37",
+    "line_width": 0.75,
+    "radius": 0.06,
+    "bar": "#1E2228"
+  },
+  "shadow": {
+    "blur": 30,
+    "dist": 10,
+    "dir": 90,
+    "color": "#000000",
+    "alpha": 0.55
+  },
+  "photo": {
+    "duotone": [
+      "#0A0B0D",
+      "#E9ECF1"
+    ],
+    "veil": 0.55
+  },
+  "motion": {
+    "default_ms": 1100,
+    "bloom_ms": 1800,
+    "stagger_ms": 180
+  },
   "signature_ideas": [
     "the block cursor: a small amber square that blinks, grows into a panel, and hides the product inside",
     "one light beam (a 2 pt accent line) that scans each screen and becomes the progress rail",
     "the product's own icon, parked small in the chrome and landing big on the reveal"
-  ]
+  ],
+  "fit": {
+    "domains": {
+      "technology": 1,
+      "aerospace": 0.8,
+      "engineering": 0.6,
+      "business": 0.4,
+      "software": 0.6
+    },
+    "tones": [
+      "cinematic",
+      "bold",
+      "precise",
+      "technical"
+    ],
+    "material": {
+      "dark": 1,
+      "cool": 0.5,
+      "cutout": 0.8
+    },
+    "avoid": [
+      {
+        "domain": "heritage",
+        "reason": "a near-black product stage with one amber signal sells a gadget; it strips a place or tradition of its daylight and warmth"
+      },
+      {
+        "domain": "food",
+        "reason": "a black stage makes food look cold"
+      }
+    ]
+  }
 }

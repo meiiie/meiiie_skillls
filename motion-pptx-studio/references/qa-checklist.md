@@ -21,6 +21,7 @@ one subject image dominant on more than 4 slides, or (on a photo-led deck) fewer
 the editorial-left template on more than 3 scenes; fewer than 2 font families on a deck of 8 or more slides;
 on-slide text averaging under 8 words; **no persistent system** (no `!!` shape on 60% of the slides).
 The same image, keyframe and layout errors run on a PDF: `python3 check_deck.py deck.pdf`.
+A declared bookend (`"bookend": true`, at most 2 slides) may repeat the opening photo; it is reported as INFO.
 WARN: a hold beat (make sure it is deliberate); text overflowing into other text or off the slide; text outside the 0.3 in
 safe area; more than 12 text sizes; flat grounds on most slides; low contrast (with `--renders`); under 40% of slides citing a
 fact ID on the slide or in the notes (with `--facts`); slides without notes; lonely `!!` names; fonts not installed; images
@@ -53,7 +54,9 @@ The accepted reference deck passes this audit (`tests/test_audit.py`); a change 
 - [ ] Blink only where planned; hand-made timing preserved for `keep_timing` slides.
 - [ ] `check_deck.py` motion vocabulary line: more than Morph and fade; no NO-MORPH slide you did not plan; no effect ERROR (missing target, duplicate id).
 - [ ] `verify_motion.py DECK` PASS: every authored effect is imported by LibreOffice (p15 transitions are listed as not importable, that is expected).
-- [ ] Optional `preview_motion.py DECK --out X-SIMULATION.mp4`: watch it for order and rhythm; it is an approximation, labelled on every frame, never sent as "the deck playing".
+- [ ] Optional `preview_motion.py DECK --out X-SIMULATION.mp4 [--lang vi] [--max-seconds N]`: watch it for order and rhythm; it is an approximation, labelled on every frame, never sent as "the deck playing". `--max-seconds` fits all slides (holds shrink first); `--cut` is the old hard stop.
+- [ ] Legibility (v5.4, `legibility_audit.py`, in check_deck and gates 5/6): no paragraph of 12+ words in ALL CAPS; every text on a photo sits on a chip, band, gradient scrim or toned photo.
+- [ ] Before Phase 6: `studio.py build WORK` (whole deck) and `gates.py check WORK --gate 5 --group all`: the deck-wide geometry, reuse and variety checks run on all slides at once.
 - [ ] Players known? If not PowerPoint 365 only, `compat` is `safe` or `dual`. `check_deck.py` shows `no-Morph: compat=…, 0 shared-shape move(s) without a classic replacement` (safe) and no `still carries a Morph`; the `-nomorph` render folder matches the intended render (`worst mean diff` near 0). LOOK at the `-nomorph` contact sheet.
 - [ ] Signature films: `check_deck.py DECK --renders DIR` shows no `film:` ERROR (no text under a video, the film's card matches the page within 6 levels); every Anatomy `film.json` audit line has no WARN, or the critique says why.
 - [ ] Final report says: "check Morph, transitions, entrances, triggers, links and video in PowerPoint 365".

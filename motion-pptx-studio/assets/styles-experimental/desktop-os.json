@@ -244,5 +244,29 @@
     "a window opens with Grow/Zoom from its dock icon (Morph from the icon)",
     "an interactive menu: dock icons link to chapter slides (link) like slidewppt.vn decks",
     "notification toasts fly in from the top right"
-  ]
+  ],
+  "fit": {
+    "domains": {
+      "youth": 1,
+      "education": 0.7,
+      "software": 0.5
+    },
+    "tones": [
+      "playful"
+    ],
+    "material": {
+      "bright": 0.5,
+      "saturated": 0.5
+    },
+    "avoid": [
+      {
+        "domain": "heritage",
+        "reason": "a fictional UI pastiche frames history as an app"
+      },
+      {
+        "domain": "aerospace",
+        "reason": "window chrome and a dock make real missions look like a mock-up"
+      }
+    ]
+  }
 }

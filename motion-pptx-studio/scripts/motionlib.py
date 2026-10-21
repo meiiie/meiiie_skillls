@@ -214,14 +214,20 @@ FLY_SUB = {'t': 1, 'r': 2, 'b': 4, 'l': 8}
 FLY_FROM = {'t': ('#ppt_x', '0-#ppt_h/2'), 'b': ('#ppt_x', '1+#ppt_h/2'), 'l': ('0-#ppt_w/2', '#ppt_y'), 'r': ('1+#ppt_w/2', '#ppt_y')}
 DIR_ALIAS = {'u': 'b', 'up': 'b', 'd': 't', 'down': 't', 'left': 'l', 'right': 'r'}
 WIPE = {'l': (8, 'wipe(left)'), 'r': (2, 'wipe(right)'), 't': (1, 'wipe(up)'), 'b': (4, 'wipe(down)')}
+# v5.5 stretch (PowerPoint "Stretch", preset 17): the shape grows out of one edge, i.e. Manim's GrowFromEdge.
+# dir = the edge it grows FROM (b = rises off what it rests on). h/v = across from the centre line.
+STRETCH = {'t': 1, 'r': 2, 'b': 4, 'l': 8, 'h': 10, 'v': 5}
+STRETCH_XY = {'b': ('#ppt_x', '#ppt_y+#ppt_h/2', '#ppt_w', 0), 't': ('#ppt_x', '#ppt_y-#ppt_h/2', '#ppt_w', 0),
+              'l': ('#ppt_x-#ppt_w/2', '#ppt_y', 0, '#ppt_h'), 'r': ('#ppt_x+#ppt_w/2', '#ppt_y', 0, '#ppt_h'),
+              'h': ('#ppt_x', '#ppt_y', 0, '#ppt_h'), 'v': ('#ppt_x', '#ppt_y', '#ppt_w', 0)}
 SPLIT = {'v': (21, 'barn(outVertical)'), 'h': (26, 'barn(outHorizontal)'), 'vin': (37, 'barn(inVertical)'), 'hin': (42, 'barn(inHorizontal)')}
 
 # fx -> (presetClass, presetID); used for the Animation Pane name and by check_deck.py
 PRESETS = {
     'appear': ('entr', 1), 'fade': ('entr', 10), 'fly': ('entr', 2), 'float': ('entr', 42), 'rise': ('entr', 42),
     'wipe': ('entr', 22), 'split': ('entr', 16), 'zoom': ('entr', 53), 'wheel': ('entr', 21), 'type': ('entr', 10),
-    'word': ('entr', 10), 'drop': ('entr', 2),
-    'pulse': ('emph', 6), 'grow': ('emph', 6), 'spin': ('emph', 8), 'blink': ('emph', 35), 'teeter': ('emph', 32),
+    'word': ('entr', 10), 'drop': ('entr', 2), 'stretch': ('entr', 17),
+    'pulse': ('emph', 6), 'indicate': ('emph', 6), 'grow': ('emph', 6), 'spin': ('emph', 8), 'blink': ('emph', 35), 'teeter': ('emph', 32),
     'fadeout': ('exit', 10), 'flyout': ('exit', 2), 'zoomout': ('exit', 53), 'wipeout': ('exit', 22),
     'path': ('path', 0), 'orbit': ('path', 0), 'video': ('mediacall', 1),
 }
@@ -274,7 +280,8 @@ def effect_par(e, spid, delay, ids, node='withEffect', is_text=False, grp=0):
     if fx not in PRESETS:
         raise ValueError(f'unknown effect {fx!r}; known: {", ".join(sorted(PRESETS))}')
     cls, pid = PRESETS[fx]
-    ms = int(e.get('ms', {'blink': 1000, 'spin': 2000, 'path': 1600, 'orbit': 6000, 'pulse': 900, 'grow': 900}.get(fx, 700)))
+    ms = int(e.get('ms', {'blink': 1000, 'spin': 2000, 'path': 1600, 'orbit': 6000, 'pulse': 900, 'grow': 900,
+                          'indicate': 500, 'stretch': 650}.get(fx, 700)))
     d = e.get('dir')
     d = DIR_ALIAS.get(d, d)   # 'u'/'d' as in transitions: the motion goes up = it comes from the bottom
     sub = 0
@@ -299,6 +306,12 @@ def effect_par(e, spid, delay, ids, node='withEffect', is_text=False, grp=0):
     elif fx == 'split':
         sub, filt = SPLIT[d or 'v']
         kids += [_set_vis(ids, spid), _filter(ids, spid, filt, ms)]
+    elif fx == 'stretch':
+        d = d if d in STRETCH else 'b'
+        sub = STRETCH[d]
+        x0, y0, w0, h0 = STRETCH_XY[d]
+        kids += [_set_vis(ids, spid), _anim(ids, spid, 'ppt_x', x0, '#ppt_x', ms), _anim(ids, spid, 'ppt_y', y0, '#ppt_y', ms),
+                 _anim(ids, spid, 'ppt_w', w0, '#ppt_w', ms, False), _anim(ids, spid, 'ppt_h', h0, '#ppt_h', ms, False)]
     elif fx == 'wheel':
         sub = 1
         kids += [_set_vis(ids, spid), _filter(ids, spid, 'wheel(1)', ms)]
@@ -306,10 +319,10 @@ def effect_par(e, spid, delay, ids, node='withEffect', is_text=False, grp=0):
         sub = 16
         kids += [_set_vis(ids, spid), _anim(ids, spid, 'ppt_w', 0, '#ppt_w', ms, False), _anim(ids, spid, 'ppt_h', 0, '#ppt_h', ms, False),
                  _filter(ids, spid, 'fade', ms)]
-    elif fx in ('pulse', 'grow'):
-        s = float(e.get('scale', 1.08 if fx == 'pulse' else 1.25))
+    elif fx in ('pulse', 'grow', 'indicate'):
+        s = float(e.get('scale', {'pulse': 1.08, 'indicate': 1.14}.get(fx, 1.25)))
         v = int(round(s * 100000))
-        rev = ' autoRev="1"' if (fx == 'pulse' or e.get('reverse')) else ''
+        rev = ' autoRev="1"' if (fx in ('pulse', 'indicate') or e.get('reverse')) else ''
         kids.append(f'<p:animScale><p:cBhvr><p:cTn id="{ids()}" dur="{ms}"{rev} fill="hold"/>{_tgt(spid)}</p:cBhvr><p:by x="{v}" y="{v}"/></p:animScale>')
     elif fx == 'spin':
         deg = float(e.get('deg', 360))

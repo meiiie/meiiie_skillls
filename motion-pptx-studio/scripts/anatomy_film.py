@@ -192,8 +192,10 @@ def main(argv=None):
     if a.poster_only:
         cmd.append('--only-poster')
     r = subprocess.run(cmd)
+    if r.returncode == 3:
+        raise SystemExit('film.mjs: the figure module has a mistake (FIGURE ERROR above); fix the .mjs, setup is fine')
     if r.returncode:
-        raise SystemExit(f'film.mjs failed ({r.returncode}); run bash {HERE}/setup_anatomy.sh')
+        raise SystemExit(f'film.mjs failed ({r.returncode}); if node, Chrome or the kit is missing run bash {HERE}/setup_anatomy.sh')
     meta = json.loads((tmp / 'film.json').read_text())
     mp4 = out / f'{a.name}.mp4'
     if not a.poster_only:
@@ -209,6 +211,8 @@ def main(argv=None):
     region = [float(v) for v in a.region.split(',')]
     frag, (ox, oy, s) = to_fragment(json.loads((tmp / 'poster-shapes.json').read_text()), region, a.group_name or f'!!{a.name}', max_shapes=a.max_shapes)
     (out / f'{a.name}.shapes.json').write_text(json.dumps(frag), encoding='utf-8')
+    if not meta.get('anchors') and 'anchors' in Path(a.figure).read_text(encoding='utf-8', errors='replace'):
+        print('WARN the figure mentions anchors but none were exported: check the anchors key (object or (t) => object)')
     meta['anchors_in'] = {k: [round(ox + v[0] * s, 3), round(oy + v[1] * s, 3)] for k, v in meta.get('anchors', {}).items()}
     meta['region'] = region
     meta['fit'] = {'x': round(ox, 3), 'y': round(oy, 3), 'w': round(meta['width'] * s, 3), 'h': round(meta['height'] * s, 3)}

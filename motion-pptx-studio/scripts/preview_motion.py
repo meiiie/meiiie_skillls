@@ -1,7 +1,10 @@
 """Preview the deck's motion as an MP4 WITHOUT PowerPoint: a labelled SIMULATION.
 
   python3 preview_motion.py DECK.pptx --out WORK/preview/motion-sim.mp4 [--fps 30] [--width 1280]
-                           [--hold 1.2] [--click-gap 0.7] [--max-seconds 90] [--slides 1-8] [--keep DIR]
+                           [--hold 1.2] [--click-gap 0.7] [--max-seconds 90 [--cut]] [--slides 1-8] [--keep DIR]
+                           [--lang vi] [--label TEXT] [--label-size PX]
+  --max-seconds fits the whole deck into that length (holds shrink first, then transitions); --cut stops at
+  that second instead. --lang vi tags every frame "MÔ PHỎNG · không phải PowerPoint chạy thật".
 
 How it works (LibreOffice renders only static slides, so the motion is reconstructed):
   1. every top-level shape of every slide is rendered ALONE by LibreOffice on black and on white
@@ -359,10 +362,22 @@ FLY_DIR = {1: 't', 2: 'r', 4: 'b', 8: 'l'}
 
 
 class State:
-    __slots__ = ('visible', 'alpha', 'dx', 'dy', 'scale', 'rot', 'mask', 'video_t')
+    __slots__ = ('visible', 'alpha', 'dx', 'dy', 'scale', 'rot', 'mask', 'video_t', 'stretch')
 
     def __init__(self):
         self.visible, self.alpha, self.dx, self.dy, self.scale, self.rot, self.mask, self.video_t = True, 1.0, 0.0, 0.0, 1.0, 0.0, None, None
+        self.stretch = None   # (edge, fraction): v5.5 Stretch entrance, the shape grows out of that edge
+
+
+STRETCH_SUB = {1: 't', 2: 'r', 4: 'b', 8: 'l', 10: 'h', 5: 'v'}
+
+
+def sweep_mask(size, frac, soft=0.03):
+    """Wheel (1 spoke): a clockwise sweep from 12 o'clock, i.e. Manim's Create on a circle."""
+    w, h = size
+    yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+    ang = (np.arctan2(xx - w / 2, -(yy - h / 2)) / (2 * np.pi)) % 1.0
+    return np.clip((frac * (1 + soft) - ang) / soft, 0, 1)
 
 
 def shape_state(sp, effs, t, W, H):
@@ -422,9 +437,11 @@ def shape_state(sp, effs, t, W, H):
             elif pid == 53:
                 st.scale *= max(0.02, ease_out(u))
                 st.alpha *= ease_out(u)
-            elif pid == 21:
-                st.alpha *= ease_out(u)
-                st.rot += (1 - ease_out(u)) * -90
+            elif pid == 21:   # v5.5: a real clockwise sweep, not a fade
+                m = sweep_mask(sp.img.size, ease_out(u))
+                st.mask = m if st.mask is None else st.mask * m
+            elif pid == 17:   # v5.5 Stretch: grows out of one edge
+                st.stretch = (STRETCH_SUB.get(sub, 'b'), max(0.002, ease_out(u)))
             else:
                 st.alpha *= ease_out(u)
         elif cls == 'exit':
@@ -502,13 +519,24 @@ class VideoReader:
         return self.last
 
 
-def paste(canvas, img, x, y, alpha=1.0, scale=1.0, rot=0.0, mask=None):
+def paste(canvas, img, x, y, alpha=1.0, scale=1.0, rot=0.0, mask=None, stretch=None):
     if alpha <= 0.003:
         return
     if mask is not None:
         a = np.asarray(img.getchannel('A'), np.float32) * mask
         img = img.copy()
         img.putalpha(Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), 'L'))
+    if stretch is not None:   # anchored one-axis scale (Stretch entrance)
+        edge, f = stretch
+        w0, h0 = img.width, img.height
+        if edge in ('t', 'b', 'v'):
+            nh = max(1, int(round(h0 * f)))
+            img = img.resize((w0, nh), Image.BILINEAR)
+            y += {'b': h0 - nh, 't': 0}.get(edge, (h0 - nh) / 2)
+        else:
+            nw = max(1, int(round(w0 * f)))
+            img = img.resize((nw, h0), Image.BILINEAR)
+            x += {'r': w0 - nw, 'l': 0}.get(edge, (w0 - nw) / 2)
     cx, cy = x + img.width / 2, y + img.height / 2
     if abs(scale - 1) > 1e-3:
         nw, nh = max(1, int(img.width * scale)), max(1, int(img.height * scale))
@@ -571,7 +599,7 @@ class Slide:
                     mx, my = int(MARGIN / 13.333 * W), int(MARGIN / 7.5 * H)
                     vimg.paste(fr.resize((img.width - 2 * mx, img.height - 2 * my)), (mx, my))
                     img = vimg
-            paste(cv, img, sp.x0 + st.dx, sp.y0 + st.dy, st.alpha, st.scale, st.rot, st.mask)
+            paste(cv, img, sp.x0 + st.dx, sp.y0 + st.dy, st.alpha, st.scale, st.rot, st.mask, st.stretch)
         return cv
 
     def rest_rects(self):
@@ -691,6 +719,40 @@ def transition_frame(A, B, fa, fb, k, kind, d, W, H, rng):
     return Image.blend(a, b, e)
 
 
+LABELS = {'en': 'SIMULATION · not PowerPoint playback', 'vi': 'MÔ PHỎNG · không phải PowerPoint chạy thật'}
+MIN_HOLD_MS = 900
+
+
+def natural_hold(S, a):
+    hold_ms = min(a.max_slide * 1000, max(a.min_slide * 1000, S.end_ms + a.hold * 1000))
+    vids = [e for e in S.effects if e['cls'] == 'mediacall']
+    if vids:
+        hold_ms = min(a.max_slide * 1000, max(hold_ms, max(e['start'] + e['dur'] for e in vids) + 600))
+    return hold_ms
+
+
+def fit_budget(holds, trans, budget_ms):
+    """(new holds in ms, transition factor) that fit every slide into budget_ms. Holds shrink first, each to no
+    less than MIN_HOLD_MS (or its own length if shorter); then transitions shrink (to 15% at most).
+    budget 0 = no limit."""
+    holds = [float(h) for h in holds]
+    total = sum(holds) + sum(trans)
+    if not budget_ms or total <= budget_ms:
+        return holds, 1.0
+    floors = [min(h, MIN_HOLD_MS) for h in holds]
+    room = budget_ms - sum(trans)
+    if room <= sum(floors):
+        return floors, max(0.15, (budget_ms - sum(floors)) / max(1, sum(trans)))
+    lo, hi = 0.0, 1.0
+    for _ in range(40):   # the scale k with sum(max(floor, h * k)) == room
+        k = (lo + hi) / 2
+        if sum(max(f, h * k) for f, h in zip(floors, holds)) > room:
+            hi = k
+        else:
+            lo = k
+    return [max(f, h * lo) for f, h in zip(floors, holds)], 1.0
+
+
 def tag_frame(img, txt, font):
     d = ImageDraw.Draw(img)
     pad = 6
@@ -713,9 +775,15 @@ def main(argv=None):
     ap.add_argument('--click-gap', type=float, default=0.7, help='seconds before a simulated click')
     ap.add_argument('--slides', default='', help='e.g. 1-8 or 3,4,5')
     ap.add_argument('--keep', help='keep the sprite renders here')
-    ap.add_argument('--label', default='SIMULATION · not PowerPoint playback')
-    ap.add_argument('--max-seconds', type=float, default=0, help='stop the preview after this many seconds (0 = whole deck)')
+    ap.add_argument('--label', default=None, help='tag burnt into every frame (default from --lang)')
+    ap.add_argument('--lang', default='en', help='vi = Vietnamese default label "MÔ PHỎNG · không phải PowerPoint chạy thật"')
+    ap.add_argument('--label-size', type=int, default=0, help='label font px (default: width / 60)')
+    ap.add_argument('--max-seconds', type=float, default=0,
+                    help='fit the WHOLE deck into this many seconds by shortening holds (then transitions); 0 = natural length')
+    ap.add_argument('--cut', action='store_true', help='with --max-seconds: stop at that second instead (the pre-5.4 behaviour)')
     a = ap.parse_args(argv)
+    if a.label is None:
+        a.label = LABELS.get(a.lang.split('-')[0].lower(), LABELS['en'])
     src = Path(a.deck).resolve()
     z = zipfile.ZipFile(src)
     pres = etree.fromstring(z.read('ppt/presentation.xml'))
@@ -763,22 +831,27 @@ def main(argv=None):
                            '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '20', '-preset', 'medium', '-movflags', '+faststart', str(out)],
                           stdin=subprocess.PIPE)
     try:
-        font = ImageFont.truetype(subprocess.run(['fc-match', '-f', '%{file}', 'JetBrains Mono:bold'], capture_output=True, text=True).stdout, 15)
+        font = ImageFont.truetype(subprocess.run(['fc-match', '-f', '%{file}', 'JetBrains Mono:bold'], capture_output=True, text=True).stdout,
+                                  a.label_size or max(15, W // 60))
     except OSError:
         font = ImageFont.load_default()
     rng = np.random.default_rng(3)
     fps = a.fps
     total = 0
     log = []
-    cap = int(a.max_seconds * fps) if a.max_seconds and a.max_seconds > 0 else None
+    cap = int(a.max_seconds * fps) if a.max_seconds and a.max_seconds > 0 and a.cut else None
+    holds = [natural_hold(S, a) for S in slides]
+    trans = [S.trans_ms if i > 0 else 0 for i, S in enumerate(slides)]
+    fitted, trans_k = fit_budget(holds, trans, a.max_seconds * 1000 if (a.max_seconds and not a.cut) else 0)
+    if sum(fitted) < sum(holds) or trans_k < 1:
+        print(f'    --max-seconds {a.max_seconds:g}: holds {sum(holds) / 1000:.0f} s -> {sum(fitted) / 1000:.0f} s, transitions x{trans_k:.2f}'
+              ' so every slide is shown', flush=True)
     for i, S in enumerate(slides):
         if cap is not None and total >= cap:
-            print(f'    --max-seconds {a.max_seconds:g} reached: stopped before slide {S.n}', flush=True)
+            print(f'    --max-seconds {a.max_seconds:g} reached (--cut): stopped before slide {S.n}', flush=True)
             break
-        hold_ms = min(a.max_slide * 1000, max(a.min_slide * 1000, S.end_ms + a.hold * 1000))
-        vids = [e for e in S.effects if e['cls'] == 'mediacall']
-        if vids:
-            hold_ms = min(a.max_slide * 1000, max(hold_ms, max(e['start'] + e['dur'] for e in vids) + 600))
+        hold_ms = fitted[i]
+        S.trans_ms = int(S.trans_ms * trans_k)
         # transition into S from the previous slide
         if i > 0 and S.trans_ms > 0:
             P_ = slides[i - 1]

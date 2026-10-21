@@ -218,5 +218,32 @@
     "paper layers (poly shapes) rise one after another to build a landscape (parallax via Morph at different distances)",
     "a Page Curl / Peel Off transition between story chapters",
     "a cut-out sun that slowly spins (spin loop)"
-  ]
+  ],
+  "fit": {
+    "domains": {
+      "food": 1,
+      "travel": 0.8,
+      "culture": 0.8,
+      "youth": 0.7,
+      "heritage": 0.5
+    },
+    "tones": [
+      "warm",
+      "playful"
+    ],
+    "material": {
+      "warm": 0.8,
+      "saturated": 0.5
+    },
+    "avoid": [
+      {
+        "domain": "aerospace",
+        "reason": "torn kraft paper is handmade warmth; rockets need machined precision"
+      },
+      {
+        "domain": "finance",
+        "reason": "craft paper undercuts exact numbers"
+      }
+    ]
+  }
 }

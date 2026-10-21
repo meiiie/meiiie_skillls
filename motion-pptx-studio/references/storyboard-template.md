@@ -9,6 +9,8 @@ the gate checks it.
 - anchor: "Hỏi trước, rồi mới làm." (on 3 slides: setup / middle / end)
 - colour arc: S1-S4 #0E0A07 → S5-S8 #F1E4C8 (two backgrounds, two scene spans; "muted then bloom" alone fails)
 - circular close: slides 33–34 = title and boot keyframes again; the cat shrinks back into the cursor
+  (v5.4: a close that reuses the opening photo declares it: `"bookend": true` on that slide in deck.json. At most
+  2 bookend slides; check_deck then does not count the return as a reused image. Any other reuse still fails.)
 ```
 
 ## 2. Table: one row per SLIDE
@@ -19,7 +21,7 @@ the gate checks it.
 | 3 | S1 Hook | K3 photo bloom + title | full-bleed | !!photo !!title | 01_catru_trio_clean.jpg | Ca trù | 1.1 | 19 | 2000 |
 Rules checked by `gates.py`:
 - `scene` starts with a scene ID (S1, S2…). Rows with the same ID form one keyframe run.
-- At least 60% of scenes have 3 or more rows. At least 8 scenes for talks of 5 minutes or longer. With `asset_scarcity` set in the brief, the minimum drops to the number of distinct visuals (never below 2).
+- At least half of the scenes have 3 or more rows (gate 4 habit; the same number as SKILL.md and pro-craft.md). At least 8 scenes for talks of 5 minutes or longer. With `asset_scarcity` set in the brief, the minimum drops to the number of distinct visuals (never below 2).
 - `layers` names the `!!` objects (at most 10% of rows without any). Consecutive keyframes that share a subject image must actually move it: box or crop ≥ 10% of slide width, or another shared `!!` shape ≥ 6%, or the renders differ by ≥ 30% of pixels. `check_deck.py` errors otherwise.
 - `visual` is a kept file in `assets/`, `drawn:<motif>` from art-direction, or `frame:<file>` graded OK in the media audit. Never empty. Distinct visuals ≥ the number of scenes. No file or `drawn:` motif is named on more than 4 rows (a 5-slide run cannot keep one image on every frame).
 - `layout` names the composition (craft.md §6: void, hero, split, full-bleed, numeral, walk, rail, screen, chart, reveal, quote, book, close). A value used in more than 3 scenes is reported as a note: one system, varied compositions.

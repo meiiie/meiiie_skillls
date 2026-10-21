@@ -1,10 +1,13 @@
-"""Gates for the motion-pptx-studio pipeline (v5.3).
+"""Gates for the motion-pptx-studio pipeline (v5.5).
 
   python3 gates.py init WORK [--kind heritage|product|pitch|business|company-profile|education|event|other]
   python3 gates.py check WORK --gate N                          check gate N (0..6); exit 1 on FAIL
   python3 gates.py check WORK --upto N                          gates 0..N; gate 5 runs for every group
                                                                  that has renders/<group>-N and deck/preview-<group>.pptx
   python3 gates.py check WORK --gate 5 --group g3 --deck WORK/deck/preview-g3.pptx
+  python3 gates.py check WORK --gate 5 --group all              v5.4: the whole deck (deck/preview-all.pptx from
+                                                                 studio.py build WORK); --upto 5+ runs it too
+  --stop-on-fail (with --upto) stops at the first failing gate; --upto always ends with a SUMMARY line
 
 Two kinds of row (v5.3):
   FAIL  hard: facts (every fact row sourced, numbers on slides trace to a fact ID), licences (every
@@ -20,13 +23,20 @@ Gates
   1 research   research/facts.md: every fact row has a source; a do-not-say list (not counted as facts)
   2 assets     assets/CREDITS.md: every image under assets/ and assets/gen/ has a row with licence, source
                and why; AI-generated files carry "AI-generated" and their .json sidecar
-  3 design     art-direction.md with a style; design/directions.md + directions.jpg (3 different art
-               directions, one chosen and why); fonts/ with licence and font-check PASS
+  3 design     v5.5 routing: design/routing.json exists (route.py analysed subject, audience, tone and the
+               real pictures), a direction was chosen, >= 1 mismatched direction rejected with a reason, and
+               the deck's style family is not a rejected one (FAIL); routing current and fit >= 0.60 (WARN).
+               art-direction.md with a style (genome.py compile writes it); design/directions.md +
+               directions.jpg (3 different art directions, one chosen and why); fonts/ with licence and
+               font-check PASS
   4 storyboard storyboard table parses (malformed rows fail loudly); a real visual per row; numbers trace
                to fact IDs; design/signature-moments.md (>= 2 hand-built moments: anatomy / manim);
                decks of 20+ slides change style at least once
   5 group      renders/<group>-N (numerically latest) with a contact sheet; check_deck passes (size is a
-               warning here, the hard size limit is at gate 6)
+               warning above 80% of the limit, the hard limit is at gate 6); legibility (caps body FAIL,
+               text on photo without scrim WARN, FAIL in heritage-collage)
+    whole deck deck/preview-all.pptx is current and complete; check_deck on all slides (deck-wide geometry,
+               image reuse, variety) passes
   6 final      deliver/ has pptx + docx + fonts/ + zip + CREDITS; check_deck passes; renders/final-N; the
                signature films are embedded in the pptx and move
 The skill is a floor, not a ceiling (SKILL.md): pass the gates, then go past them.
@@ -110,10 +120,22 @@ def kind_of(work):
     return k if k in MIN else 'other'
 
 
-def section(text, pattern):
-    """Return the body of the first markdown heading matching pattern."""
-    m = re.search(r'^#{1,4}[^\n]*(' + pattern + r')[^\n]*\n(.*?)(?=^#{1,4} |\Z)', text, re.I | re.M | re.S)
+def section(text, pattern, start=False):
+    """Return the body of the first markdown heading matching pattern.
+
+    start=True (v5.4): the heading must BEGIN with the pattern (after '#', numbering and punctuation), so
+    "## Signature (one motif)" is not taken for "## Motifs and textures"."""
+    lead = r'^#{1,4}\s*(?:[\d.]+\s*)?[^\w\n]*(' if start else r'^#{1,4}[^\n]*('
+    m = re.search(lead + pattern + r')[^\n]*\n(.*?)(?=^#{1,4} |\Z)', text, re.I | re.M | re.S)
     return m.group(2) if m else None
+
+
+NEGATION = re.compile(r"\b(?:never|no|not|avoid|without|don't|do not|nor|instead of|không|tránh|đừng|chẳng|cấm)\b[^.;:\n]*", re.I)
+
+
+def strip_negated(text):
+    """Drop clauses that start with a negation ("never fly", "no zoom, no spin") before counting vocabulary."""
+    return NEGATION.sub(' ', text)
 
 
 def items(body):
@@ -313,6 +335,18 @@ def contact_fresh(work, kept_files):
     return sheets[-1].stat().st_mtime >= newest, 'no manifest (pre-5.3 sheet): compared file times'
 
 
+def rows_outside_table(text, head, names):
+    """'line N: file' for lines of CREDITS.md that name an uncredited file: the row exists but the table parser
+    never reached it (a blank line, heading or list ends a markdown table)."""
+    out = []
+    for i, l in enumerate(text.splitlines()):
+        for n in names:
+            if Path(n).name in l:
+                out.append(f'line {i + 1}: {Path(n).name}')
+                break
+    return out
+
+
 def g2(work):
     g = Gate('GATE 2 assets')
     k = kind_of(work)
@@ -349,8 +383,11 @@ def g2(work):
     kept_files = asset_files(work)
     uncredited = [str(p.relative_to(work / 'assets')) for p in kept_files
                   if p.name not in credited and str(p.relative_to(work / 'assets')) not in credited]
+    outside = rows_outside_table(cr, head, uncredited)
     g.need(not uncredited, f'every image in assets/ and assets/gen/ has a CREDITS row ({len(uncredited)} without)',
-           f'{uncredited[:6]} — add a row, or move the file to assets/candidates/')
+           (f'{outside[:4]} — these rows sit OUTSIDE the credits table (a non-table line such as a list or a blank '
+            'line ends a markdown table): move them up into the table' if outside else
+            f'{uncredited[:6]} — add a row, or move the file to assets/candidates/'))
     gen = [p for p in kept_files if p.parent.name == 'gen']
     unlabelled = [p.name for p in gen if not any(AI_LABEL.search(' '.join(r.values())) for r in allrows if Path(fname(r)).name == p.name)]
     nosidecar = [p.name for p in gen if not p.with_suffix('.json').is_file()]
@@ -374,7 +411,7 @@ def g2(work):
         m['real'] = 0
         g.note(f'asset_scarcity: {scarce[:90]} — real-photo habit is 0. Illustrations still need a CREDITS row '
                f'(licence drawn / own work / AI-generated) and must be labelled as illustrations.')
-    real = [r for r in rows if not re.search(r'drawn|vẽ|generated|texture|AI', ' '.join(r.values()), re.I)]
+    real = [r for r in rows if not NOT_REAL.search(' '.join(r.values())) and not AI_WORD.search(' '.join(r.values()))]
     g.want(len(real) >= m['real'], f'{len(real)} real photos/screens/brand files (habit: {m["real"]}+)', 'decorations do not replace real imagery of the subject')
     sb_head, sb_rows = table(read(work / 'storyboard.md'), ['#', 'scene', 'visual'])
     sb_rows = [r for r in sb_rows if col(r, '#').strip().isdigit()]
@@ -385,6 +422,9 @@ def g2(work):
 
 
 HEX6 = re.compile(r'#[0-9A-Fa-f]{6}\b')
+# v5.4: whole words only ("domain", "train", "aperture" are real photos); "AI" only in capitals
+NOT_REAL = re.compile(r'\b(?:drawn|vẽ|generated|textures?|illustrations?|minh họa|own work: ground|procedural)\b', re.I)
+AI_WORD = re.compile(r'(?<![A-Za-z])AI(?![a-z])|AI-generated')
 
 
 def directions_report(work):
@@ -427,6 +467,14 @@ def g3(work):
     g = Gate('GATE 3 design')
     ad = read(work / 'design/art-direction.md')
     g.need(bool(ad), 'design/art-direction.md exists')
+    # v5.5 routing: the deck is routed from its subject, audience, tone and real assets BEFORE design;
+    # mismatched directions are rejected in writing, and a deck built in a rejected style fails
+    import route
+    r_need, r_want = route.gate_rows(work)
+    for ok, text, hint in r_need:
+        g.need(ok, text, hint)
+    for ok, text, hint in r_want:
+        g.want(ok, text, hint)
     # v5.3 anti-template: three genuinely different directions BEFORE the storyboard
     derr, dinfo = directions_report(work)
     for i in dinfo:
@@ -457,17 +505,19 @@ def g3(work):
     arc_ok, arc_hex, arc_sc = colour_arc_ok(arc)
     g.want(arc_ok, f'art-direction colour arc: {len(arc_hex)} hex(es) {arc_hex} across {len(arc_sc)} scene id(s) {arc_sc}',
            'name ≥2 different background hexes and ≥2 scene ids, e.g. "S1-S4 #0E0A07 → S6-S11 #F1E4C8"')
-    g.want(len(items(section(ad, r'motif|texture'))) >= 2, 'art-direction: >= 2 motifs/textures')
+    g.want(len(items(section(ad, r'motifs?|textures?|materials?', start=True) or section(ad, r'motifs? (?:and|&) textures?'))) >= 2,
+           'art-direction: >= 2 motifs/textures (a "## Motifs and textures" section)')
     g.want(len(items(section(ad, r'layered|layer'))) >= 1, 'art-direction: layered objects for Morph are planned')
     samples = list((work / 'design/samples').glob('*.jpg')) + list((work / 'design/samples').glob('*.png'))
     g.want(len(samples) >= 2, f'design/samples: {len(samples)} rendered samples (2+: title + body)', 'render the family deck and copy title + body renders here')
     g.want(len(items(section(ad, r'signature'))) >= 1, 'art-direction: a signature object/motif that carries through the deck',
            'name ONE recurring object that lives on most slides as !! layers (references/craft.md §2)')
     choice = items(section(ad, r'style choice'))
-    g.want(len(choice) >= 2 and any(re.search(r'reject|instead|rather than|not |thay vì|không chọn|loại|bỏ', l, re.I) for l in choice),
+    routed = bool(read(work / 'design/routing.json'))
+    g.want(routed or len(choice) >= 2 and any(re.search(r'reject|instead|rather than|not |thay vì|không chọn|loại|bỏ', l, re.I) for l in choice),
            f'art-direction: "## Style choice" names the style(s) chosen AND a rejected alternative with the reason ({len(choice)} item(s))',
            'e.g. "- chosen: blueprint for S3 (the phin is a machine)" + "- rejected: paper-editorial (too quiet for a hook)"')
-    vocab_txt = ' '.join(items(section(ad, r'motion vocabulary'))).lower()
+    vocab_txt = strip_negated(' '.join(items(section(ad, r'motion vocabulary')))).lower()
     try:
         sys.path.insert(0, str(Path(__file__).resolve().parent))
         import motionlib
@@ -696,7 +746,8 @@ def g4(work):
     for e in storyboard_visual_errors(rows, col):
         g.want(False, 'visuals: ' + e, 'one file on at most 4 rows; distinct visuals ≥ scenes')
     for e in storyboard_layout_errors(rows, col):
-        g.note('layout: ' + e + ' (the rendered geometry is what counts: check_deck fails text-left/photo-right on 4+ slides)')
+        g.note('layout labels: ' + e + ' — advisory label count only; the measure that decides is check_deck\'s rendered '
+               'geometry fingerprint (gate 5 deck check), which fails text-left/photo-right on 4+ slides')
     facts_txt = read(work / 'research/facts.md')
     ids = fact_ids(facts_txt)
     # the scene column holds scene ids (S1, S2...) that collide with source ids (S1): never count it as a citation
@@ -784,10 +835,82 @@ def g5(work, group, deck):
     if deck and Path(deck).is_file():
         ok, tail = run_check_deck(deck, ['--max-mb', '100000'])   # v5.3: size is checked once, at gate 6
         g.need(ok, f'check_deck.py {Path(deck).name}: ' + (tail[-1] if tail else ''), '; '.join(tail[:6]))
+        legibility_rows(g, work, deck)
         mb = Path(deck).stat().st_size / 1e6
-        g.want(mb <= max_mb(work), f'preview size {mb:.1f} MB (final limit {max_mb(work):g} MB)', 'keep_asset downsizes to 2560 px; finish_dedupe.py; shorter films')
+        g.want(mb <= 0.8 * max_mb(work), f'preview size {mb:.1f} MB (final limit {max_mb(work):g} MB; warn above 80%)',
+               'keep_asset downsizes to 2560 px; finish_dedupe.py; shorter or lower-bitrate films (the final is checked hard at gate 6)')
     else:
         g.need(False, f'pass --deck WORK/deck/preview-{group}.pptx ({deck or "none"})')
+    return g.report()
+
+
+COLLAGE_STYLES = ('heritage-collage',)
+
+
+def style_pack(work, st):
+    """The shipped pack a deck style comes from: a pack name, a copied design/style.json ("name"), or an
+    inline deck.json style ("extends")."""
+    st = str(st)
+    try:
+        spec = json.loads(read(work / 'deck.json')) if (work / 'deck.json').is_file() else {}
+    except ValueError:
+        spec = {}
+    inline = (spec.get('styles') or {}).get(st) or (spec.get('style_overrides') or {}).get(st)
+    if isinstance(inline, dict):
+        return Path(str(inline.get('extends') or inline.get('name') or st)).stem
+    if st.endswith('.json'):
+        p = Path(st) if Path(st).is_absolute() else work / st
+        try:
+            return json.loads(read(p)).get('name') or p.stem
+        except (ValueError, OSError, AttributeError):
+            return p.stem
+    return st
+
+
+def legibility_rows(g, work, deck):
+    """v5.4 gate rows: capitals only for headlines (always a FAIL); text on photos over a band or scrim
+    (a FAIL for the heritage-collage style, whose critique rule it is; a WARN otherwise)."""
+    import legibility_audit
+    try:
+        res = legibility_audit.audit_pptx(deck)
+    except Exception as e:   # a broken preview is reported by check_deck already
+        g.note(f'legibility audit skipped: {e}')
+        return
+    caps = [f'slide {i}: {n}' for i, _, cb in res for n, _, _ in cb]
+    scr = [f'slide {i}: {n}' for i, sc, _ in res for n in sc]
+    g.need(not caps, f'caps only for headlines: {len(caps)} body paragraph(s) in ALL CAPS', '; '.join(caps[:5]) + ' — sentence case')
+    styles, _ = deck_styles(work)
+    collage = any(style_pack(work, st) in COLLAGE_STYLES for st in (styles or []))
+    ok_line = f'text on photos sits on a colour band, chip or gradient scrim ({len(scr)} without)'
+    hint = '; '.join(scr[:5]) + ' — add a chip/band (callout, photogrid labels) or a gradient veil under the text'
+    (g.need if collage else g.want)(not scr, ok_line, hint)
+
+
+def g5_deck(work):
+    """v5.4: the whole-deck check before Phase 6. Per-group checks cannot see deck-wide repetition (the same
+    layout fingerprint, entrance or film treatment on slides 4, 17 and 31), so the full build is checked here."""
+    g = Gate('GATE 5 whole deck')
+    pv = work / 'deck' / 'preview-all.pptx'
+    dj = work / 'deck.json'
+    g.need(pv.is_file(), 'deck/preview-all.pptx exists (python3 studio.py build WORK, no --group, builds the whole deck)')
+    if pv.is_file():
+        g.need(not dj.is_file() or pv.stat().st_mtime >= dj.stat().st_mtime - 1, 'preview-all.pptx is newer than deck.json',
+               'deck.json changed after the last full build: rebuild with python3 studio.py build WORK')
+        try:
+            want = len(json.loads(dj.read_text(encoding='utf-8')).get('slides', [])) if dj.is_file() else 0
+        except ValueError:
+            want = 0
+        import zipfile
+        with zipfile.ZipFile(pv) as z:
+            have = len([n for n in z.namelist() if re.fullmatch(r'ppt/slides/slide\d+\.xml', n)])
+        g.need(not want or have == want, f'preview-all.pptx has every slide ({have} of {want})')
+        rd = latest_round(work / 'renders', 'all')
+        extra = ['--max-mb', '100000'] + (['--renders', str(rd)] if rd is not None else [])
+        ok, tail = run_check_deck(pv, extra)
+        g.need(ok, 'check_deck.py on the whole deck (deck-wide variety, layout fingerprints, reuse): ' + (tail[-1] if tail else ''),
+               '; '.join(tail[:6]))
+        g.want(rd is not None, f'renders/all-N of the whole deck ({rd.name if rd else "none"})')
+        legibility_rows(g, work, pv)
     return g.report()
 
 
@@ -808,6 +931,11 @@ def g6(work):
             extra += ['--anchor', anchor.group(1)]
         ok, tail = run_check_deck(pp[0], extra)
         g.need(ok, 'check_deck.py: ' + (tail[-1] if tail else ''), '; '.join(tail[:6]))
+        legibility_rows(g, work, pp[0])
+        mb6 = pp[0].stat().st_size / 1e6
+        g.need(mb6 <= max_mb(work), f'deliver pptx {mb6:.1f} MB <= {max_mb(work):g} MB')
+        g.want(mb6 <= 0.85 * max_mb(work), f'deliver pptx {mb6:.1f} MB has headroom (warn above 85% of {max_mb(work):g} MB)',
+               'a venue upload or e-mail limit is often the same number: shrink films (crf 26) or photos (2048 px)')
         target = (re.findall(r'\d+(?:[.,]\d+)?', b.get('talk_minutes', '')) or [''])[0].replace(',', '.')
         r = subprocess.run([sys.executable, str(HERE / 'words_budget.py'), 'measure', str(pp[0]), '--target', target or '99'],
                            capture_output=True, text=True)
@@ -862,7 +990,8 @@ def main(argv=None):
     sub = ap.add_subparsers(dest='cmd', required=True)
     s = sub.add_parser('init'); s.add_argument('work'); s.add_argument('--kind', choices=tuple(MIN))
     s = sub.add_parser('check'); s.add_argument('work'); s.add_argument('--gate', type=int); s.add_argument('--upto', type=int)
-    s.add_argument('--group'); s.add_argument('--deck')
+    s.add_argument('--group', help='gN for one group; "all" for the whole-deck check'); s.add_argument('--deck')
+    s.add_argument('--stop-on-fail', action='store_true', help='with --upto: stop at the first failing gate')
     a = ap.parse_args(argv)
     work = Path(a.work).resolve()
     if a.cmd == 'init':
@@ -870,13 +999,22 @@ def main(argv=None):
     gates = list(range(0, a.upto + 1)) if a.upto is not None else [a.gate if a.gate is not None else 0]
     fns = {0: g0, 1: g1, 2: g2, 3: g3, 4: g4, 6: g6}
     ok = True
+    summary = []
 
     def log(n, res, grp=''):
         with (work / 'gates.log').open('a', encoding='utf-8') as f:
             f.write(f'{datetime.datetime.now().isoformat(timespec="seconds")} gate {n}{" " + grp if grp else ""}: {"PASS" if res else "FAIL"}\n')
 
     for n in gates:
+        if a.stop_on_fail and not ok:
+            break
         if n == 5:
+            if a.group == 'all':
+                res = g5_deck(work)
+                ok &= res
+                log(5, res, 'all')
+                summary.append(('5 all', res))
+                continue
             if a.group:
                 todo = [(a.group, a.deck or str(work / 'deck' / f'preview-{a.group}.pptx'))]
             else:   # v5.3: --upto no longer skips gate 5; it checks every group that was rendered
@@ -889,10 +1027,21 @@ def main(argv=None):
                 res = g5(work, gr, dk)
                 ok &= res
                 log(5, res, gr)
+                summary.append((f'5 {gr}', res))
+            if a.upto is not None:   # v5.4: --upto 5 is the check before Phase 6, so it includes the whole deck
+                res = g5_deck(work)
+                ok &= res
+                log(5, res, 'all')
+                summary.append(('5 all', res))
             continue
         res = fns[n](work)
         ok &= res
         log(n, res)
+        summary.append((str(n), res))
+    if len(summary) > 1:
+        first = next((k for k, r in summary if not r), None)
+        print('\n== SUMMARY: ' + '  '.join(f'gate {k} {"PASS" if r else "FAIL"}' for k, r in summary))
+        print('first FAIL: gate ' + first + ' (fix it first; later gates often fail because of it)' if first else 'all PASS')
     sys.exit(0 if ok else 1)
 
 

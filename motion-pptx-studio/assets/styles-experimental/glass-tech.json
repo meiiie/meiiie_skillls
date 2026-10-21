@@ -250,5 +250,27 @@
     "a looping background video (procedural aurora MP4) behind frosted cards",
     "cards float up with stagger and the key one breathes (pulse loop)",
     "a glowing orb orbits the product screen (orbit path, repeat)"
-  ]
+  ],
+  "fit": {
+    "domains": {
+      "technology": 1,
+      "software": 0.8,
+      "business": 0.5,
+      "aerospace": 0.4
+    },
+    "tones": [
+      "bold",
+      "cinematic"
+    ],
+    "material": {
+      "dark": 0.7,
+      "cool": 0.9
+    },
+    "avoid": [
+      {
+        "domain": "heritage",
+        "reason": "frosted cyan-violet glass is the SaaS look; it says nothing about a place or a craft"
+      }
+    ]
+  }
 }
