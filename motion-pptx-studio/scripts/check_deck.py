@@ -260,7 +260,11 @@ def main(argv=None):
             shared = len(common)
             mism = sorted(n for n in common if kinds[n] != prev_kinds[n])
             if mism:
-                errors.append(f'{tag}: !! kind mismatch with previous slide {[(n, prev_kinds[n], kinds[n]) for n in mism]}')
+                pairs = [(n, prev_kinds[n], kinds[n]) for n in mism]
+                vid = any({a, b} & {'pic'} and {a, b} & {'grpSp', 'sp'} for _, a, b in pairs)
+                errors.append(f'{tag}: !! kind mismatch with previous slide {pairs}'
+                              + ('; Morph matches a !! name to one kind: name the film and its editable layer differently '
+                                 '(e.g. "!!lift.film" for the video, "!!lift" for the editable group)' if vid else ''))
         for n in set(names):
             seen_names[n] += 1
         prev_kinds = kinds

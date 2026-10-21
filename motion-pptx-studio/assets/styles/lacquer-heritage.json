@@ -240,15 +240,19 @@
     "avoid": [
       {
         "domain": "aerospace",
-        "reason": "gold-on-red-lacquer ceremony vocabulary makes engineering hardware look like an antique"
+        "because": "gold-on-red-lacquer ceremony vocabulary turns whatever it frames into an antique"
       },
       {
         "domain": "technology",
-        "reason": "lacquer and calligraphic serif belong to ritual objects, not to products"
+        "because": "gold-on-red-lacquer ceremony vocabulary turns whatever it frames into an antique"
+      },
+      {
+        "domain": "economy",
+        "because": "gold-on-lacquer ceremony makes a data briefing look like a ritual object"
       },
       {
         "domain": "youth",
-        "reason": "too solemn for a young, playful audience"
+        "because": "lacquer and gold are too solemn for a young audience"
       }
     ]
   }

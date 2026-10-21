@@ -227,7 +227,11 @@
     "avoid": [
       {
         "domain": "heritage",
-        "reason": "poster type that IS the image drowns objects and places that must be seen"
+        "because": "poster type that IS the image hides the objects and places"
+      },
+      {
+        "domain": "economy",
+        "because": "a type-only show of one huge word per slide cannot carry many sourced figures"
       }
     ]
   }

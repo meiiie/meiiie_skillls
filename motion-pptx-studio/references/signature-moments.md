@@ -112,6 +112,23 @@ manimgx inspect design/manim/capacity.py Capacity     # storyboard frames: LOOK 
 ffmpeg -sseof -0.1 -i assets/film/capacity.mp4 -frames:v 1 assets/film/capacity.poster.png
 ```
 
+Scene file basics (checked against the installed manimgx, v5.6):
+
+```python
+import manimgx as m                 # the module is manimgx; `from manim import *` fails (no module named manim)
+m.config.pixel_width = 2360         # set the scene size HERE: `inspect` has no -r, so it uses the config;
+m.config.pixel_height = 1000        # frame_height stays 8 units and frame_width follows the aspect (18.88)
+# m.config.frame_width = ...        # AttributeError: frame_width has no setter (it is derived)
+
+class Capacity(m.Scene):
+    def construct(self):
+        self.play(m.Create(m.Square()))
+```
+
+- `render -r WxH` overrides the size for the video only; keep the config lines so `inspect` frames match.
+- `print()` from the scene reaches the console in this version; when output seems swallowed the scene
+  usually raised before it: run `inspect` (it reports the failing play with file:line) or write
+  diagnostics to a file.
 - Use it for quantities in space: stacked slabs = units, an arc = a supply flow, a dashed footprint = a plan.
 - White or deck-ground background; fonts the deck ships (`Text(..., font='Be Vietnam Pro')` renders Vietnamese).
 - `ThreeDScene` has no fixed-in-frame labels in ManimGX 0.1: put labels flat on the floor or set them on
@@ -121,6 +138,10 @@ ffmpeg -sseof -0.1 -i assets/film/capacity.mp4 -frames:v 1 assets/film/capacity.
   text sizes in `design/manim/<name>_geom.py`; the Manim scene maps inches to units and the deck calls
   `<name>_geom.editable_shapes()` for the native shapes. The editable slide is then the film's last frame by
   construction, not a hand redraw. Name one group in the `editable` column.
+- **Name the film and its editable layer differently.** Morph pairs `!!` names across slides and a name must
+  keep one kind: a video (`pic`) on K2 and an editable group (`grpSp`) on K1/K3 under the same `!!name` is a
+  check_deck ERROR. Use `"!!capacity.film"` for the video and `"!!capacity"` for the editable group; Morph then
+  fades between them in the same box.
 - Fill the frame: render at the slide box's aspect (`-r 2360x1000` for an 11.5 × 4.87 in box), labels at the
   deck's sizes (scale text from a reference glyph so 18 pt in the scene is 18 pt on the slide), 2D and upright.
   Grab the poster as the last real frame: `ffmpeg -i f.mp4 -vf "select=eq(n\,N-1)" -fps_mode passthrough`
@@ -129,7 +150,7 @@ ffmpeg -sseof -0.1 -i assets/film/capacity.mp4 -frames:v 1 assets/film/capacity.
 ## 4. Put it on the slide
 
 ```json
-{"type": "video", "name": "!!film-line", "path": "assets/film/haiphong-line.mp4",
+{"type": "video", "name": "!!line.film", "path": "assets/film/haiphong-line.mp4",
  "poster": "assets/film/haiphong-line.poster.png", "x": 0.87, "y": 2.6, "w": 11.6, "h": 4.06,
  "loop": true, "mute": true, "autoplay": true}
 ```

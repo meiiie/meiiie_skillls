@@ -253,6 +253,13 @@ class Spec:
     def role(self, name):
         if not name:
             return {}
+        # v5.6 (I29): component-scoped roles: "timeline.cardtitle" inherits "cardtitle" and overrides only what it sets,
+        # so enlarging card titles (deck "type": {"cardtitle": ...}) need not enlarge the timeline's labels
+        if '.' in name:
+            base = name.split('.', 1)[1]
+            if base not in self.type:
+                raise SystemExit(f'unknown text role {name!r}: {base!r} is not a role; known: {sorted(self.type)}')
+            return {**self.type[base], **self.type.get(name, {})}
         if name not in self.type:
             raise SystemExit(f'unknown text role {name!r}; known: {sorted(self.type)}')
         return self.type[name]
@@ -541,6 +548,14 @@ def comp_screen(spec, sh):
     return [{'type': 'group', 'name': base, 'shapes': kids}]
 
 
+def scoped(spec, sh, comp, role):
+    """v5.6 (I29): a component's role: the shape's "roles" map, else "<comp>.<role>" when the deck/style defines it."""
+    r = (sh.get('roles') or {}).get(role)
+    if r:
+        return r
+    return f'{comp}.{role}' if f'{comp}.{role}' in spec.type else role
+
+
 def comp_timeline(spec, sh):
     x, y, w = sh['x'], sh['y'], sh['w']
     base = sh.get('name')
@@ -565,19 +580,19 @@ def comp_timeline(spec, sh):
                     'fill': color if (on or done) else 'ground', 'line_color': color, 'line_width': 1.25})
         ty = y + 0.38
         if nd.get('t'):
-            t = {'type': 'text', 'name': _nm(base, f't{i}'), 'role': 'cardtitle', 'text': nd['t'], 'align': al,
+            t = {'type': 'text', 'name': _nm(base, f't{i}'), 'role': scoped(spec, sh, 'timeline', 'cardtitle'), 'text': nd['t'], 'align': al,
                  'x': lx, 'y': round(ty, 3), 'w': lab_w, 'color': 'head' if on else 'muted'}
             t['h'] = round(text_height(spec, t, lab_w) + 0.04, 3)
             out.append(t)
             ty += t['h'] + 0.04
         if nd.get('label'):
-            t = {'type': 'text', 'name': _nm(base, f'l{i}'), 'role': 'body', 'bold': True, 'text': nd['label'], 'align': al,
+            t = {'type': 'text', 'name': _nm(base, f'l{i}'), 'role': scoped(spec, sh, 'timeline', 'body'), 'bold': True, 'text': nd['label'], 'align': al,
                  'x': lx, 'y': round(ty, 3), 'w': lab_w, 'color': 'ink' if on else 'muted'}
             t['h'] = round(text_height(spec, t, lab_w) + 0.04, 3)
             out.append(t)
             ty += t['h'] + 0.04
         if nd.get('desc'):
-            t = {'type': 'text', 'name': _nm(base, f'd{i}'), 'role': 'body', 'size': max(11, spec.role('body').get('size', 15) - 2),
+            t = {'type': 'text', 'name': _nm(base, f'd{i}'), 'role': scoped(spec, sh, 'timeline', 'body'), 'size': max(11, spec.role(scoped(spec, sh, 'timeline', 'body')).get('size', 15) - 2),
                  'text': nd['desc'], 'align': al, 'x': lx, 'y': round(ty, 3), 'w': lab_w, 'color': 'ink' if on else 'muted'}
             t['h'] = round(text_height(spec, t, lab_w) + 0.04, 3)
             out.append(t)
@@ -607,7 +622,7 @@ def comp_bars(spec, sh):
         out.append({'type': 'rect', 'name': _nm(base, f'bar{i}'), 'x': round(bx, 3), 'y': round(base_y - bh, 3), 'w': round(bw, 3),
                     'h': round(bh, 3), 'fill': col})
         if grow >= 0.999:
-            v = {'type': 'text', 'name': _nm(base, f'v{i}'), 'role': 'cardtitle', 'size': sh.get('value_size', spec.role('cardtitle').get('size', 22)),
+            v = {'type': 'text', 'name': _nm(base, f'v{i}'), 'role': scoped(spec, sh, 'bars', 'cardtitle'), 'size': sh.get('value_size', spec.role(scoped(spec, sh, 'bars', 'cardtitle')).get('size', 22)),
                  'text': d.get('display', str(d['value'])), 'x': round(bx - 0.3, 3), 'w': round(bw + 0.6, 3), 'align': 'c', 'anchor': 'b',
                  'color': 'head' if (hl is None or hl == i) else 'muted'}
             vh = round(text_height(spec, v, v['w']) + 0.04, 3)
@@ -1548,11 +1563,13 @@ def build(data, root, base=None):
         for ph in list(sl.placeholders):
             ph._element.getparent().remove(ph._element)
         set_background(sl, spec, s.get('bg', spec.default_bg))
-        if s.get('scene') or s.get('bookend') or s.get('still'):
+        bgp = isinstance(s.get('bg', spec.default_bg), dict) and bool((s.get('bg') or {}).get('image'))
+        if s.get('scene') or s.get('bookend') or s.get('still') or bgp:
             # v5.4: "bookend": true = a declared circular close (image reuse allowed);
             # "still": true = a deliberately still page (excluded from the moving-depth share)
+            # v5.6 (I21): "[bg-photo]" = the slide background is a picture (not a ground texture), for variety_audit
             sl._element.cSld.set('name', (str(s.get('scene') or '') + (' [bookend]' if s.get('bookend') else '')
-                                          + (' [still]' if s.get('still') else '')).strip())
+                                          + (' [still]' if s.get('still') else '') + (' [bg-photo]' if bgp else '')).strip())
         layers = chrome_for(spec, s, n, total)
         chrome_names = {c.get('name') for c in layers['under'] + layers['over']}
         prims = []
@@ -1657,6 +1674,24 @@ def motion_config(data, slides, spec, out):
     return p
 
 
+def strip_theme_style(prs):
+    """v5.7: drop the theme style reference (<p:style>) from drawn shapes that carry no text.
+    python-pptx autoshapes and freeforms get effectRef idx=2 from it; LibreOffice (and some PowerPoint themes)
+    then paint the theme's soft shadow under every hairline, which turns a map graticule or a dense poly
+    drawing into grey bands. Every drawn shape here sets fill, line and effects explicitly, so the reference
+    is never wanted. Shapes with text keep it (their fontRef supplies the default text colour)."""
+    n = 0
+    ns = '{http://schemas.openxmlformats.org/presentationml/2006/main}'
+    for slide in prs.slides:
+        for st in list(slide.shapes._spTree.iter(ns + 'style')):
+            sp = st.getparent()
+            if ''.join(t for t in sp.itertext() if t.strip()):
+                continue
+            sp.remove(st)
+            n += 1
+    return n
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('spec')
@@ -1669,6 +1704,7 @@ def main(argv=None):
     data = json.loads(sp.read_text(encoding='utf-8'))
     prs, slides, spec = build(data, sp.parent.resolve(), a.base)
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)
+    nstyle = strip_theme_style(prs)
     prs.save(a.out)
     mj = motion_config(data, slides, spec, a.out)
     print(f'built {len(slides)} slides -> {a.out}' + (f' (+ {mj.name})' if mj else ''))

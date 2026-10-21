@@ -238,11 +238,15 @@
     "avoid": [
       {
         "domain": "aerospace",
-        "reason": "torn kraft paper is handmade warmth; rockets need machined precision"
+        "because": "torn kraft paper is handmade warmth"
       },
       {
         "domain": "finance",
-        "reason": "craft paper undercuts exact numbers"
+        "because": "craft paper and torn edges make figures look homemade"
+      },
+      {
+        "domain": "economy",
+        "because": "craft paper and torn edges make figures look homemade"
       }
     ]
   }

@@ -24,6 +24,7 @@ ground, and stays within 8 type sizes.
 import argparse
 import json
 import math
+import re
 import sys
 from pathlib import Path
 
@@ -113,7 +114,34 @@ def type_scale(t):
             'title': title, 'display': disp, 'numeral': num}
 
 
+LIST_KEYS = ('arc', 'motifs', 'layers')
+
+
+def as_list(v, key):
+    """v5.6 (I10): list-valued genome keys accept a list, or a string split on → / -> / ; / newlines / commas."""
+    if v is None or v == '':
+        return []
+    if isinstance(v, str):
+        parts = re.split(r'\s*(?:→|->|;|\n|,)\s*', v) if key == 'arc' else re.split(r'\s*(?:;|\n)\s*', v)
+        return [p.strip() for p in parts if p.strip()]
+    if isinstance(v, (list, tuple)):
+        bad = [x for x in v if not isinstance(x, str)]
+        if bad:
+            raise SystemExit(f'genome {key}: every item must be a string, got {bad[0]!r}')
+        return [x.strip() for x in v if x.strip()]
+    raise SystemExit(f'genome {key}: expected a list of strings (or one string), got {type(v).__name__}')
+
+
+def normalise(g):
+    g = dict(g)
+    for k in LIST_KEYS:
+        if k in g:
+            g[k] = as_list(g[k], k)
+    return g
+
+
 def compile_genome(g, root=None):
+    g = normalise(g)
     root = Path(root) if root else None
     base = {}
     if g.get('route'):
@@ -126,10 +154,16 @@ def compile_genome(g, root=None):
             raise SystemExit(f'genome route {g["route"]!r}: no such family')
     light = g.get('light', 'dark')
     pal_in = dict(g.get('palette') or {})
+    # v5.6 (I11): where every palette key comes from, so art-direction.md says "sampled" only for sampled keys
+    prov = {k: 'explicit in the genome' for k, v in pal_in.items() if isinstance(v, str) and v.startswith('#')}
     if pal_in.get('from_image'):
         p = Path(pal_in['from_image'])
         p = p if p.is_absolute() or not root else root / p
         sampled = palette_from_image(p, light, pal_in.get('accent_pick', 'vivid'))
+        for k in sampled:
+            prov.setdefault(k, f'sampled from {pal_in["from_image"]}')
+        for k in [k for k in prov if prov[k] == 'explicit in the genome' and k in sampled]:
+            prov[k] = f'explicit in the genome (overrides the {pal_in["from_image"]} sample)'
         pal_in = {**sampled, **{k: v for k, v in pal_in.items() if k.startswith(('ground', 'ink', 'accent')) and isinstance(v, str) and v.startswith('#')}}
     if not all(k in pal_in for k in ('ground', 'ink', 'accent')):
         raise SystemExit('genome palette needs ground, ink and accent (or from_image)')
@@ -146,6 +180,16 @@ def compile_genome(g, root=None):
            'ink': I, 'head': pal_in.get('head', I), 'muted': ensure(ensure(mix(I, G, 0.38), G, 4.6), worst, 5.0), 'faint': mix(I, G, 0.82),
            'accent': A, 'accent2': ensure(ensure(pal_in.get('accent2', mix(A, I, 0.5)), G, 3.0), worst, 3.0), 'lit': pal_in.get('lit', A),
            'veil': pal_in.get('veil', mix(G, '#000000', 0.35) if lum(G) < 0.18 else mix(I, '#000000', 0.2))}
+    for k in pal:
+        if k not in prov:
+            prov[k] = {'ground2': 'derived: the ground moved 6% toward ' + ('white' if away == '#FFFFFF' else 'black'),
+                       'surface': 'derived: the ground moved 10% toward ' + ('white' if away == '#FFFFFF' else 'black'),
+                       'head': 'derived: same as ink', 'muted': 'derived: ink mixed 38% into the ground, held at 5:1',
+                       'faint': 'derived: ink mixed 82% into the ground (rules and hairlines)',
+                       'accent2': 'derived: accent mixed halfway to ink', 'lit': 'derived: same as accent',
+                       'veil': 'derived: the ground darkened for photo veils'}.get(k, 'derived')
+        elif k in pal_in and isinstance(pal_in.get(k), str) and pal[k].upper() != str(pal_in[k]).upper():
+            prov[k] += f' ({pal_in[k]}, adjusted to {pal[k]} for contrast)'
     for k, v in pal_in.items():
         if k not in pal and isinstance(v, str) and v.startswith('#'):
             pal[k] = v
@@ -204,10 +248,17 @@ def compile_genome(g, root=None):
         y = H - grid['bottom'] + 0.14 if corner.startswith('b') else max(0.42, grid['top'] - 0.42)
         over.append({'type': 'text', 'name': '!!pageno', 'text': '{n}', 'x': round(x, 3), 'y': round(y, 3), 'w': 1.5, 'h': 0.25,
                      'role': 'pageno', 'align': 'r' if corner.endswith('r') else 'l'})
-    if ch.get('running', True):   # the running head sits at the top, in the corner the page number does not use
+    run = ch.get('running', True)
+    if run:   # the running head sits at the top, in the corner the page number does not use
+        # v5.6 (I19): the deck title by default; "scene" = the raw scene id (a rehearsal aid, not for an audience); any other string is a template
+        run_txt = {True: '{title}', 'title': '{title}', 'scene': '{scene}'}.get(run, run if isinstance(run, str) else '{title}')
         rx = grid['left'] if corner != 'tl' else W - grid['right'] - 6
-        over.append({'type': 'text', 'name': '!!running', 'text': '{scene}', 'x': round(rx, 3), 'y': round(max(0.42, grid['top'] - 0.42), 3), 'w': 6,
+        over.append({'type': 'text', 'name': '!!running', 'text': run_txt, 'x': round(rx, 3), 'y': round(max(0.42, grid['top'] - 0.42), 3), 'w': 6,
                      'h': 0.25, 'role': 'label', 'align': 'l' if corner != 'tl' else 'r'})
+    if ch.get('source', True):   # v5.6 (I19): every number needs a source on the slide; a slide's "source" fills it, an empty one is skipped
+        sx = grid['left'] if not corner.endswith('l') or not corner.startswith('b') else W - grid['right'] - 7
+        over.append({'type': 'text', 'name': '!!source', 'text': '{source}', 'x': round(sx, 3), 'y': round(H - grid['bottom'] + 0.14, 3), 'w': 7,
+                     'h': 0.25, 'role': 'caption', 'align': 'l' if sx == grid['left'] else 'r'})
     mo = g.get('motion') or {}
     style = dict(base)
     style.pop('fit', None)
@@ -223,7 +274,7 @@ def compile_genome(g, root=None):
         'motion': {'default_ms': int(mo.get('tempo_ms', 1100)), 'bloom_ms': int(mo.get('tempo_ms', 1100) * 1.5),
                    'stagger_ms': int(mo.get('stagger_ms', 90)), 'transitions': mo.get('transitions', ['morph']),
                    'effects': mo.get('effects', ['wipe', 'stretch', 'wheel']), 'verbs': mo.get('verbs', [])},
-        'genome': {k: g.get(k) for k in ('why', 'signature', 'composition', 'image') if g.get(k)},
+        'genome': {**{k: g.get(k) for k in ('why', 'signature', 'composition', 'image') if g.get(k)}, 'provenance': prov},
     })
     style.setdefault('screen', {'bezel': pal['surface'], 'line': pal['faint'], 'line_width': 0.75, 'radius': 0.02, 'bar': pal['ground2']})
     style.setdefault('shadow', None)
@@ -311,8 +362,10 @@ VERB_TECH = {'create': 'wipe along the stroke (Manim Create)', 'grow': 'stretch 
 def art_direction_md(g, st, work=None):
     """design/art-direction.md written FROM the genome, so the prose and the compiled style cannot drift.
     Every decision line carries its reason; the style choice quotes routing.md (chosen + rejected with reasons)."""
+    g = normalise(g)
     why = g.get('why') or {}
     p = st['palette']
+    prov = (st.get('genome') or {}).get('provenance') or {}
     src = (g.get('palette') or {}).get('from_image')
     psrc = why.get('palette', 'chosen for this deck')
     L = ['# Art direction (compiled from design/genome.json; edit the genome, not this file)', '<!-- genome -->', '',
@@ -329,15 +382,26 @@ def art_direction_md(g, st, work=None):
                  f'as the starting family, then re-decided axis by axis in the genome; why: {r.get("why", "")}')
         rj = r.get('rejected') or {}
         items_ = rj.items() if isinstance(rj, dict) else [(x.get('name'), x.get('reason') or '; '.join(x.get('rejected', []))) for x in rj]
-        for n, why_ in list(items_)[:4]:
-            L.append(f'- rejected: {n}, {why_ if isinstance(why_, str) else "; ".join(map(str, why_))}')
+        items_ = [(n, w if isinstance(w, str) else '; '.join(map(str, w))) for n, w in items_]
+        # v5.6 (I12): every rejection, the subject-based ones (the meaningful ones) first, the low-fit ones after
+        items_.sort(key=lambda x: (x[1].lstrip().startswith('fit '), x[0] or ''))
+        for n, why_ in items_:
+            L.append(f'- rejected: {n}, {why_}')
     else:
         L.append(f'- chosen: {g.get("route", "free genome")}; no routing.json yet (run route.py first)')
+    def pv(k, dflt):
+        return prov.get(k) or (f'sampled from {src}' if src and k in ('ground', 'ink', 'accent', 'accent2') else dflt)
     L += ['', '## Palette (every hex with where it comes from)',
-          f'- ground {p["ground"]}: {why.get("material", "the deck ground")}' + (f' (sampled from {src})' if src else ' (from the genome palette)'),
-          f'- ink {p["ink"]}: from the genome ink {(g.get("palette") or {}).get("ink", "(sampled)")}, held at 7:1+ against the ground as it renders',
-          f'- accent {p["accent"]}: {why.get("accent", psrc)}', f'- accent2 {p["accent2"]}: {why.get("accent2", "second voice; " + psrc)}',
-          f'- muted {p["muted"]}: mixed from ink and ground for labels and sources, 5:1 against the darkest rendered ground', '']
+          f'- ground {p["ground"]}: {why.get("material", "the deck ground")} ({pv("ground", "from the genome palette")})',
+          f'- ground2 {p["ground2"]}: second ground for alternating scenes ({pv("ground2", "derived from the ground")})',
+          f'- surface {p["surface"]}: card and panel fill ({pv("surface", "derived from the ground")})',
+          f'- ink {p["ink"]}: body text, held at 7:1+ against the ground as it renders ({pv("ink", "from the genome palette")})',
+          f'- accent {p["accent"]}: {why.get("accent", psrc)} ({pv("accent", "from the genome palette")})',
+          f'- accent2 {p["accent2"]}: {why.get("accent2", "second voice")} ({pv("accent2", "derived")})',
+          f'- muted {p["muted"]}: labels and sources, 5:1 against the darkest rendered ground ({pv("muted", "derived")})']
+    if p.get('lit') and p['lit'].upper() != p['accent'].upper():
+        L.append(f'- lit {p["lit"]}: the lit part of a construct ({pv("lit", "explicit")})')
+    L.append('')
     arc = g.get('arc') or [f'{s} {p.get("ground2") if i % 2 else p["ground"]}' for i, s in enumerate(['S1-S2', 'S3'])]
     L += ['## Colour arc', '- ' + ' → '.join(arc), '']
     mat = g.get('material') or {}

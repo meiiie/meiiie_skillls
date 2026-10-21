@@ -109,27 +109,66 @@ def path_lengths(slide_root):
     return lens
 
 
+def _xf(el):
+    """(off x, off y, ext cx, ext cy) of a shape's own transform, in EMU."""
+    for path in (P + 'spPr/' + A + 'xfrm', P + 'grpSpPr/' + A + 'xfrm', P + 'xfrm'):
+        x = el.find(path)
+        if x is not None:
+            break
+    else:
+        x = None
+    off = x.find(A + 'off') if x is not None else el.find('.//' + A + 'off')
+    ext = x.find(A + 'ext') if x is not None else el.find('.//' + A + 'ext')
+    if off is None or ext is None:
+        return None, x
+    return (_int(off.get('x')), _int(off.get('y')), _int(ext.get('cx')), _int(ext.get('cy'))), x
+
+
 def _boxes(slide_root):
-    """(kind, x, y, w, h, max_font_pt) of every top-level shape, in slide fractions."""
+    """(kind, x, y, w, h, max_font_pt) of every drawn shape, in slide fractions.
+
+    v5.6 (I21): a group is opened (its children are placed through the group transform), so a native
+    chart drawn as a group is measured as the bars and labels it is; a slide background picture
+    (<p:bg> blip) counts as a full-bleed media box."""
     tree = slide_root.find('.//' + P + 'spTree')
     out = []
+    bg = slide_root.find('.//' + P + 'bg')
+    csld = slide_root.find(P + 'cSld')
+    tagged = csld is not None and '[bg-photo]' in (csld.get('name') or '')
+    # a picture background is a full-bleed photo; a ground texture (untagged) is the deck's paper, not composition
+    if bg is not None and bg.find('.//' + A + 'blip') is not None and tagged:
+        out.append(('media', 0.0, 0.0, 1.0, 1.0, 0))
     if tree is None:
         return out
-    for el in tree:
-        tag = el.tag.split('}')[-1]
-        if tag not in ('sp', 'pic', 'grpSp', 'graphicFrame', 'cxnSp'):
-            continue
-        off = el.find('.//' + A + 'off')
-        ext = el.find('.//' + A + 'ext')
-        if off is None or ext is None:
-            continue
-        x, y = _int(off.get('x')) / EMU_W, _int(off.get('y')) / EMU_H
-        w, h = _int(ext.get('cx')) / EMU_W, _int(ext.get('cy')) / EMU_H
-        sizes = [_int(r.get('sz')) / 100 for r in el.iter(A + 'rPr') if r.get('sz')]
-        has_text = any((t.text or '').strip() for t in el.iter(A + 't'))
-        is_media = tag == 'pic' or el.find('.//' + A + 'videoFile') is not None
-        kind = 'media' if is_media else ('text' if has_text else 'shape')
-        out.append((kind, x, y, w, h, max(sizes) if sizes else 0))
+
+    def walk(container, tf):
+        for el in container:
+            tag = el.tag.split('}')[-1]
+            if tag not in ('sp', 'pic', 'grpSp', 'graphicFrame', 'cxnSp'):
+                continue
+            box, xfrm = _xf(el)
+            if box is None:
+                continue
+            if tag == 'grpSp':
+                cho = xfrm.find(A + 'chOff') if xfrm is not None else None
+                che = xfrm.find(A + 'chExt') if xfrm is not None else None
+                ox, oy, ew, eh = box
+                cx0, cy0 = (_int(cho.get('x')), _int(cho.get('y'))) if cho is not None else (ox, oy)
+                cw, chh = (_int(che.get('cx')), _int(che.get('cy'))) if che is not None else (ew, eh)
+                sx, sy = (ew / cw if cw else 1.0), (eh / chh if chh else 1.0)
+
+                def sub(x, y, w, h, tf=tf, ox=ox, oy=oy, cx0=cx0, cy0=cy0, sx=sx, sy=sy):
+                    return tf(ox + (x - cx0) * sx, oy + (y - cy0) * sy, w * sx, h * sy)
+                walk(el, sub)
+                continue
+            x, y, w, h = tf(*box)
+            sizes = [_int(r.get('sz')) / 100 for r in el.iter(A + 'rPr') if r.get('sz')]
+            has_text = any((t.text or '').strip() for t in el.iter(A + 't'))
+            is_media = tag == 'pic' or el.find('.//' + A + 'videoFile') is not None
+            kind = 'media' if is_media else ('text' if has_text else 'shape')
+            out.append((kind, x / EMU_W, y / EMU_H, w / EMU_W, h / EMU_H, max(sizes) if sizes else 0))
+
+    walk(tree, lambda x, y, w, h: (x, y, w, h))
     return out
 
 

@@ -5,9 +5,11 @@
       direction; reject mismatched ones with the reason; write design/routing.md/.json (gate 3 needs it).
       --apply copies the chosen family to design/style.json as the starting point of the deck's own genome.
   python3 studio.py new WORK --kind product [--style noir-product] [--title "Tên deck"] [--fonts]
-      gates.py init + design/style.json + a 5-slide starter deck.json (title, highlight walk, bar grow)
-      that already uses the style's chrome, grounds, roles and components. --fonts fetches and
-      installs the style's fonts into WORK/fonts and writes design/font-check.txt.
+      gates.py init. WITHOUT --style (the v5.5+ way) that is all: no style.json, no starter deck.json and
+      no fonts yet; it prints the next steps (fill brief.md, route, genome, then `studio.py fonts WORK`).
+      WITH --style (a pack you already know fits): + design/style.json + a 5-slide starter deck.json
+      (title, highlight walk, bar grow) in the style's chrome, grounds, roles and components; --fonts then
+      fetches and installs the style's fonts into WORK/fonts and writes design/font-check.txt.
   python3 studio.py build WORK [--deck WORK/deck.json] [--group g1] [--no-render] [--strict]
       build_deck -> unpack -> motion -> pack -> render (renders/<group>-N, a new folder every
       round) -> check_deck with the renders (contrast and pixel checks need them).
@@ -19,8 +21,9 @@
   python3 studio.py compare WORK RENDER_DIR [--ref catru|SHEET|FOLDER] [--layout stack|side] [--out WORK/design/compare-1.jpg]
       your contact sheet above the reference deck's, at the same width: the critic's view. Default reference by
       deliverable_kind (heritage: ca trù; others: the style gallery). A folder of reference images is tiled on the fly.
-  python3 studio.py fonts WORK --style noir-product
-      fetch_fonts + install + check_fonts --lang vi -> WORK/fonts, design/font-check.txt
+  python3 studio.py fonts WORK [--style noir-product]
+      fetch_fonts + install + check_fonts --lang vi -> WORK/fonts, design/font-check.txt. Without --style it
+      uses the deck's own design/style.json (what genome.py compile writes), else compiles design/genome.json.
 
 Exit code: build returns the check_deck result (1 when the audit finds an ERROR; with --strict
 also when build_deck printed layout warnings).
@@ -138,8 +141,13 @@ def cmd_new(a):
         print(out)
         return code
     if not a.style:
-        print(f'new project {work}: no style yet (v5.5 routes it). Fill brief.md (topic, audience, tone), research and assets, then\n'
-              f'  python3 {HERE / "studio.py"} route {work} --apply')
+        print(f'new project {work}: no style yet (v5.5+ routes it), so no design/style.json and no starter deck.json were made.\n'
+              f'Next: fill brief.md (topic, audience, tone, domains), research and assets, then\n'
+              f'  python3 {HERE / "studio.py"} route {work} --apply      (routing.md: chosen + rejected with reasons)\n'
+              f'  write design/genome.json, python3 {HERE / "genome.py"} compile {work}/design/genome.json\n'
+              f'  python3 {HERE / "studio.py"} fonts {work}               (fonts come from the routed style / genome)')
+        if a.fonts:
+            print('--fonts: skipped, there is no style to take fonts from yet; run `studio.py fonts WORK` after routing/genome')
         return 0
     rej = rejected_by_routing(work, a.style)
     if rej and not a.force:
@@ -162,9 +170,30 @@ def cmd_new(a):
     return 0
 
 
+def deck_style_source(work):
+    """v5.6 (I26): the style to take fonts from when --style is not given: design/style.json, else design/genome.json."""
+    st = work / 'design' / 'style.json'
+    if st.is_file():
+        return str(st)
+    gp = work / 'design' / 'genome.json'
+    if gp.is_file():
+        sys.path.insert(0, str(HERE))
+        import genome
+        out = work / 'design' / 'style.json'
+        out.write_text(json.dumps(genome.compile_genome(json.loads(gp.read_text(encoding='utf-8')), work), ensure_ascii=False, indent=1),
+                       encoding='utf-8')
+        print(f'compiled design/genome.json -> {out}')
+        return str(out)
+    return None
+
+
 def cmd_fonts(a):
     work = Path(a.work).resolve()
-    code, out = run([HERE / 'fetch_fonts.py', '--style', a.style, '--out', work / 'fonts', '--install', '--check', 'vi'])
+    style = a.style or deck_style_source(work)
+    if not style:
+        print('fonts: no --style, no design/style.json and no design/genome.json: route the deck first (studio.py route WORK --apply)')
+        return 2
+    code, out = run([HERE / 'fetch_fonts.py', '--style', style, '--out', work / 'fonts', '--install', '--check', 'vi'])
     (work / 'design').mkdir(parents=True, exist_ok=True)
     (work / 'design' / 'font-check.txt').write_text(out, encoding='utf-8')
     print(out.strip())
@@ -240,6 +269,8 @@ def cmd_build(a):
     if c:
         print(o)
         return c
+    if getattr(a, 'skip_check', False):   # v5.6 (I32): `final` runs ONE check, on the packed final with its renders
+        return 0
     renders = None
     if not a.no_render:
         renders = next_round(work / 'renders', tag)
@@ -266,6 +297,7 @@ def cmd_final(a):
     work = Path(a.work).resolve()
     a.group = None
     a.no_render = True
+    a.skip_check = True
     c = cmd_build(a)
     if c and a.strict:
         return c
@@ -285,7 +317,13 @@ def cmd_final(a):
     renders = next_round(work / 'renders', 'final')
     r = subprocess.run(['bash', str(HERE / 'render.sh'), str(final), str(renders)], capture_output=True, text=True)
     print((r.stdout or r.stderr).strip().splitlines()[-1] if (r.stdout or r.stderr).strip() else 'render: no output')
-    c, o = run([HERE / 'check_deck.py', final, '--renders', str(renders)])
+    extra = ['--renders', str(renders)]
+    mode = (json.loads(deck.read_text(encoding='utf-8')).get('compat') or 'morph') if deck.is_file() else 'morph'
+    if mode != 'morph':
+        extra += ['--compat', mode]
+    c, o = run([HERE / 'check_deck.py', final, *extra])
+    (work / 'deck' / 'final-check.txt').write_text(o, encoding='utf-8')
+    print('check_deck (the one final check: deck/final.pptx with ' + str(renders.name) + '):')
     print('\n'.join(l for l in o.splitlines() if l.startswith(('WARN', 'ERROR', 'RESULT'))))
     print(f'final: {final} ({have} slides), renders {renders}. NEXT: deliver.py WORK --deck {final} ... then gates.py check WORK --gate 6')
     return c
@@ -390,7 +428,7 @@ def main(argv=None):
     s.add_argument('--style', default=None, choices=sorted(p.stem for p in (SKILL / 'assets' / 'styles').glob('*.json')),
                    help='optional (v5.5): leave it out and run "studio.py route WORK --apply" once the brief and assets exist')
     s.add_argument('--title', default='Tiêu đề bài nói')
-    s.add_argument('--fonts', action='store_true')
+    s.add_argument('--fonts', action='store_true', help='with --style only: fetch the style\'s fonts (else run `studio.py fonts WORK` after routing)')
     s.add_argument('--force', action='store_true', help='overwrite an existing deck.json')
     s = sub.add_parser('route')
     s.add_argument('work')
@@ -416,7 +454,7 @@ def main(argv=None):
     s.add_argument('--layout', choices=('stack', 'side'), default='stack', help='stack (default) or side by side')
     s = sub.add_parser('fonts')
     s.add_argument('work')
-    s.add_argument('--style', required=True)
+    s.add_argument('--style', default=None, help='a pack name or style.json; default: design/style.json, else design/genome.json')
     a = ap.parse_args(argv)
     return {'new': cmd_new, 'route': cmd_route, 'build': cmd_build, 'final': cmd_final, 'compare': cmd_compare, 'fonts': cmd_fonts}[a.cmd](a)
 

@@ -17,6 +17,9 @@ From **Anatomy**:
 4. **One camera** (isometric 30°, `iso_box` / `iso_cyl`), solids in **four tones by facing** (top light,
    left mid, right dark, line darkest), so form reads without outlines or gradients.
 5. **Exactly one lit accent per frame** (`lit`; parts sharing a `group` count as one). The build stops if there are two.
+   `"lit": true` takes the frame's lit colour (the shape's `"lit"`, the palette's `lit`, else the accent);
+   v5.6: `"lit": "accent2"` (a palette key or a hex) keeps the part lit in the colour the deck's logic needs
+   (capacity in navy, throughput in teal). A lit stroke (line, open poly) is lit in its line colour.
 6. **No words inside the drawing**: labels sit beside it, aligned in a column, in the label role.
 7. **Detail rewards a 4× look**; lines end on something; motion is calm and time-based.
 
@@ -36,6 +39,11 @@ From **Manim** (the verbs, and how each becomes native PowerPoint):
 | `MovingCamera` | the frame moves over a still drawing | `camera` on the next slide | Morph: every part moves and scales together |
 
 The verb is chosen from the part (`choose_verb`); set `verb`/`dir` only to override it.
+
+Part keys that trip people (v5.6): a **text** part's colour is `"color"` (`"fill"` is read as the colour with a
+build warning); a **poly** is a stroke path with `"open": true` or `"closed": false` (the build_deck spelling), so a
+line chart is drawn along its stroke (Create → wipe) and never closed into a filled polygon.
+Worked example: `examples/genome-construct/` (bars that grow, a dashed capacity line lit in navy).
 
 ## 2. Camera and states are slides
 

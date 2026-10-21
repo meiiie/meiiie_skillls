@@ -236,7 +236,8 @@
     "tones": [
       "playful",
       "energetic",
-      "warm"
+      "warm",
+      "friendly"
     ],
     "material": {
       "saturated": 0.8,
@@ -245,11 +246,15 @@
     "avoid": [
       {
         "domain": "aerospace",
-        "reason": "sun-yellow cartoon outlines shrink 70-metre rockets to toys"
+        "because": "sun-yellow cartoon outlines shrink real hardware to toys"
       },
       {
         "domain": "heritage",
-        "reason": "cartoon outlines trivialise ritual and history"
+        "because": "cartoon outlines trivialise what they draw"
+      },
+      {
+        "domain": "economy",
+        "because": "cartoon outlines and sun yellow trivialise inflation and debt"
       }
     ]
   }

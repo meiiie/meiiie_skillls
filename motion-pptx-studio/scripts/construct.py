@@ -22,12 +22,15 @@ A part:
   {"id": "plug", "kind": "rect|ellipse|poly|line|arc|text|image|iso_box|iso_cyl",
    "at": [x, y, w, h]             rect/ellipse/image (model units, y down); text: x, y in the model, w, h in inches
                                   (words keep their size under a camera zoom; "scale_box": true scales them too)
-   "points": [[x, y], ...]        poly ("open": true = a stroke path), line = two points
+   "points": [[x, y], ...]        poly ("open": true or "closed": false = a stroke path), line = two points
    "box": [x, y, z, w, d, h]      iso_box / iso_cyl (world units, z up; drawn in the one isometric camera)
    "layer": "base|structure|mechanism|control|subject|label",
    "on": "<id of the part it rests on>",          the build order follows it (Anatomy: each part sits on another)
-   "fill": "surface", "line": "ink", "width": 1.25, "alpha": 0.2, "radius": 0.1, "role": "label", "text": "...",
-   "lit": true                    the ONE accent part (Anatomy: one lit part per frame; parts sharing a "group" count as one)
+   "fill": "surface", "line": "ink", "width": 1.25, "alpha": 0.2, "radius": 0.1,
+   text parts: "role": "label", "text": "...", "color": "ink" (a text's colour is "color"; "fill" is read as color with a warning)
+   "lit": true | "accent2" | "#1F3A5F"   the ONE accent part (Anatomy: one lit part per frame; parts sharing a "group"
+                                  count as one). true = the frame's lit colour (shape "lit", palette "lit", else the
+                                  accent); a palette key or hex keeps it lit in that colour (e.g. navy for trade)
    "verb": "auto|create|grow|write|sweep|zoom|wipe|fade|none", "dir": "b"   override the chosen verb
    "step": 3                      parts with the same step build together (AnimationGroup)
    "states": {"open": {"at": [...], "points": [...], "box": [...], "fill": "...", "hide": true, "text": "..."}}}
@@ -219,6 +222,21 @@ def stroke_dir(points):
     return 't' if dy >= 0 else 'b'
 
 
+def is_open(p):
+    """v5.6 (I24): a stroke path is "open": true OR "closed": false (the build_deck spelling)."""
+    return bool(p.get('open')) or p.get('closed') is False
+
+
+def _warn(spec, msg):
+    w = getattr(spec, 'warnings', None)
+    if isinstance(w, list):
+        if msg not in w:
+            w.append(msg)
+    else:
+        import sys
+        print('WARN ' + msg, file=sys.stderr)
+
+
 def choose_verb(p, parent, cam):
     k = p.get('kind', 'rect')
     v = p.get('verb', 'auto')
@@ -226,7 +244,7 @@ def choose_verb(p, parent, cam):
         return v, p.get('dir')
     if k == 'text' or p.get('layer') == 'label':
         return 'write', None
-    if k == 'line' or (k == 'poly' and p.get('open')) or k == 'arc':
+    if k == 'line' or (k == 'poly' and is_open(p)) or k == 'arc':
         return 'create', stroke_dir(p['points'])
     if k == 'ellipse' and not p.get('fill'):
         return 'sweep', None
@@ -261,8 +279,11 @@ def shapes_for(p, base, cam, spec, lit_colour):
     k = p.get('kind', 'rect')
     name = f'!!{base}.{p["id"]}' if base else f'!!{p["id"]}'
     fill = p.get('fill')
-    if p.get('lit'):
-        fill = lit_colour
+    lit = p.get('lit')
+    if lit:
+        # v5.6 (I25): "lit": true takes the frame's lit colour (palette "lit", default the accent);
+        # "lit": "accent2" (a palette key or a hex) keeps the part lit but in the colour the deck's logic needs
+        fill = lit if isinstance(lit, str) else lit_colour
     common = {}
     for key in ('alpha', 'shadow', 'gradient', 'angle', 'line_alpha', 'dash', 'cap'):
         if key in p:
@@ -286,6 +307,11 @@ def shapes_for(p, base, cam, spec, lit_colour):
             for key in ('color', 'align', 'size', 'valign', 'bold'):
                 if key in p:
                     t[key] = p[key]
+            if 'color' not in p and p.get('fill'):   # v5.6 (I23): text colour is "color"; "fill" was silently dropped
+                t['color'] = p['fill']
+                _warn(spec, f'construct {base}.{p["id"]}: a text part takes "color", not "fill" (used {p["fill"]!r} as its colour)')
+            elif 'color' not in p and lit:
+                t['color'] = fill
             if p.get('scale_text') and 'size' in p:
                 t['size'] = round(p['size'] * cam.zoom, 1)
             out.append(t)
@@ -302,15 +328,16 @@ def shapes_for(p, base, cam, spec, lit_colour):
         pts = [list(cam.pt(u, v)) for u, v in p['points']]
         if k == 'line' and len(pts) == 2:
             out.append({'type': 'line', 'name': name, 'x1': pts[0][0], 'y1': pts[0][1], 'x2': pts[1][0], 'y2': pts[1][1],
-                        'color': p.get('line', 'ink'), 'width': lw, **common})
+                        'color': fill if lit else p.get('line', 'ink'), 'width': lw, **common})
         else:
             s = {'type': 'poly', 'name': name, 'points': pts, **common}
-            if p.get('open') or k == 'arc':
+            if is_open(p) or k == 'arc':
                 s['open'] = True
             if fill and not s.get('open'):
                 s['fill'] = fill
             if p.get('line') or s.get('open'):
-                s['line_color'], s['line_width'] = p.get('line', 'ink'), lw
+                # a lit STROKE (open path, arc) is lit in its line colour: it has no fill to carry the accent
+                s['line_color'], s['line_width'] = (fill if lit and s.get('open') else p.get('line', 'ink')), lw
             out.append(s)
     elif k == 'iso_box':
         x, y, z, w, d, h = p['box']

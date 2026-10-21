@@ -12,4 +12,11 @@
 Each folder: `make_deck.py` (writes `deck.json`), `build.sh` (assets → deck.json → `studio.py build`), `contact.jpg`
 (the committed render). Generated assets, decks and renders are not committed; run `build.sh` to get the `.pptx` and
 play it in PowerPoint 365 to see the Morph.
+- `genome-construct/`: v5.6 worked example of the v5.5+ way: a brief with `tone:`/`domains:`, `design/genome.json`
+  (arc as a string, explicit palette, chrome title + source), `design/directions.json`, the written `design/routing.md`
+  and `art-direction.md`, and a 3-slide `construct` deck (bars grow, a lit navy capacity line). No photos; numbers fictional.
 - `earth-fall/`: v5.2 pro-craft example: 22-slide Powers-of-Ten Earth deck, four sub-styles, variety audit passes.
+- `flagship-khi-ap/`: v5.7 flagship under full creative authority: one data-grounded deck-wide concept (the 2026
+  economy as a weather chart), six signature films (5 ManimGX + 1 Anatomy) each with an editable native fallback,
+  the board, film recipes (`films/kit.py` and one file per film), art direction, film contact sheets and the scored
+  critique log (every version, redo until ≥ 8). 30 Vietnamese slides; real IMF/WTO/WB/GSO numbers.

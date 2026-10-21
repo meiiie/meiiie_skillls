@@ -256,7 +256,8 @@
       "technology": 1,
       "software": 0.8,
       "business": 0.5,
-      "aerospace": 0.4
+      "aerospace": 0.4,
+      "economy": 0.2
     },
     "tones": [
       "bold",
@@ -269,7 +270,7 @@
     "avoid": [
       {
         "domain": "heritage",
-        "reason": "frosted cyan-violet glass is the SaaS look; it says nothing about a place or a craft"
+        "because": "frosted cyan-violet glass panels are the SaaS look"
       }
     ]
   }

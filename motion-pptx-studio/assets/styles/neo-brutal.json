@@ -248,7 +248,11 @@
     "avoid": [
       {
         "domain": "heritage",
-        "reason": "hard offset shadows and lime blocks mock a solemn tradition"
+        "because": "hard offset shadows and lime blocks mock what they frame"
+      },
+      {
+        "domain": "economy",
+        "because": "sticker shadows and lime blocks make inflation and debt look like a joke"
       }
     ]
   }

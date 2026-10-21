@@ -74,8 +74,12 @@ def main(argv=None):
         scenes = d / 'scenes.json'
         scenes.write_text(json.dumps(sc, ensure_ascii=False, indent=1), encoding='utf-8')
     docx = d / f'{a.name}_KichBan.docx'
+    sys.path.insert(0, str(HERE))
+    from words_budget import transition_seconds   # v5.6 (I34): the script's transition estimate uses the deck's real durations
+    tsec, tn = transition_seconds(pptx, 1, 1300)
+    morph_s = f'{tsec / tn:.2f}' if tn else '1.3'
     r = subprocess.run([py, str(HERE / 'script_docx.py'), '--notes', str(notes), '--scenes', str(scenes), '--out', str(docx),
-                        '--title', a.title, '--subtitle', a.subtitle], capture_output=True, text=True)
+                        '--title', a.title, '--subtitle', a.subtitle, '--morph-s', morph_s], capture_output=True, text=True)
     print(r.stdout.strip() or r.stderr.strip())
     if r.returncode:
         sys.exit('script_docx failed')

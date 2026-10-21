@@ -1,5 +1,5 @@
 # Art direction (Gate 3)
-- style: TODO (pack name; the working copy is design/style.json. Change the copy, never the pack)
+- style: TODO (the routed family or genome; the working copy is design/style.json. Change the copy, never the pack; with a genome, genome.py writes this file)
 
 ## Style choice (no default template: pick or mix packs per chapter ON PURPOSE; references/styles.md §0)
 - chosen: TODO pack(s) and the scenes they cover, and why the subject asks for it

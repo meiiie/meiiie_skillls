@@ -5,7 +5,7 @@ description: Build cinematic, professionally designed PowerPoint decks with real
 
 # Motion PPTX Studio
 
-Version 5.5.0. Python 3.9+ (`python3`), LibreOffice and poppler; Node 20.10+ and Chrome for Anatomy films, ManimGX for Manim films, Codex CLI for generated assets (each optional, each with a documented fallback); works in any harness with a shell (Claude Code, Codex,
+Version 5.7.0. Python 3.9+ (`python3`), LibreOffice and poppler; Node 20.10+ and Chrome for Anatomy films, ManimGX for Manim films, Codex CLI for generated assets (each optional, each with a documented fallback); works in any harness with a shell (Claude Code, Codex,
 Cursor, Grok Bot, a plain LLM with tools: `references/harness-adapters.md`).
 
 The standard comes from a real user and is kept word for word:
@@ -36,6 +36,36 @@ creative floor (three directions considered, two hand-built signature moments, a
 decks, no repeated split layout). Everything else in this file is advice that reproduced good decks, not
 a recipe. When the subject asks for something the skill does not describe, build it; when a habit here
 makes the deck duller, drop it and write why in `notes/`. Passing gates is where the work starts.
+
+## Full creative authority: think deeply, then build (v5.7)
+
+You have **full creative authority** over the deck. The user (and Darren, who wrote this skill) does not want
+a deck assembled from this file's parts; they want the best deck you can think of for this subject, and they
+expect you to take the time to think it through. Work in this order, and do not skip the thinking because a
+template would be faster:
+
+1. **One deck-wide concept, grounded in the data.** Before any slide, find one metaphor or visual world that
+   the whole deck lives in, chosen because the *data* behaves like it, not because it looks nice. Write the
+   mapping down (`design/art-direction.md`): each chapter's numbers get an instrument of that world. Example
+   (`examples/flagship-khi-ap/`): the world economy in Oct 2026 as a **weather chart** ("Khí áp"): growth =
+   isobars with an energy LOW over the Gulf and an AI HIGH over East Asia; rates = barometer dials; growth
+   history = a barograph drum; exports = trade winds; public debt = stilling wells with a 100% flood line;
+   AI goods = an isometric factory line. Reject concepts that are clichés of the topic (globes with $,
+   scales, handshakes, lightbulbs, rockets) or that do not map to real numbers.
+2. **Signature films are the core, not an option.** Plan one hand-built film per chapter (ManimGX for data
+   and instruments, Anatomy for machines and supply chains; `references/manimgx-quirks.md`, `scripts/
+   anatomy_film.py`). Each film turns real numbers into the concept's instrument, moves the camera (push,
+   pull, track), and ends on a frame that is also the slide's editable native fallback (the same geometry
+   drawn by both renderers). Native slides carry the rest with ≥ 10 different motion techniques.
+3. **Self-critique loop with scores.** After every render (film strip, still, deck contact sheet) look at it
+   and score it 1–10 against the reference bar (FT / Bloomberg / The Economist / Pentagram level): concept,
+   data honesty, composition, type, motion, detail density. Write the score, what is weak and the fix in
+   `critique-log.md`; redo until every film and slide is **≥ 8**. A version that "passes" at 6 is not done.
+4. **Verify every number** against `research/facts.md` before it goes on a slide or into the script; never
+   invent a number, a quote or a causal claim to make a metaphor work. Projections say "dự báo".
+5. **The skill is a floor, not a ceiling.** When the concept needs something the engine does not have (a
+   native camera push on a group, a numbered leader system synced to a film), build it in the project and,
+   if it generalises, note it for the skill.
 
 ## The one idea
 
@@ -101,10 +131,11 @@ Set `S=<absolute path of this skill>/scripts` and `WORK=<project folder>`. Every
 ## The pipeline
 
 ```bash
-python3 $S/studio.py new WORK --kind heritage|product|pitch|business|company-profile|education|event|other --title "…" --fonts
-# v5.5: no --style. After the brief and the assets: route, then write the genome
+python3 $S/studio.py new WORK --kind heritage|product|pitch|business|company-profile|education|event|other --title "…"
+# v5.5+: no --style, so no style.json, no starter deck and no fonts yet (it says so). After the brief and the assets:
 python3 $S/studio.py route WORK [--apply]       # → design/routing.md (ranked, rejections with reasons, decision)
 python3 $S/genome.py compile WORK/design/genome.json   # → design/style.json + design/art-direction.md
+python3 $S/studio.py fonts WORK                  # fonts of design/style.json (the genome's), → fonts/ + design/font-check.txt
 python3 $S/gates.py check WORK --gate N        # N = 0..6; FAIL means stop and do the missing work
 python3 $S/gates.py check WORK --upto 6        # all gates, gate 5 for every rendered group
 ```
@@ -112,7 +143,10 @@ Gates have two kinds of row (v5.3). **FAIL** is hard: facts (every fact row sour
 traces to a fact ID), licences (every image credited, AI images labelled), render integrity (fonts, renders,
 check_deck, the films) and the creative floor (3 directions, 2 signature moments, style shift on 20+ slides,
 no text-left/photo-right on 4+ slides). **WARN** is advisory: fact counts, domains, kept/candidate counts,
-scene and keyframe-run counts, word averages, anchor, colour arc, samples. A WARN never stops you.
+scene and keyframe-run counts, word averages, anchor, colour arc, planned films before Phase 5. A WARN never stops you.
+v5.6: Gate 3 FAILs without ≥ 2 samples and a compare sheet (Phase 3 builds them); storyboard films are only planned at
+Gate 4 (WARN) and FAIL at gates 5 and 6 when still missing. `gates.py` appends its history to `WORK/gates.history.log`
+(tool-owned); `gates.log` is yours, e.g. for `gates.py check … > gates.log`.
 
 ### Phase 0 · Brief → Gate 0
 Fill `WORK/brief.md`: topic, audience, kind, size, talk_minutes, on-slide language, forbidden items, **honest
@@ -166,7 +200,8 @@ imagery → illustrate from the TRUE list (labelled) or set `asset_scarcity` and
 - **Signature**: write it under `## Signature` in `art-direction.md` — what it is, where it rests, what it
   becomes at the hook, the turn and the close, which `!!` parts it has.
 - **Colour arc**: two grounds or a bloom, written as `S1-S4 #0E0A07 → S6-S11 #F1E4C8`.
-- **Sample and compare**: turn the starter into your direction, `studio.py build WORK --group sample`, copy
+- **Sample and compare** (Gate 3 FAIL without them, v5.6): write 2+ sample slides in your direction (title and body;
+  `examples/genome-construct/make_deck.py` is a genome deck to start from), `studio.py build WORK --group sample`, copy
   title and body renders to `design/samples/`, then `studio.py compare WORK WORK/renders/sample-1` and answer
   its questions. Change direction now, not after 40 slides.
 - **Style choice and motion vocabulary**: `## Style choice` (chosen, per chapter, and ≥ 1 rejected with the
@@ -181,7 +216,9 @@ on-slide text, `source` (fact IDs), words, morph ms. 8+ scenes for talks of 5 mi
 are runs of 3+ keyframes (a gate 4 habit, WARN; v5.4: one number everywhere), each a recipe from `motion-grammar.md` §4; distinct visuals ≥ scenes, none on more than 4 rows;
 an anchor phrase on 3 slides; a colour arc; a circular close (reusing the opening photo there: `"bookend": true` on the slide). Keep each row on one line (gate 4 fails a broken
 table loudly). Rows with a number on the slide must cite a fact ID; the signature-moment slides use
-`film:assets/film/<name>.mp4` as their visual; a `style` column names the direction of each scene.
+`film:assets/film/<name>.mp4` as their visual (it is made in Phase 5: Gate 4 lists it as planned, gates 5/6 require it);
+a `style` column names the direction of each scene. Repeating a `layout` in more than 3 scenes is a WARN: say in the row
+why the repetition means something.
 
 ### Phase 5 · Build in groups of 2–4 scenes → Gate 5 (`build-engine.md`, `qa-checklist.md`)
 Write `WORK/deck.json` against the style: components (`heading`, `card`, `stat`, `screen`, `timeline`, `bars`,
@@ -210,7 +247,7 @@ it never replaces playing the deck in PowerPoint.
 
 ### Phase 6 · Finish and deliver → Gate 6 (`delivery.md`)
 ```bash
-python3 $S/studio.py final WORK      # full build -> finish_dedupe -> clean -> pack deck/final.pptx -> renders/final-N -> check
+python3 $S/studio.py final WORK      # full build -> finish_dedupe -> clean -> pack deck/final.pptx -> renders/final-N -> ONE check_deck with those renders (deck/final-check.txt); gate 6 reruns that strict check
 # (by hand: finish_dedupe.py WORK/deck/unpacked; ooxml.py clean/pack WORK/deck/unpacked WORK/deck/final.pptx; render.sh)
 python3 $S/words_budget.py measure WORK/deck/final.pptx --target 6:00
 python3 $S/deliver.py WORK --deck WORK/deck/final.pptx --name Project_Motion --title "Kịch bản thuyết trình"
@@ -251,12 +288,13 @@ and why they are deliberate.
 |---|---|
 | `references/design-space.md` + `scripts/route.py`, `scripts/genome.py` | Phase 3, first: routing (fit scores, rejections, the gate), the genome axes, compiling a deck's own style, measuring that two decks really differ |
 | `references/construction-motion.md` + `scripts/construct.py` | Phases 3–5: Anatomy/Manim rules as native motion — part model, build order, verbs, camera, states, one lit part |
+| `references/manimgx-quirks.md` + `examples/flagship-khi-ap/` | v5.7, Phases 3–5: before writing a ManimGX film (fonts, JSON precompute, VFR stills, camera strokes, z-order) and to see a full-authority flagship: concept, six films, native fallbacks, scored critique log |
 | `references/signature-moments.md` | Phases 3–5: choosing mechanisms, the Anatomy recipe, the Manim recipe, video + editable poster on the slide, fallback, banned clichés |
 | `references/art-directions.md` + `scripts/directions.py` | Phase 3: three directions as thumbnails, choosing, style shifts, geometry variety |
 | `references/craft.md` | before Phase 3 and before every review: the set, signature, grid, type, colour, compositions, words, imagery, depth, data, anti-patterns, the critic's pass |
 | `references/reference-bar.md` + `assets/reference/` | before Phase 3: what the accepted deck does, measured; how to compare |
 | `references/genres.md` | Phase 0: arc, signature, evidence, research depth and traps for each kind of deck |
-| `references/styles.md` + `references/styles/<pack>.md` | Phase 3: the creativity rule, the eleven families (genome starting points, each with a `fit` block) and each one's layout grammar and signature motion, changing one, a style from a brand board, all keys |
+| `references/styles.md` + `references/styles/<pack>.md` | Phase 3: the creativity rule, the eleven families plus three experimental ones (genome starting points, each with a `fit` block) and, for every one of the 14 (v5.6), `references/styles/<pack>.md` with its layout grammar, signature motion and routing rejections, changing one, a style from a brand board, all keys |
 | `references/research-protocol.md` | Phase 1: source ladder, tagging, do-not-say list, product research |
 | `references/cultural-visual-accuracy.md` | any cultural or heritage topic: true and wrong motifs, anatomy, user-media audit |
 | `references/asset-sourcing.md` | Phase 2: where to search, query tips, licences, keep/reject, Codex generated assets (§6b), third-party logos, the asset kit |

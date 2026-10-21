@@ -224,11 +224,15 @@
     "avoid": [
       {
         "domain": "heritage",
-        "reason": "phosphor-green CRT pastiche has no relation to a cultural tradition"
+        "because": "a phosphor-green CRT pastiche is a computing in-joke"
       },
       {
         "domain": "aerospace",
-        "reason": "a hacker-terminal pastiche turns real launch hardware into a joke"
+        "because": "a hacker-terminal pastiche turns real hardware into a joke"
+      },
+      {
+        "domain": "economy",
+        "because": "a hacker-terminal register speaks to the wrong audience"
       }
     ]
   }

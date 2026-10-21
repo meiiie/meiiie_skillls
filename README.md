@@ -9,7 +9,7 @@
 | [meiiie-interactive-webgl](meiiie-interactive-webgl/SKILL.md) | Available | Semantic 3D objects, reversible assembly, accessible controls and explicit render checks. |
 | [meiiie-operating-office](meiiie-operating-office/SKILL.md) | Available | Task-scoped coordination with one accountable lead, bounded specialist work and evidence-based review. |
 | [neko-wiii-product-studio](neko-wiii-product-studio/SKILL.md) | Available | Neko Core and Wiii ownership, shared contracts and integration acceptance. |
-| [motion-pptx-studio](motion-pptx-studio/SKILL.md) | Available | v5.5 designed, researched PowerPoint decks for any kind of talk: self-routing, a per-deck design genome, construction motion, a heritage-collage style, signature moments, and hard and soft gates. |
+| [motion-pptx-studio](motion-pptx-studio/SKILL.md) | Available | v5.7 designed, researched PowerPoint decks: full creative authority, semantic self-routing, a per-deck design genome, construction motion, signature films, and the Khí áp flagship reference. |
 | [heritage-visual-research](heritage-visual-research/SKILL.md) | Available | Sourced facts, true/wrong motif lists, anatomy checks and licensed images for cultural topics. |
 | [presentation-speech-craft](presentation-speech-craft/SKILL.md) | Available | Hook, anchor phrase, pauses, circular close, word budget and a speaker-script document. |
 
@@ -47,7 +47,7 @@ The accepted product direction and historical audit findings guide current inspe
 
 ## Motion PPTX Studio
 
-[Motion PPTX Studio](motion-pptx-studio/SKILL.md) (v5.5) builds a PowerPoint deck as a short film shot on one set: a
+[Motion PPTX Studio](motion-pptx-studio/SKILL.md) (v5.7) builds a PowerPoint deck as a short film shot on one set: a
 style pack holds the system (material ground, chrome, grid, type roles), one signature object carries the deck, and
 each scene uses a chosen motion vocabulary — Morph keyframes when PowerPoint 365/2019+ will play them, otherwise
 classic transitions, entrances, paths and type. It covers product launches, pitches, business reviews and data stories,
@@ -58,8 +58,8 @@ choice (including a rejected pack) and at least two techniques beyond Morph.
 - Eleven [style packs](motion-pptx-studio/references/styles.md): lacquer-heritage, noir-product, paper-editorial,
   boardroom-data, studio-pop, kinetic-type, blueprint, swiss-blue, neo-brutal, retro-terminal, and
   heritage-collage (aged paper, script, photogrid). Each pack is a layout grammar, with OFL fonts that cover
-  Vietnamese ([gallery](motion-pptx-studio/assets/reference/styles-gallery.jpg) of the first five). Three experimental
-  packs (glass-tech, papercut-collage, desktop-os) are palette-only until their grammar is designed.
+  Vietnamese ([gallery](motion-pptx-studio/assets/reference/styles-gallery.jpg) of the first five). glass-tech,
+  papercut-collage and desktop-os now have their own grammar docs.
 - A [motion library](motion-pptx-studio/references/motion-library.md) of 49 transitions and 24 effects.
   `compat` is `morph` (default), `safe` or `dual`: Morph is converted to classic animation automatically, and a
   no-Morph render gate checks that safe mode leaves no Morph behind.
@@ -85,7 +85,14 @@ choice (including a rejected pack) and at least two techniques beyond Morph.
   [design genome](motion-pptx-studio/references/design-space.md), and builds diagrams with
   [construction motion](motion-pptx-studio/references/construction-motion.md). A rejected family, such as heritage
   collage for aerospace, fails the gate.
-  [Worked examples](motion-pptx-studio/examples/README.md) include the six-style phin deck and the earth-fall deck.
+- v5.6 routes by what the deck is about (topic weight, declared domains, tone vectors), not keyword hits.
+  v5.7 adds full creative authority: one data-grounded concept, a signature film per chapter, and a scored
+  visual self-critique. The flagship reference is
+  [Khí áp](motion-pptx-studio/examples/flagship-khi-ap/README.md). Hairline shapes drop the theme effect
+  shadow so LibreOffice does not paint grey bands. See
+  [manimgx-quirks.md](motion-pptx-studio/references/manimgx-quirks.md).
+  [Worked examples](motion-pptx-studio/examples/README.md) include the six-style phin deck, the earth-fall deck
+  and the Khí áp flagship.
 
 Morph plays in PowerPoint 365 / 2019+. PowerPoint 2016, Google Slides, Keynote and LibreOffice need `compat: safe`
 or `dual`. Image search covers Wikimedia Commons and Openverse; museum sites stay manual. Installing the skill

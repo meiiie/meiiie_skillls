@@ -1,0 +1,15 @@
+{"directions": [
+ {"id": "A", "name": "Bảng điều hành", "family": "boardroom-data", "sketch": "kinetic-number",
+  "palette": ["#F5F7FA", "#0E7C6B", "#0F1722", "#1F3A5F"], "composition": "one headline figure huge on the left, a native bar chart that grows on the right",
+  "ground": "cool light paper", "type": "Plus Jakarta Sans + Inter", "motion": "bars grow from the baseline; the lit bar morphs", "signature": "the berth bar that splits into the new berth",
+  "title": "Bến đầy 88%", "kicker": "SẢN LƯỢNG 2025", "number": "2,1"},
+ {"id": "B", "name": "Bản tin giấy", "family": "paper-editorial", "sketch": "editorial",
+  "palette": ["#F3EEE4", "#B0321E", "#1B1815"], "composition": "claim in a serif headline, one line chart on a hairline axis",
+  "ground": "warm paper", "type": "Fraunces + Inter", "motion": "the hairline draws, then the line", "signature": "the vermilion margin mark",
+  "title": "Cảng sắp chật", "kicker": "BẢN TIN"},
+ {"id": "C", "name": "Sơ đồ bến đêm", "family": "blueprint", "sketch": "hero-object",
+  "palette": ["#0E141C", "#E8A33D", "#E6EDF3"], "composition": "the quay drawn as a technical plan, berths lit one by one",
+  "ground": "dark navy plan paper", "type": "IBM Plex Sans + Mono", "motion": "the quay outline traces, berths grow", "signature": "the new berth drawn last",
+  "title": "Bốn bến", "kicker": "MẶT BẰNG"}],
+ "chosen": "A",
+ "why": "a lender reads figures first: one sourced number per slide and a bar that grows into the new berth, in the calm boardroom register the brief asks for"}

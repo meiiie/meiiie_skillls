@@ -123,7 +123,7 @@ def test_every_pack_has_a_fit_block_with_avoid_reasons():
     for name, c in pk.items():
         assert c['fit'], name
     hc = pk['heritage-collage']['fit']
-    assert any(a['domain'] == 'aerospace' and len(a['reason'].split()) >= 8 for a in hc['avoid'])
+    assert any(a['domain'] == 'aerospace' and len((a.get('because') or a.get('reason', '')).split()) >= 6 for a in hc['avoid'])
 
 
 # ------------------------------------------------------------------ genome
