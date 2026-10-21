@@ -15,7 +15,7 @@ decks usually skip:
   WARN   low contrast between a text colour and what is behind it (only when renders are given)
   INFO   the persistent layers, the type scale, ground kinds
 
-  python craft_audit.py DECK.pptx [--renders DIR]
+  python3 craft_audit.py DECK.pptx [--renders DIR]
 """
 import sys
 from collections import Counter

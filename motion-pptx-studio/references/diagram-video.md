@@ -5,7 +5,7 @@ Hand-built, never clip-art: the structure itself is the picture (books and scale
 ## A. `diagram_video.py` (no extra install)
 1. Write `design/<name>.json`: region on the slide, palette, font, nodes (`box|pill|db|circle`, one `lit`), edges
    (`straight|hv|vh`, `label`, `flow`, `dash`). Coordinates in inches, relative to the region.
-2. `python $S/diagram_video.py design/brew.json --mp4 assets/brew.mp4 --poster assets/brew.poster.png --fragment design/brew-shapes.json`
+2. `python3 $S/diagram_video.py design/brew.json --mp4 assets/brew.mp4 --poster assets/brew.poster.png --fragment design/brew-shapes.json`
 3. Slide A: `{"type": "video", "path": "assets/brew.mp4", "poster": "assets/brew.poster.png", "loop": false, ...}` at the
    same region. Slide B (or instead, for Google Slides/Keynote/print): paste the fragment's shapes; they carry
    native animation (nodes zoom in staggered, pipes wipe in their direction, flow dots loop a motion path).

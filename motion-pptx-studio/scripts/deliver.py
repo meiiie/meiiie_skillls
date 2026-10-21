@@ -1,6 +1,6 @@
 """Assemble WORK/deliver/: final pptx, speaker-script docx, fonts + licence + install README, CREDITS, zip.
 
-  python deliver.py WORK --deck WORK/deck/final.pptx --name "CaTru_Motion" --title "Ca trù — kịch bản"
+  python3 deliver.py WORK --deck WORK/deck/final.pptx --name "CaTru_Motion" --title "Ca trù — kịch bản"
          [--scenes WORK/scenes.json] [--subtitle "..."]
 Steps: copies the deck -> exports notes (ooxml.py notes-get) -> script_docx.py -> copies static fonts
 (warns on variable fonts) + licence files -> CREDITS.md -> zip. Run check_deck.py and gates.py --gate 6 after.
@@ -102,7 +102,7 @@ def main(argv=None):
             if p.exists():
                 zf.write(p, p.relative_to(d))
     print(f'deliver/: {pptx.name}, {docx.name}, fonts/ ({nfont} fonts), CREDITS.md, {z.name} ({z.stat().st_size / 1e6:.1f} MB)')
-    print('NEXT: python gates.py check WORK --gate 6')
+    print('NEXT: python3 gates.py check WORK --gate 6')
 
 
 if __name__ == '__main__':

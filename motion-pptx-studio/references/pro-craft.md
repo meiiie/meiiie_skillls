@@ -65,7 +65,11 @@ Rules:
 | Big tonal break | fade through black, dissolve | breath, before an emotional beat |
 | Climax (one per deck) | flythrough / vortex / ripple | spent once, it lands; spent often, it is a template |
 
-Use at least 5 types in a 15+ slide deck, Morph on ≤ 40% of cuts, and the "climax" transition only once.
+Use at least 5 types in a 15+ slide deck and the "climax" transition only once. Morph: **inside** a
+scene (keyframe → keyframe) it is the default; **between** scenes use the cut that means something
+(push, cover, split, fade through black). So with 10 scenes × 3 keyframes, 20 of 30 cuts are Morph and
+that is fine; what is not fine is Morph on the scene cuts. (v5.3 reconciles this with motion-grammar.md:
+"≤ 40% Morph" applies to scene cuts only; ≥ half of the scenes as 3+ keyframe runs is a habit, not a gate.)
 
 ## 4. Composition systems
 

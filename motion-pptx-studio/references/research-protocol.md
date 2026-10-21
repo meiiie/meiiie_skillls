@@ -9,7 +9,7 @@ decoration is what makes a deck look "AI-made". Do this phase fully, even when t
   project the contest asked for "Video đội thi thuyết trình về sản phẩm đã hoàn thành để phục vụ công tác chấm
   điểm và phát sóng". That one sentence set the format (a recorded talk), the audience (judges plus TV) and the
   licence policy (broadcast, so no NC images).
-- **Videos**: `python $S/video_frames.py video.mp4 --out WORK/research/frames --every 5 --sheet`. Look at every
+- **Videos**: `python3 $S/video_frames.py video.mp4 --out WORK/research/frames --every 5 --sheet`. Look at every
   frame and write what is really shown (characters, objects, on-screen text, chapter titles). Later, the media
   audit in `accuracy.md` grades each frame.
 - **Repos**: README, CHANGELOG, releases, docs/, the site, the brand board, issue templates. Note version
@@ -29,7 +29,9 @@ Search in **the local language and in English**, with and without diacritics ("c
 snippet is not a source. Save raw pages in `research/` (`*.html`, `*.txt`) so a fact can be re-checked later.
 
 ## 3. Write `research/facts.md` (template provided by `gates.py init`)
-- Number the sources: `(U1) UNESCO decision 4.COM 14.12 — https://...`. Facts cite the ID and the URL. Gate 4 requires at least 40% of storyboard rows to carry one of these IDs (or a table id such as `1.1`) in the on-slide text, not only in the speaker notes.
+- Number the sources: `(U1) UNESCO decision 4.COM 14.12 — https://...`. Facts cite the ID and the URL. The storyboard carries these IDs (or a table id such as `1.1`) in its **source column**, never as on-slide text. Gate 4 fails a row that shows a number (2+ digits or a %) without an ID; the share of rows citing an ID (40%) is advisory. On the slide, a short human source line in the chrome ("Nguồn: VinFast 20-F 2025") is welcome; the ID itself stays off the slide.
+- Audited vs preliminary: when two filings disagree (6-K preliminary −42.5% vs 20-F audited −45.4%), use the audited number, tag the other `[disputed]` with both sources, and say "đã kiểm toán / audited" on the slide.
+- The do-not-say list is not counted as facts (v5.3).
 - One fact per row, short, with a tag:
   - `[verified]`: primary or institutional source, or two independent rung-3 sources
   - `[secondary]`: press or blog only, so phrase it carefully or leave it off the slides

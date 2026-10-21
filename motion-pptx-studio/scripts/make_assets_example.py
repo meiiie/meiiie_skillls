@@ -6,7 +6,7 @@ Replace the geometry for another subject. Optional photos are written as gold
 duotones next to a colour copy. Nothing is read from a fixed machine path.
 
 Usage:
-  python make_assets_example.py [--out assets_example]
+  python3 make_assets_example.py [--out assets_example]
       [--photo PATH|NAME[|SIZE[|x0,y0,x1,y1]]]
 
 SIZE upscales when the long edge is smaller than SIZE. The box is four fractions

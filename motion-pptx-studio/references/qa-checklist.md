@@ -1,6 +1,6 @@
 # QA checklist (every render, every group, and the final deck)
 
-`python $S/studio.py build WORK --group <group>` builds, renders into a **new** `renders/<group>-N` folder (image viewers
+`python3 $S/studio.py build WORK --group <group>` builds, renders into a **new** `renders/<group>-N` folder (image viewers
 cache by path) and audits with the renders. Open the contact sheet, put it next to the reference
 (`studio.py compare`), then open every changed slide at full size and crop 4× where things meet (craft.md §12).
 Write the defects in `WORK/notes/<group>.md`, fix them all in one pass, and re-build. Don't trust "it looks fine in the code".
@@ -20,7 +20,7 @@ under 30% of pixels changed) beyond the hold-beat allowance (one per scene, 10% 
 one subject image dominant on more than 4 slides, or (on a photo-led deck) fewer distinct subject images than consecutive runs;
 the editorial-left template on more than 3 scenes; fewer than 2 font families on a deck of 8 or more slides;
 on-slide text averaging under 8 words; **no persistent system** (no `!!` shape on 60% of the slides).
-The same image, keyframe and layout errors run on a PDF: `python check_deck.py deck.pdf`.
+The same image, keyframe and layout errors run on a PDF: `python3 check_deck.py deck.pdf`.
 WARN: a hold beat (make sure it is deliberate); text overflowing into other text or off the slide; text outside the 0.3 in
 safe area; more than 12 text sizes; flat grounds on most slides; low contrast (with `--renders`); under 40% of slides citing a
 fact ID on the slide or in the notes (with `--facts`); slides without notes; lonely `!!` names; fonts not installed; images
@@ -55,6 +55,7 @@ The accepted reference deck passes this audit (`tests/test_audit.py`); a change 
 - [ ] `verify_motion.py DECK` PASS: every authored effect is imported by LibreOffice (p15 transitions are listed as not importable, that is expected).
 - [ ] Optional `preview_motion.py DECK --out X-SIMULATION.mp4`: watch it for order and rhythm; it is an approximation, labelled on every frame, never sent as "the deck playing".
 - [ ] Players known? If not PowerPoint 365 only, `compat` is `safe` or `dual`. `check_deck.py` shows `no-Morph: compat=…, 0 shared-shape move(s) without a classic replacement` (safe) and no `still carries a Morph`; the `-nomorph` render folder matches the intended render (`worst mean diff` near 0). LOOK at the `-nomorph` contact sheet.
+- [ ] Signature films: `check_deck.py DECK --renders DIR` shows no `film:` ERROR (no text under a video, the film's card matches the page within 6 levels); every Anatomy `film.json` audit line has no WARN, or the critique says why.
 - [ ] Final report says: "check Morph, transitions, entrances, triggers, links and video in PowerPoint 365".
 
 ## 4b. Variety and composition (`check_deck.py --variety warn|strict`, v5.2; rules in `pro-craft.md`)

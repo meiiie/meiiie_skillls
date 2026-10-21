@@ -1,6 +1,6 @@
 """Build a 16:9 motion deck from a JSON spec: a designed system, named shapes ready for Morph.
 
-  python build_deck.py deck.json --out deck/build.pptx [--base template.pptx] [--quiet]
+  python3 build_deck.py deck.json --out deck/build.pptx [--base template.pptx] [--quiet]
 
 Why: the look of a professional motion deck comes from a SYSTEM (ground, chrome, grid,
 type roles, palette roles) applied identically on every slide, plus a few components
@@ -42,7 +42,7 @@ Components (expand into named parts; set the component in a keyframe, Morph move
   timeline nodes [{t, label, desc}], active                        NAME.rail/.prog/.dot{i}/.t{i}/.l{i}/.d{i}
   bars     data [{label, value, display}], max, grow 0..1, highlight   NAME.base/.bar{i}/.v{i}/.k{i}
   list     items [str | {text, sub}], reveal k, focus i, numbered  NAME.n{i}/.i{i}/.r{i}
-  quote    text, by                                               NAME.mark/.text/.by
+  quote    text, by, mark_size (pt, default 2.2 x size)              NAME.mark/.text/.by
 v5 motion and style keys
   slide  "style": "swiss-blue"   switch the whole system (palette, fonts, roles, grounds, chrome) for this
                                  slide and its keyframes: a deck can change style per chapter
@@ -77,6 +77,30 @@ from pptx.enum.shapes import MSO_CONNECTOR, MSO_SHAPE
 from pptx.enum.text import MSO_ANCHOR, PP_ALIGN
 from pptx.oxml.ns import qn
 from pptx.util import Inches, Pt
+
+# v5.3.1 speed: python-pptx rescans the whole slide for a free shape id (an O(n^2) list search) and recomputes a
+# group's extents after every child it adds. A 2,000-part Anatomy poster took ~30 s per slide. Ids are now issued
+# from one scan per slide tree, and group extents are computed once, after the last child (see add_shape).
+from pptx.oxml.shapes.groupshape import CT_GroupShape as _CTGroup
+
+_NEXT_ID = {}
+
+
+def _fast_next_shape_id(self):
+    root = self.getroottree().getroot()
+    key = id(root)
+    held = _NEXT_ID.get(key)
+    if held is None or held[0] is not root:
+        used = [int(v) for v in root.xpath('//@id') if v.isdigit()]
+        held = [root, max(used, default=0)]
+        _NEXT_ID[key] = held
+    held[1] += 1
+    return held[1]
+
+
+_CTGroup._next_shape_id = property(_fast_next_shape_id)
+from pptx.shapes.shapetree import _BaseShapes as _PPTXShapes   # the second id source in python-pptx: share the counter
+_PPTXShapes._next_shape_id = property(lambda self: _fast_next_shape_id(self._spTree))
 
 HERE = Path(__file__).resolve().parent
 STYLES = HERE.parent / 'assets' / 'styles'
@@ -593,7 +617,7 @@ def comp_quote(spec, sh):
     base = sh.get('name')
     q = spec.role('quote')
     size = sh.get('size', q.get('size', 32))
-    ms = int(size * 2.2)
+    ms = int(sh.get('mark_size', size * 2.2))   # mark_size: put the mark on the deck's type scale
     mw = ms * 0.5 / 72
     out = [{'type': 'text', 'name': _nm(base, 'mark'), 'role': 'quote', 'text': '“', 'size': ms, 'italic': False,
             'x': round(x - mw - 0.08, 3), 'y': round(y - ms * 0.18 / 72, 3), 'w': round(mw, 3), 'h': round(ms * 1.25 / 72, 3),
@@ -853,10 +877,42 @@ def add_video(shapes, sh, spec):
     return mov
 
 
+_SAFE_CACHE = {}
+
+
+def ppt_safe(p):
+    """v5.3: MPO (phone/3D cameras), EXIF-rotated, CMYK, TIFF or WebP files become a cached RGB JPEG/PNG
+    so python-pptx accepts them and PowerPoint shows them the right way up."""
+    p = Path(p)
+    if p in _SAFE_CACHE:
+        return _SAFE_CACHE[p]
+    out = p
+    try:
+        with Image.open(p) as im:
+            fmt = (im.format or '').upper()
+            orient = im.getexif().get(0x0112, 1)
+            if fmt in ('MPO', 'TIFF', 'WEBP', 'BMP') or orient not in (None, 1) or im.mode == 'CMYK':
+                from PIL import ImageOps
+                import hashlib
+                import tempfile
+                im.seek(0)
+                fixed = ImageOps.exif_transpose(im)
+                alpha = fixed.mode in ('RGBA', 'LA')
+                key = hashlib.sha1(f'{p.resolve()}:{p.stat().st_mtime_ns}'.encode()).hexdigest()[:12]
+                out = Path(tempfile.gettempdir()) / f'pptsafe-{key}{".png" if alpha else ".jpg"}'
+                if not out.exists():
+                    (fixed if alpha else fixed.convert('RGB')).save(out, quality=92)
+    except OSError:
+        out = p
+    _SAFE_CACHE[p] = out
+    return out
+
+
 def add_image(shapes, sh, spec):
     p = spec.path(sh['path'])
     if not p.exists():
         raise SystemExit(f'image not found: {p}')
+    p = ppt_safe(p)
     pic = shapes.add_picture(str(p), Inches(sh['x']), Inches(sh['y']), Inches(sh['w']), Inches(sh['h']))
     fit = sh.get('fit', 'cover')
     iw, ih = Image.open(p).size
@@ -982,6 +1038,7 @@ def add_shape(shapes, sh, spec):
         obj = add_video(shapes, sh, spec)
     elif t == 'group':
         obj = shapes.add_group_shape()
+        obj.shapes._recalculate_extents = lambda: None   # once at the end, not after every child
         for k in sh['shapes']:
             add_shape(obj.shapes, k, spec)
         obj._element.recalculate_extents()
@@ -1011,6 +1068,7 @@ def set_background(slide, spec, bg):
         f.solid()
         f.fore_color.rgb = RGBColor.from_string(spec.color(bg))
         return
+    img = ppt_safe(img)
     _, rId = slide.part.get_or_add_image_part(str(img))
     iw, ih = Image.open(img).size
     want = W / H

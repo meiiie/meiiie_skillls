@@ -1,6 +1,6 @@
 """Round-trip the deck's motion through LibreOffice Impress and compare what survives.
 
-  python verify_motion.py DECK.pptx [--keep DIR]
+  python3 verify_motion.py DECK.pptx [--keep DIR]
 
 Converts the .pptx to .odp with soffice (headless) and counts, per slide, the transition and the
 animation nodes LibreOffice imported (anim:par with presentation:preset-class, anim:animateMotion,

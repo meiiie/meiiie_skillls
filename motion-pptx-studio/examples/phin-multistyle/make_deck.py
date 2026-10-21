@@ -368,7 +368,7 @@ slides.append({
                   'anim': {'fx': 'appear', 'delay': 700 + i * 180}} for i, c in enumerate(credits)]})
 
 deck = {'style': 'kinetic-type', 'title': 'Một giọt cà phê phin', 'motion': {'default_ms': 1100, 'stagger_ms': 140}, 'slides': slides}
-# python make_deck.py safe|dual  -> deck-safe.json / deck-dual.json (no-Morph safe mode, compat.py)
+# python3 make_deck.py safe|dual  -> deck-safe.json / deck-dual.json (no-Morph safe mode, compat.py)
 import sys  # noqa: E402
 COMPAT = sys.argv[1] if len(sys.argv) > 1 else 'morph'
 if COMPAT != 'morph':

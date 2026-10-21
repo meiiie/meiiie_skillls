@@ -19,7 +19,7 @@ Then run `bash scripts/setup.sh` (check) or `bash scripts/setup.sh --install` on
 | Ability | Claude Code | Codex | Cursor | Grok Bot | Plain LLM |
 |---|---|---|---|---|---|
 | Look at a render | Read the .jpg | view the image / attach it | Read the image | Read the image (inline) | must support image input; otherwise ask the user to look and describe it |
-| Web research | WebSearch / WebFetch | web search tool if enabled; else `curl` | web tools; else `curl` | WebSearch / WebFetch; `curl` when a site blocks fetchers | `curl` + `python -m html2text` |
+| Web research | WebSearch / WebFetch | web search tool if enabled; else `curl` | web tools; else `curl` | WebSearch / WebFetch; `curl` when a site blocks fetchers | `curl` + `python3 -m html2text` |
 | Long jobs (LibreOffice, rembg) | background bash | background shell | background shell | background shell + await | run synchronously; keep the deck under ~60 slides per render |
 | Sub-tasks in parallel | sub-agents (Task) | multiple sessions | background agents | subagents | sequential |
 If sub-agents are available, delegate research and asset hunting (Phases 1–2) to one agent and art direction to another,

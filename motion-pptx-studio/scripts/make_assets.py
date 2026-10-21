@@ -4,16 +4,16 @@ Every deck needs the same raw materials: a ground that is not a flat fill, a her
 in one consistent finish, parts that Morph can assemble, photos graded into the palette,
 and a few textures. Make them here instead of improvising them per deck.
 
-  python make_assets.py ground  --kind lacquer|noir|paper|clean|halftone|flat --base "#140B08" [--tone "#2B1710"]
+  python3 make_assets.py ground  --kind lacquer|noir|paper|clean|halftone|flat --base "#140B08" [--tone "#2B1710"]
                                 [--crackle 0.5] [--grain 0.05] [--vignette 0.4] [--style noir-product --name main] --out ground.jpg
-  python make_assets.py foil    SRC.svg|SRC.png --finish gold|silver|copper|bronze|ink|chalk|neon|metal --out hero.png
+  python3 make_assets.py foil    SRC.svg|SRC.png --finish gold|silver|copper|bronze|ink|chalk|neon|metal --out hero.png
                                 [--color "#D9B26A"] [--size 1600] [--seed 3]
-  python make_assets.py layers  object.svg --out-dir assets/parts [--finish gold]     # one PNG per top-level <g id>
-  python make_assets.py photo   SRC.jpg --out assets/hero.jpg --mode duotone|mono|sepia|grade|color
+  python3 make_assets.py layers  object.svg --out-dir assets/parts [--finish gold]     # one PNG per top-level <g id>
+  python3 make_assets.py photo   SRC.jpg --out assets/hero.jpg --mode duotone|mono|sepia|grade|color
                                 [--colors "#140B08,#E2BE7C"] [--aspect 16:9] [--focus 0.5,0.4] [--vignette 0.3]
                                 [--grain 0.02] [--pair] [--min-size 2400]
-  python make_assets.py glow    --color "#FFB020" --size 1600 --out glow.png [--softness 0.35]
-  python make_assets.py pattern --kind woven|dots|stripes|hatch|chevron|grid --color "#D9B26A" --size 2400x300
+  python3 make_assets.py glow    --color "#FFB020" --size 1600 --out glow.png [--softness 0.35]
+  python3 make_assets.py pattern --kind woven|dots|stripes|hatch|chevron|grid --color "#D9B26A" --size 2400x300
                                 [--finish gold] --out band.png
 
 Drawings: write the object as an SVG in black on a transparent canvas, one <g id="part">

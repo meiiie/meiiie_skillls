@@ -1,5 +1,61 @@
 # Changelog
 
+## 5.3.1
+Review fixes before the 5.3 push: every weakness found in the VinFast v5.3 proof deck becomes a rule or a check.
+- **Anatomy density and contrast**: `anatomy_film.py` audits the poster (solids, share of the frame width and area,
+  edge and face contrast against the card) and writes it to `film.json` → `audit`. Floors: ≥ 120 solids, ≥ 70 % width /
+  40 % area, edges ≥ 4.5:1, faces ≥ 2.2:1 on dark cards. Gate 4/6 turn audit findings into WARN rows and fail edges
+  below 3:1. `references/signature-moments.md` §2 "Density and contrast" says how to fix each one.
+- **Film and page colour**: films are tagged BT.709 (Anatomy and diagram_video), and `check_deck.py --renders DIR`
+  compares the poster border with the rendered page ring around each video (ERROR > 6 levels, WARN > 2).
+  Rule: a film slide gets a solid `bg` equal to the film card.
+- **No label under a film**: `check_deck.py` errors on text that sits below a video in z-order and overlaps it
+  (`scripts/film_audit.py`).
+- **Manim films with an exact editable twin**: the recipe now puts geometry in one `<name>_geom.py` shared by the
+  scene and the deck, so the editable slide equals the film's last frame; render at the slide box's aspect and
+  take the poster from the last real frame.
+- **Build speed**: python-pptx's shape-id scan (O(n²)) and per-child group extent recalculation are patched;
+  the 30-slide VinFast deck builds in about 6 s instead of 133 s. Ids stay unique (tested).
+- **Small fixes**: effect `dir` accepts `u`/`d` (as transitions do) instead of raising KeyError; `quote` takes
+  `mark_size` so the mark can sit on the deck's type scale; SKILL.md craft rules add a ≤ 10-size type scale and
+  the film rules; qa-checklist adds the film checks.
+- Tests: `tests/test_v531.py` (11 tests).
+
+## 5.3.0
+Floor, not ceiling. The v5.2 VinFast test passed every gate and still looked like a template (14 slides of text left,
+photo right on one dark pack). This release adds hand-built signature moments, a second asset source, an
+anti-template phase, slimmer gates and fixes all nine bug groups from that test.
+- **Signature moments (mandatory)**: ≥2 hand-built animated diagrams of the subject's own mechanism per deck
+  (`references/signature-moments.md`, template `assets/templates/signature-moments.md`). Tools: **Anatomy**
+  (isometric machine kit, MIT; `setup_anatomy.sh`, `anatomy_film.py` + `anatomy/film.mjs` film it headless over
+  CDP and convert the poster into native freeforms for an editable keyframe) and **ManimGX**. Gate 4 checks the
+  plan (mechanism sentence, no stock clichés, cited facts, poster, editable part); gate 6 checks the films are
+  embedded (sha256 in the pptx media), at least 3 s long and actually move. `signature_fallback: <reason>` in
+  brief.md allows a diagram_video.
+- **Codex image generation** as the second asset source (`gen_assets_codex.py`): textures, grounds, generic objects
+  and plates only; logos, real people, clichés and fake factual images are refused by a prompt lint. Every file
+  lands in `assets/gen/` with a JSON sidecar and an "AI-generated" CREDITS row; gate 2 fails unlabelled ones. When
+  Codex is unavailable the script says so and the deck falls back to licensed photos and procedural grounds.
+- **Anti-template phase**: `directions.py` renders three art directions as thumbnails (`design/directions.jpg`);
+  gate 3 fails unless they are three real alternatives (palettes differ, ≥25 words each) and one is chosen with a
+  reason. Decks of 20+ slides must shift style at scene level (gate 4). `variety_audit.py` gains a geometry
+  fingerprint: text-left/photo-right (or the mirror) on 4+ slides is an ERROR in every mode, and one
+  fingerprint on more than 30% of a 10+ slide deck is an ERROR. The fingerprint also records full-bleed plates and
+  big native drawings, so a diagram slide is not mistaken for a bare title.
+- **Slimmer gates**: hard rows (FAIL) are kept for facts and sources, licences and labels, and render integrity;
+  counts, quotas and freshness are advisory (WARN, `Gate.want()`). SKILL.md gains "Skill is a floor, not a ceiling".
+- **Fixes from the v5.2 test (NOTES.md, all with tests in `tests/test_v53.py`)**: markdown tables with escaped `\|`
+  and rows broken across lines are reported, and gate 4 fails malformed rows; a scene column no longer counts as a
+  source ID; on-slide numbers must cite a fact; the do-not-say list no longer counts as facts; unsourced fact rows
+  fail; `company-profile` deliverable kind; `latest_round` picks rounds numerically; `studio.py build --group`
+  sequences and cleans each group and gate 5 runs for every rendered group (`--upto`); contact sheets write a
+  manifest so freshness is checked by content; `fetch_commons.py` defaults to Commons, has short Openverse
+  timeouts and normalises MPO/EXIF/CMYK/huge images on keep; `build_deck.py` converts PowerPoint-unsafe images;
+  `preview_motion.py --max-seconds`; `python` → `python3` across docs and scripts.
+- New references: `signature-moments.md`, `art-directions.md`; updates to asset-sourcing (Codex §6b, logos §6c),
+  genres (company profile), research-protocol, craft (fonts), pro-craft (Morph share applies to scene cuts only).
+- Proof: a 30-slide VinFast company profile rebuilt with v5.3 (three directions, three signature films).
+
 ## 5.2.0
 Pro craft: variety, composition and flavour. The phin sample was judged "better, but not truly professional" (too
 little animation variety, weak composition, too little flavour, too little overall variety); this release turns those

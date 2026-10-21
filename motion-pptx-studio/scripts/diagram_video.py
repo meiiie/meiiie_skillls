@@ -2,7 +2,7 @@
 editable deck.json shapes. No clip-art, no AI pictures: boxes, pipes, arrows and flowing dots drawn
 from the structure itself (the anatomy idea: the object is the explanation).
 
-  python diagram_video.py diagram.json --mp4 WORK/assets/arch.mp4 --fragment WORK/design/arch-shapes.json
+  python3 diagram_video.py diagram.json --mp4 WORK/assets/arch.mp4 --fragment WORK/design/arch-shapes.json
                           [--poster WORK/assets/arch.poster.png] [--fps 30] [--seconds 9] [--ppi 144]
 
 diagram.json
@@ -35,6 +35,10 @@ import math
 import subprocess
 import sys
 from pathlib import Path
+
+# v5.3.1: encode BT.709 limited range and SAY so, or players guess (BT.601 vs 709) and a white or blue film
+# card no longer matches the page it sits on (references/signature-moments.md, "Film and page colour")
+COLOUR_TAGS = ['-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv']
 
 
 def anchor(n, side):
@@ -196,7 +200,7 @@ def render_mp4(d, mp4, fps=30, ppi=144, poster=None):
     mp4 = Path(mp4)
     mp4.parent.mkdir(parents=True, exist_ok=True)
     ff = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'image2pipe', '-framerate', str(fps), '-i', '-',
-                           '-vf', f'scale={W}:{H}', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '20', '-movflags', '+faststart',
+                           '-vf', f'scale={W}:{H}:out_color_matrix=bt709:out_range=tv', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', *COLOUR_TAGS, '-crf', '20', '-movflags', '+faststart',
                            str(mp4)], stdin=subprocess.PIPE)
     last = None
     for i in range(int(T * fps)):

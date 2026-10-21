@@ -5,12 +5,12 @@ ran 11:53-13:36. The neko-core storyboard said ~6 min; it ran 8:28. Seconds-per-
 lie. Budget WORDS per slide up front and measure them.
 
 Plan mode (before writing any notes):
-  python words_budget.py plan --minutes 6 --slides 34 [--wpm 130] [--pauses 8] [--morph-ms 1300]
+  python3 words_budget.py plan --minutes 6 --slides 34 [--wpm 130] [--pauses 8] [--morph-ms 1300]
   -> total spoken-word budget and the average per slide. Keyframe slides inside a motion run
      usually get 0-12 words; content slides take the rest.
 
 Measure mode (after notes exist):
-  python words_budget.py measure NOTES.md|DECK.pptx|UNPACKED_DIR [--target 6:00] [--wpm 130]
+  python3 words_budget.py measure NOTES.md|DECK.pptx|UNPACKED_DIR [--target 6:00] [--wpm 130]
          [--wpm-fast 150] [--scenes scenes.json] [--count-morph]
   NOTES.md uses '##### N' blocks (ooxml.py notes-get writes them). A deck is read directly.
   Spoken words = whitespace tokens of lines that are NOT directions or sources. Skipped lines start

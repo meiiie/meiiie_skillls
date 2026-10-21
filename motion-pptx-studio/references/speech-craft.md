@@ -30,8 +30,8 @@ Measured reality: the ca trù deck was planned as "48 slides × 7 s = 5.6 min" a
 (1663 words + 24 pauses). The neko deck was planned at ~6 min and ran **8:28** (1088 words). Seconds per slide
 do not work with Morph decks because there are many silent keyframes.
 ```bash
-python $S/words_budget.py plan --minutes 6 --slides 34          # ~754 words, ~22 per slide (130 wpm, 6 pauses)
-python $S/words_budget.py measure WORK/deck/final.pptx --target 6:00 --scenes WORK/deliver/scenes.json
+python3 $S/words_budget.py plan --minutes 6 --slides 34          # ~754 words, ~22 per slide (130 wpm, 6 pauses)
+python3 $S/words_budget.py measure WORK/deck/final.pptx --target 6:00 --scenes WORK/deliver/scenes.json
 ```
 - Vietnamese speaking pace for presentations: 130 wpm (careful) to 150 wpm (fluent). Plan at 130.
 - Keyframes inside a run often carry 0–10 words; the first slide of a scene carries the idea.

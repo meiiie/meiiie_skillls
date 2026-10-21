@@ -1,11 +1,11 @@
 ---
 name: motion-pptx-studio
-description: Build cinematic, professionally designed PowerPoint decks with real native motion — Morph keyframe scenes plus a full library of transitions (push, curtains, fall over, cover…), entrances, emphasis loops, motion paths, letter-by-letter type, click triggers, hyperlink menus and looping video diagrams — plus a timed speaker script, for any kind of talk — product launches and demos, startup and contest pitches, business reviews and data stories, lectures and explainers, events and campaigns, culture and heritage. Use it whenever someone wants a presentation, slide deck or .pptx that must look designed rather than templated ("motion pptx", "Morph", "slide động", "thuyết trình chuyên nghiệp", "pitch deck", "ấn tượng", a contest, broadcast or investor deck), even if they never say Morph. Ships ten style packs (each a layout grammar, not a recolour) with Vietnamese-ready fonts, a deck engine with components, an architecture-diagram film maker with an editable fallback, a labelled motion-preview simulator, an asset kit, research and licence gates, layout and craft audits, and worked examples measured against an accepted reference deck.
+description: Build cinematic, professionally designed PowerPoint decks with real native motion — Morph keyframe scenes plus a full library of transitions (push, curtains, fall over, cover…), entrances, emphasis loops, motion paths, letter-by-letter type, click triggers, hyperlink menus and looping video diagrams — plus a timed speaker script, for any kind of talk — product launches and demos, startup and contest pitches, business reviews and data stories, lectures and explainers, events and campaigns, culture and heritage. Use it whenever someone wants a presentation, slide deck or .pptx that must look designed rather than templated ("motion pptx", "Morph", "slide động", "thuyết trình chuyên nghiệp", "pitch deck", "ấn tượng", a contest, broadcast or investor deck), even if they never say Morph. Ships ten style packs (each a layout grammar, not a recolour) with Vietnamese-ready fonts, a deck engine with components, hand-built signature films (Anatomy isometric machines and ManimGX scenes, embedded as video plus an editable native poster), Codex image generation for labelled AI textures and plates, a three-direction anti-template phase, an architecture-diagram film maker with an editable fallback, a labelled motion-preview simulator, an asset kit, research and licence gates, layout and craft audits, and worked examples measured against an accepted reference deck.
 ---
 
 # Motion PPTX Studio
 
-Version 5.2.0. Python 3.9+, LibreOffice and poppler; works in any harness with a shell (Claude Code, Codex,
+Version 5.3.1. Python 3.9+ (`python3`), LibreOffice and poppler; Node 20.10+ and Chrome for Anatomy films, ManimGX for Manim films, Codex CLI for generated assets (each optional, each with a documented fallback); works in any harness with a shell (Claude Code, Codex,
 Cursor, Grok Bot, a plain LLM with tools: `references/harness-adapters.md`).
 
 The standard comes from a real user and is kept word for word:
@@ -17,6 +17,25 @@ The standard comes from a real user and is kept word for word:
 The accepted result of that standard is the reference deck in `assets/reference/` (48 slides, measured in
 `references/reference-bar.md`). Look at it before you design anything. Every deck this skill makes should
 hold up next to it.
+
+## Skill is a floor, not a ceiling
+
+This skill was distilled from a longer prompt by its author, Darren. In turning that prompt into rules,
+its creative core went missing: a v5.2 test deck passed every gate and still looked like a template (one
+dark-blue style, text left / photo right thirty times, no visual you would remember). The intent of the
+original prompt, restated here (paraphrase, not a verbatim quote; the original text is not in this repo):
+
+> - Use **Codex CLI image generation** to diversify the assets instead of living on whatever stock exists.
+> - Use **ManimGX** (https://manimgx.academa.ai/) and **Anatomy** (https://skills.wheresryan.sh/anatomy)
+>   to hand-build the architecture animations, with **no AI clichés** (books, scales, lightbulbs…).
+> - **Do not lean on the skill too much**: it hard-codes a template, and a template is what we are escaping.
+> - Be **creative**: appeal, craft, tech-art. The deck should make people ask how it was made.
+
+So: the gates are the minimum that keeps a deck honest (facts, licences, a render that works) plus a
+creative floor (three directions considered, two hand-built signature moments, a style shift on long
+decks, no repeated split layout). Everything else in this file is advice that reproduced good decks, not
+a recipe. When the subject asks for something the skill does not describe, build it; when a habit here
+makes the deck duller, drop it and write why in `notes/`. Passing gates is where the work starts.
 
 ## The one idea
 
@@ -58,14 +77,15 @@ Have a rendered sample (Gate 3) within the first hour, and tell the user when a 
 ## Non-negotiable rules
 
 1. **No deck before Gate 4.** Brief, research, assets, design and storyboard come first. The sample deck of Gate 3 is the exception: it is how the design is chosen.
-2. **Every claim traces to `research/facts.md`; every image to `assets/CREDITS.md`.** No source, no slide. Sources live in the storyboard's `source` column, the notes and the credits slide, not printed on content slides.
+2. **Every claim traces to `research/facts.md`; every image to `assets/CREDITS.md`.** No source, no slide. Fact IDs live in the storyboard's `source` column and the notes, never on the slide; a short human source line in the chrome ("Nguồn: 20-F 2025") is welcome on data slides. AI-generated images are labelled AI-generated in CREDITS (and on the slide when they could pass for a photo).
 3. **Look at every image and every render yourself.** Titles, tags, file names and passing checks are not evidence.
 4. **One system, one signature, many camera moves.** A scene is 3–5 keyframes; a shared subject image must move (box or crop ≥ 10% of the width, or a shared `!!` shape ≥ 6%, or ≥ 30% of pixels); one hold beat per scene at most; some `!!` layer on ≥ 60% of slides. `check_deck.py` measures all of it.
 5. **On-slide language follows the audience** (Vietnamese topic, Vietnamese slides), including text inside photos.
 6. **Budget speech in words, not seconds per slide** (130 wpm). Measure the script before delivery.
 7. **Never overstate.** Status (finished, design-only, planned), results, licences and awards exactly as sourced; illustrative numbers and drawn screens say so.
 8. **Ask the user at most once, at the start** (time limit, language, honest status, style if it matters). Otherwise choose a documented default in `brief.md` and tell them.
-9. **Never game a check.** Do not edit thresholds, create placeholder files or copy rows to pass. The reference deck must pass every audit (`tests/test_audit.py`); a check that fails it is a wrong check, a deck that only passes checks is not done.
+9. **At least two signature moments** (`references/signature-moments.md`): hand-built animated diagrams of the subject's own mechanism (Anatomy or Manim), embedded as video with an editable poster. Never a stock metaphor.
+10. **Never game a check.** Do not edit thresholds, create placeholder files or copy rows to pass. The reference deck must pass every audit (`tests/test_audit.py`); a check that fails it is a wrong check, a deck that only passes checks is not done.
 
 ## Setup (once per machine)
 ```bash
@@ -77,10 +97,16 @@ Set `S=<absolute path of this skill>/scripts` and `WORK=<project folder>`. Every
 ## The pipeline
 
 ```bash
-python $S/studio.py new WORK --kind heritage|product|pitch|business|education|event|other \
+python3 $S/studio.py new WORK --kind heritage|product|pitch|business|company-profile|education|event|other \
        --style <pack>   # lacquer-heritage noir-product paper-editorial boardroom-data studio-pop kinetic-type blueprint swiss-blue neo-brutal retro-terminal --title "…" --fonts
-python $S/gates.py check WORK --gate N        # N = 0..6; FAIL means stop and do the missing work
+python3 $S/gates.py check WORK --gate N        # N = 0..6; FAIL means stop and do the missing work
+python3 $S/gates.py check WORK --upto 6        # all gates, gate 5 for every rendered group
 ```
+Gates have two kinds of row (v5.3). **FAIL** is hard: facts (every fact row sourced, every number on a slide
+traces to a fact ID), licences (every image credited, AI images labelled), render integrity (fonts, renders,
+check_deck, the films) and the creative floor (3 directions, 2 signature moments, style shift on 20+ slides,
+no text-left/photo-right on 4+ slides). **WARN** is advisory: fact counts, domains, kept/candidate counts,
+scene and keyframe-run counts, word averages, anchor, colour arc, samples. A WARN never stops you.
 
 ### Phase 0 · Brief → Gate 0
 Fill `WORK/brief.md`: topic, audience, kind, size, talk_minutes, on-slide language, forbidden items, **honest
@@ -97,13 +123,23 @@ checklist (heritage, product, education), and an audit of the user's media. Dept
 (`genres.md`: heritage 15 facts from 3 domains … event 6 from 2). A reference talk → `research/lessons.md`.
 
 ### Phase 2 · Assets → Gate 2 (`asset-sourcing.md`)
-Real, licensed images (`fetch_commons.py search/keep` writes CREDITS), at least twice as many looked at as kept,
-rejected ones listed. Then make the deck's own materials with `make_assets.py`: `ground` (lacquer, noir, paper,
+Real, licensed images (`fetch_commons.py search/keep` writes CREDITS; keep fixes EXIF rotation, MPO and size),
+about twice as many looked at as kept, rejected ones listed. **Second source: generated assets**
+(`gen_assets_codex.py`, asset-sourcing §6b): textures, abstract backgrounds, generic object renders and scene
+plates from Codex image gen, linted against clichés, logos, real people and fake documents, labelled
+AI-generated in CREDITS with a prompt sidecar. No Codex → `make_assets.py` / drawn / `asset_scarcity`. Then make the deck's own materials with `make_assets.py`: `ground` (lacquer, noir, paper,
 clean, halftone), `foil` (an SVG drawing of a TRUE object in gold, silver, ink, chalk, neon…), `layers` (one PNG per
 moving part on one canvas), `photo` (duotone/sepia/mono + colour pair), `pattern`, `glow`. No openly licensed
 imagery → illustrate from the TRUE list (labelled) or set `asset_scarcity` and shrink the deck.
 
-### Phase 3 · Art direction → Gate 3 (`craft.md`, `styles.md`, `art-direction.md`, `reference-bar.md`)
+### Phase 3 · Art direction → Gate 3 (`art-directions.md`, `craft.md`, `styles.md`, `art-direction.md`, `reference-bar.md`)
+- **Three directions first (anti-template)**: before any style pack, sketch THREE genuinely different art
+  directions (ground, palette, type, composition, motion, signature visual) as thumbnails
+  (`python3 $S/directions.py WORK` → `design/directions.jpg` + `directions.md`), choose one, write why.
+  20+ slides: plan scene-level style shifts (a second direction for named chapters). Gate 3 fails without it.
+- **Signature moments**: pick the two or three mechanisms worth a hand-built film and write them in
+  `design/signature-moments.md` (`references/signature-moments.md`: Anatomy machines via
+  `setup_anatomy.sh` + `anatomy_film.py`, Manim scenes via ManimGX). Gate 4 checks the plan, gate 6 the films.
 - **Style**: start from the pack for the kind; make `design/style.json` the subject's own (sourced palette,
   fonts that pass `check_fonts.py --lang vi`, the same roles).
 - **Signature**: write it under `## Signature` in `art-direction.md` — what it is, where it rests, what it
@@ -117,12 +153,14 @@ imagery → illustrate from the TRUE list (labelled) or set `asset_scarcity` and
 
 ### Phase 4 · Storyboard → Gate 4 (`storyboard-template.md`, `motion-grammar.md`, `speech-craft.md`)
 ```bash
-python $S/words_budget.py plan --minutes 6 --slides 34     # → ~754 words total, ~22 per slide
+python3 $S/words_budget.py plan --minutes 6 --slides 34     # → ~754 words total, ~22 per slide
 ```
 `WORK/storyboard.md`: one row per slide — scene, keyframe role, composition (`layout`), `!!` layers, a real visual,
 on-slide text, `source` (fact IDs), words, morph ms. 8+ scenes for talks of 5 min or more; ≥ 60% of scenes are runs
 of 3+ keyframes, each a recipe from `motion-grammar.md` §4; distinct visuals ≥ scenes, none on more than 4 rows;
-an anchor phrase on 3 slides; a colour arc; a circular close.
+an anchor phrase on 3 slides; a colour arc; a circular close. Keep each row on one line (gate 4 fails a broken
+table loudly). Rows with a number on the slide must cite a fact ID; the signature-moment slides use
+`film:assets/film/<name>.mp4` as their visual; a `style` column names the direction of each scene.
 
 ### Phase 5 · Build in groups of 2–4 scenes → Gate 5 (`build-engine.md`, `qa-checklist.md`)
 Write `WORK/deck.json` against the style: components (`heading`, `card`, `stat`, `screen`, `timeline`, `bars`,
@@ -131,11 +169,11 @@ Write `WORK/deck.json` against the style: components (`heading`, `card`, `stat`,
 and `video` shapes for drawn objects and diagram films (`diagram_video.py`, `references/diagram-video.md`). When parts must line up (strings on a neck, a cursor that becomes the screen),
 generate deck.json from a `make_deck.py`, as the examples do.
 ```bash
-python $S/studio.py build WORK --group g1         # build → motion → pack → render (new folder) → audit with renders
-python $S/studio.py compare WORK WORK/renders/g1-1
-python $S/gates.py check WORK --gate 5 --group g1 --deck WORK/deck/preview-g1.pptx
-python $S/verify_motion.py WORK/deck/preview-g1.pptx          # LibreOffice round trip: authored vs imported effects
-python $S/preview_motion.py WORK/deck/preview-g1.pptx --out WORK/renders/g1-preview-SIMULATION.mp4   # optional
+python3 $S/studio.py build WORK --group g1         # only the slides of g1 ("group" on slides or "groups" in deck.json), full-deck page numbers
+python3 $S/studio.py compare WORK WORK/renders/g1-1
+python3 $S/gates.py check WORK --gate 5 --group g1 --deck WORK/deck/preview-g1.pptx
+python3 $S/verify_motion.py WORK/deck/preview-g1.pptx          # LibreOffice round trip: authored vs imported effects
+python3 $S/preview_motion.py WORK/deck/preview-g1.pptx --out WORK/preview/g1-SIMULATION.mp4 [--max-seconds 60]   # optional; keep it out of renders/
 ```
 Fix every layout warning first, then look: contact sheet, the comparison, every changed slide, 4× crops where
 things meet (`craft.md` §12). Write defects in `notes/g1.md`, fix them in one pass, rebuild into `g1-2`.
@@ -145,11 +183,11 @@ it never replaces playing the deck in PowerPoint.
 
 ### Phase 6 · Finish and deliver → Gate 6 (`delivery.md`)
 ```bash
-python $S/finish_dedupe.py WORK/deck/unpacked && python $S/ooxml.py clean WORK/deck/unpacked
-python $S/ooxml.py pack WORK/deck/unpacked WORK/deck/final.pptx && bash $S/render.sh WORK/deck/final.pptx WORK/renders/final-1
-python $S/words_budget.py measure WORK/deck/final.pptx --target 6:00
-python $S/deliver.py WORK --deck WORK/deck/final.pptx --name Project_Motion --title "Kịch bản thuyết trình"
-python $S/gates.py check WORK --gate 6
+python3 $S/finish_dedupe.py WORK/deck/unpacked && python3 $S/ooxml.py clean WORK/deck/unpacked
+python3 $S/ooxml.py pack WORK/deck/unpacked WORK/deck/final.pptx && bash $S/render.sh WORK/deck/final.pptx WORK/renders/final-1
+python3 $S/words_budget.py measure WORK/deck/final.pptx --target 6:00
+python3 $S/deliver.py WORK --deck WORK/deck/final.pptx --name Project_Motion --title "Kịch bản thuyết trình"
+python3 $S/gates.py check WORK --gate 6
 ```
 `deliver/` = `.pptx` + speaker-script `.docx` + `fonts/` (static TTF, OFL, install README) + `CREDITS.md` + `.zip`.
 
@@ -159,14 +197,16 @@ python $S/gates.py check WORK --gate 6
 - **Chrome never moves**: frame or rule, page number, source line, at the same place on every slide.
 - **One signature**, several `!!` parts, parked off-slide between appearances, paying off in the close.
 - **Type roles only**: kicker 11–13 tracked caps · title 40–56, ≤ 8 words, the conclusion · body 15–17, ≤ 3 lines ·
-  display/numeral for one word or one number. Two families. No orphan word on a title's last line.
+  display/numeral for one word or one number. Two or three families; a chapter pack inherits them and may add one display face. No orphan word on a title's last line.
 - **One lit accent per frame**; contrast 4.5:1 for anything read; quiet text as a mixed solid colour (`fade`).
-- **Composition varies, the system does not**: pick from the composition library; one focal point; a third of the frame empty.
+- **Composition varies, the system does not**: pick from the composition library; one focal point; a third of the frame empty. check_deck fingerprints the rendered geometry: text left + photo right on 4+ slides fails.
 - **Words**: the slide shows, the speaker tells. ≤ 30 words per keyframe; numbers with unit, period and source.
 - **Imagery**: real → drawn from the TRUE list → nothing. Photos graded into the palette; drawn objects in one finish; screens in a device with a shadow.
 - **Detail belongs to something**, ends on something, and rewards a 4× look; nothing floats.
 - **Motion**: one primary move per transition; 1300 ms default, 2000 for assemblies, blooms and the close; ≤ 3 entrances, only for new information.
 - **Players**: Morph needs PowerPoint 365/2019+; for 2016, Google Slides, Keynote or an unknown venue PC build with `"compat": "safe"` or `"dual"` (`compat.py`, gate in `check_deck.py`).
+- **Type scale**: one deck scale of ≤ 10 sizes (e.g. 10 12 14 18 24 36 48 64 96 150); snap every explicit `size` to it. `check_deck.py` prints the scale it found.
+- **Signature films**: Anatomy figures dense and bright (≥ 120 solids, ≥ 70 % of the frame width, edges ≥ 4.5:1; `film.json` audit); the film slide's `bg` is the film's card colour; no label under a video (`check_deck.py` errors; `--renders` checks the edge colour). See `references/signature-moments.md` §2 and §4.
 - **Vocabulary**: Morph for change inside a scene, a real transition between scenes (push, cover, curtains…), 2–4 signature effects repeated with intent; no deck that is only Morph (`check_deck.py` warns).
 
 ## Final message to the user (always)
@@ -179,13 +219,15 @@ and why they are deliberate.
 
 | File | Read it when |
 |---|---|
+| `references/signature-moments.md` | Phases 3–5: choosing mechanisms, the Anatomy recipe, the Manim recipe, video + editable poster on the slide, fallback, banned clichés |
+| `references/art-directions.md` + `scripts/directions.py` | Phase 3: three directions as thumbnails, choosing, style shifts, geometry variety |
 | `references/craft.md` | before Phase 3 and before every review: the set, signature, grid, type, colour, compositions, words, imagery, depth, data, anti-patterns, the critic's pass |
 | `references/reference-bar.md` + `assets/reference/` | before Phase 3: what the accepted deck does, measured; how to compare |
 | `references/genres.md` | Phase 0: arc, signature, evidence, research depth and traps for each kind of deck |
 | `references/styles.md` + `references/styles/<pack>.md` | Phase 3: the creativity rule, the ten packs and each one's layout grammar and signature motion, changing one, a style from a brand board, all keys |
 | `references/research-protocol.md` | Phase 1: source ladder, tagging, do-not-say list, product research |
 | `references/cultural-visual-accuracy.md` | any cultural or heritage topic: true and wrong motifs, anatomy, user-media audit |
-| `references/asset-sourcing.md` | Phase 2: where to search, licences, keep/reject, the asset kit |
+| `references/asset-sourcing.md` | Phase 2: where to search, query tips, licences, keep/reject, Codex generated assets (§6b), third-party logos, the asset kit |
 | `references/art-direction.md` | Phase 3: style, signature, fonts, palette, motifs, layered objects, colour arc, samples |
 | `references/motion-grammar.md` | Phases 4–5: camera language, Morph pairing, keyframe recipes, durations, entrances |
 | `references/motion-library.md` | Phases 3–5: every transition and effect, recipes beyond Morph, player support and fallbacks, verify |

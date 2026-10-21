@@ -4,8 +4,8 @@ Why a script and not hand-written JSON: the three strings are live lines locked 
 neck of the drawn instrument, so their coordinates are computed from the instrument box.
 Change one number (where the instrument stands) and the strings follow on every slide.
 
-  python make_deck.py            -> deck.json (then: python ../../scripts/studio.py build .)
-Assets: python ../../scripts/make_assets_example.py --out assets (the gold-foil drawings).
+  python3 make_deck.py            -> deck.json (then: python3 ../../scripts/studio.py build .)
+Assets: python3 ../../scripts/make_assets_example.py --out assets (the gold-foil drawings).
 """
 import json
 from pathlib import Path

@@ -212,6 +212,7 @@ def _filter(ids, spid, filt, ms, transition='in'):
 
 FLY_SUB = {'t': 1, 'r': 2, 'b': 4, 'l': 8}
 FLY_FROM = {'t': ('#ppt_x', '0-#ppt_h/2'), 'b': ('#ppt_x', '1+#ppt_h/2'), 'l': ('0-#ppt_w/2', '#ppt_y'), 'r': ('1+#ppt_w/2', '#ppt_y')}
+DIR_ALIAS = {'u': 'b', 'up': 'b', 'd': 't', 'down': 't', 'left': 'l', 'right': 'r'}
 WIPE = {'l': (8, 'wipe(left)'), 'r': (2, 'wipe(right)'), 't': (1, 'wipe(up)'), 'b': (4, 'wipe(down)')}
 SPLIT = {'v': (21, 'barn(outVertical)'), 'h': (26, 'barn(outHorizontal)'), 'vin': (37, 'barn(inVertical)'), 'hin': (42, 'barn(inHorizontal)')}
 
@@ -275,6 +276,7 @@ def effect_par(e, spid, delay, ids, node='withEffect', is_text=False, grp=0):
     cls, pid = PRESETS[fx]
     ms = int(e.get('ms', {'blink': 1000, 'spin': 2000, 'path': 1600, 'orbit': 6000, 'pulse': 900, 'grow': 900}.get(fx, 700)))
     d = e.get('dir')
+    d = DIR_ALIAS.get(d, d)   # 'u'/'d' as in transitions: the motion goes up = it comes from the bottom
     sub = 0
     kids = []
     if fx == 'appear':

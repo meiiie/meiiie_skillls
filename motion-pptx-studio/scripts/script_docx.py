@@ -1,7 +1,7 @@
 """Build a speaker-script .docx from slide notes and a scene list.
 
 Usage:
-  python script_docx.py --notes NOTES.txt --scenes SCENES.json --out script.docx
+  python3 script_docx.py --notes NOTES.txt --scenes SCENES.json --out script.docx
       [--title TEXT] [--subtitle TEXT] [--timing timing.json]
       [--wpm-low 130] [--wpm-high 150] [--pause "[ngừng 2 giây]"]
 

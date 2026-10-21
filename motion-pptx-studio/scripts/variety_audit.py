@@ -14,6 +14,14 @@ Measured from the real slide XML (what PowerPoint will play), not from deck.json
                a large shape), something that moves on a path or loops, and foreground text; parallax
                when two or more paths of clearly different lengths play on the slide.
 
+  geometry     (v5.3) a per-slide fingerprint of what is actually drawn, never a layout label: the boxes of
+               every picture/video that is neither a full-bleed ground (>= 85% of the slide) nor a speck
+               (< 3%), quantised to a 6x4 grid, plus the 3x3 cell of the text mass (area-weighted centre of
+               every text box set at >= 14 pt). Every slide counts, keyframes included: a Morph scene that
+               keeps the same split on 3 keyframes IS the same layout three times on screen.
+               ERROR  text-left / photo-right (main picture centred right of 55%, >= 12% of the slide, text
+                      mass left of the picture) on SPLIT_MAX (4) or more slides; same for photo-left /
+                      text-right; one geometry fingerprint on more than GEO_SHARE_MAX of the slides (decks of 10+)
 Thresholds for decks of DECK_MIN slides or more (smaller decks scale them down):
   WARN (ERROR with --variety strict)
     - fewer than TECH_MIN distinct effect techniques
@@ -41,6 +49,8 @@ SHARE_MAX = 0.35
 TRANS_MIN = 5
 COMP_MIN = 0.6
 DEPTH_MIN = 0.2
+SPLIT_MAX = 4          # v5.3: text-left/photo-right (or the mirror) on this many slides fails
+GEO_SHARE_MAX = 0.3    # v5.3: one geometry fingerprint on more than this share of slides fails (10+ slides)
 
 ENTR = {1: 'appear', 10: 'fade', 2: 'fly', 42: 'rise', 22: 'wipe', 16: 'split', 53: 'zoom', 21: 'wheel'}
 EMPH = {6: 'scale', 8: 'spin', 35: 'blink', 32: 'teeter'}
@@ -149,6 +159,48 @@ def composition_signature(slide_root):
     return (cover, side, shape_b, cell, nb)
 
 
+def geometry(slide_root):
+    """(fingerprint, split) from the rendered geometry of one slide.
+
+    split is 'TL-PR' (text left, picture right), 'PL-TR' (the mirror) or None."""
+    boxes = _boxes(slide_root)
+    media = [b for b in boxes if b[0] == 'media' and 0.03 <= min(1.0, b[3] * b[4]) < 0.85]
+    texts = [b for b in boxes if b[0] == 'text' and b[5] >= 14]
+    q = lambda v, n: min(n - 1, max(0, int(v * n + 1e-6)))
+    pics = tuple(sorted((q(b[1], 6), q(b[2], 4), q(b[1] + b[3] - 1e-6, 6), q(b[2] + b[4] - 1e-6, 4)) for b in media))
+    area = sum(b[3] * b[4] for b in texts)
+    if area > 0:
+        tx = sum((b[1] + b[3] / 2) * b[3] * b[4] for b in texts) / area
+        ty = sum((b[2] + b[4] / 2) * b[3] * b[4] for b in texts) / area
+        cell = (q(tx, 3), q(ty, 3))
+    else:
+        tx = ty = None
+        cell = None
+    split = None
+    main = max(media, key=lambda b: b[3] * b[4], default=None)
+    if main is not None and tx is not None and main[3] * main[4] >= 0.12:
+        cx = main[1] + main[3] / 2
+        if cx >= 0.55 and tx < main[1]:
+            split = 'TL-PR'
+        elif cx <= 0.45 and tx > main[1] + main[3]:
+            split = 'PL-TR'
+    # v5.3: a full-bleed plate and a big native drawing are part of the geometry too, so a
+    # photo-free diagram slide is not fingerprinted the same as a bare centred title
+    bleed = any(b[0] == 'media' and b[3] * b[4] >= 0.85 for b in boxes)
+    # a drawing is often many small native parts (iso slabs, bars): take the bounding box of the cluster
+    parts = [b for b in boxes if b[0] == 'shape' and 0.003 <= b[3] * b[4] < 0.85]
+    graphic = None
+    if parts:
+        x0, y0 = min(b[1] for b in parts), min(b[2] for b in parts)
+        x1, y1 = max(b[1] + b[3] for b in parts), max(b[2] + b[4] for b in parts)
+        big = max(b[3] * b[4] for b in parts)
+        if big >= 0.08 or (len(parts) >= 3 and (x1 - x0) * (y1 - y0) >= 0.08):
+            graphic = (q((x0 + x1) / 2, 3), q((y0 + y1) / 2, 3))
+    if bleed or graphic is not None:
+        return (pics, cell, 'bleed' if bleed else '', graphic), split
+    return (pics, cell), split
+
+
 def moving_depth(slide_root, techs):
     boxes = _boxes(slide_root)
     plate = any(b[0] in ('media', 'shape') and b[3] * b[4] >= 0.3 for b in boxes)
@@ -169,7 +221,12 @@ def audit(slides, describe_transition, strict=False):
     techs, trans, sigs = Counter(), Counter(), []
     depth = parallax = 0
     scene_sigs = []   # composition is judged per scene cut: a Morph-entered slide is a camera move inside one composition
+    geos, splits = Counter(), {'TL-PR': [], 'PL-TR': []}
     for tag, root in slides:
+        fp, split = geometry(root)
+        geos[fp] += 1
+        if split:
+            splits[split].append(tag)
         t = effect_techniques(root)
         techs.update(t)
         tr = describe_transition(root)[0]
@@ -191,6 +248,16 @@ def audit(slides, describe_transition, strict=False):
                 f'{len(trans)} transition types; {distinct_sig}/{m} composition signatures across scene cuts; '
                 f'moving depth on {depth}/{n} slides, parallax on {parallax}')
     info.append('variety census: ' + ', '.join(f'{k}×{v}' for k, v in techs.most_common()))
+    top_fp, top_fp_n = geos.most_common(1)[0]
+    info.append(f'geometry: {len(geos)} distinct picture/text fingerprints on {n} slides (most common on {top_fp_n}); '
+                f'text-left/photo-right on {len(splits["TL-PR"])}, photo-left/text-right on {len(splits["PL-TR"])}')
+    for kind, tags in splits.items():   # v5.3: hard, whatever the deck size and the --variety mode
+        if len(tags) >= SPLIT_MAX:
+            label = 'text-left / photo-right' if kind == 'TL-PR' else 'photo-left / text-right'
+            errors.append(f'geometry: {label} split on {len(tags)} slides (max {SPLIT_MAX - 1}): {", ".join(t.split()[1] for t in tags[:8])} — '
+                          'this is the template look; give those slides another composition (references/pro-craft.md §2, signature-moments.md)')
+    if n >= 10 and top_fp_n > GEO_SHARE_MAX * n and top_fp_n >= 4 and (top_fp[0] or top_fp[1]):
+        errors.append(f'geometry: one picture/text fingerprint repeats on {top_fp_n}/{n} slides (max {GEO_SHARE_MAX:.0%}): {top_fp}')
     if n < 8:
         return errors, warns, info
     bad = errors if strict else warns

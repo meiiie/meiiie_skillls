@@ -1,6 +1,6 @@
 """Preview the deck's motion as an MP4 WITHOUT PowerPoint: a labelled SIMULATION.
 
-  python preview_motion.py DECK.pptx --out WORK/preview/motion-sim.mp4 [--fps 30] [--width 1280]
+  python3 preview_motion.py DECK.pptx --out WORK/preview/motion-sim.mp4 [--fps 30] [--width 1280]
                            [--hold 1.2] [--click-gap 0.7] [--max-seconds 90] [--slides 1-8] [--keep DIR]
 
 How it works (LibreOffice renders only static slides, so the motion is reconstructed):
@@ -714,6 +714,7 @@ def main(argv=None):
     ap.add_argument('--slides', default='', help='e.g. 1-8 or 3,4,5')
     ap.add_argument('--keep', help='keep the sprite renders here')
     ap.add_argument('--label', default='SIMULATION · not PowerPoint playback')
+    ap.add_argument('--max-seconds', type=float, default=0, help='stop the preview after this many seconds (0 = whole deck)')
     a = ap.parse_args(argv)
     src = Path(a.deck).resolve()
     z = zipfile.ZipFile(src)
@@ -769,7 +770,11 @@ def main(argv=None):
     fps = a.fps
     total = 0
     log = []
+    cap = int(a.max_seconds * fps) if a.max_seconds and a.max_seconds > 0 else None
     for i, S in enumerate(slides):
+        if cap is not None and total >= cap:
+            print(f'    --max-seconds {a.max_seconds:g} reached: stopped before slide {S.n}', flush=True)
+            break
         hold_ms = min(a.max_slide * 1000, max(a.min_slide * 1000, S.end_ms + a.hold * 1000))
         vids = [e for e in S.effects if e['cls'] == 'mediacall']
         if vids:
@@ -783,6 +788,8 @@ def main(argv=None):
             n = max(1, int(S.trans_ms / 1000 * fps))
             transition_frame._n = rng.random((H // 24 + 1, W // 24 + 1)).astype(np.float32)
             for f in range(n):
+                if cap is not None and total >= cap:
+                    break
                 k = (f + 1) / (n + 1)
                 img = morph_frame(P_, S, ta, k, W, H) if S.trans == 'morph' else transition_frame(P_, S, fa, fb, k, S.trans, S.trans_dir, W, H, rng)
                 ff.stdin.write(tag_frame(img.convert('RGBA'), f'{a.label} · {S.trans}', font).convert('RGB').tobytes())
@@ -790,6 +797,8 @@ def main(argv=None):
         S.hold_ms = hold_ms
         n = int(hold_ms / 1000 * fps)
         for f in range(n):
+            if cap is not None and total >= cap:
+                break
             img = S.frame(f * 1000 / fps, W, H)
             ff.stdin.write(tag_frame(img, a.label, font).convert('RGB').tobytes())
             total += 1

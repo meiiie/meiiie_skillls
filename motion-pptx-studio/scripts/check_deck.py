@@ -37,7 +37,7 @@ A PDF has no !! names or transitions. On a PDF the keyframe, image-reuse, layout
 and word-count checks still run from the rendered pages and the embedded images.
 
 Usage:
-  python check_deck.py DECK.pptx|UNPACKED_DIR|DECK.pdf [--max-mb 25] [--anchor "Hỏi trước, rồi mới làm."]
+  python3 check_deck.py DECK.pptx|UNPACKED_DIR|DECK.pdf [--max-mb 25] [--anchor "Hỏi trước, rồi mới làm."]
          [--anchor-count 3] [--expect-slides 34] [--forbid-notes] [--extra-forbid "歌籌,MIT"]
          [--renders DIR] [--facts research/facts.md] [--compat morph|safe|dual] [--nomorph-render DIR]
          [--variety warn|strict|off]
@@ -364,6 +364,14 @@ def main(argv=None):
         errors += ve
         warns += vw
         info += vi
+    import film_audit   # v5.3.1: videos must not hide labels, and a flat film must match its page
+    for i, p in enumerate(order, 1):
+        root = xml(src, p)
+        errors += [f'pos {i:2} ({Path(p).name}): {e}' for e in film_audit.video_covers_text(root)]
+        if a.renders:
+            fe, fw = film_audit.film_edge_match(src.read, p, root, Path(a.renders) / f'slide-{i:02}.jpg')
+            errors += [f'pos {i:2} ({Path(p).name}): {e}' for e in fe]
+            warns += [f'pos {i:2} ({Path(p).name}): {w}' for w in fw]
     if a.nomorph_render:
         ce, ci = nomorph_render(src, a.deck, a.nomorph_render, a.renders)
         errors += ce

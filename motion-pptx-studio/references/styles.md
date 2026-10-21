@@ -40,7 +40,7 @@ palette, fonts and grounds (`mesh`, `paper`) but no demonstrated composition yet
 using them, and never with the starter layout.
 
 Every font is OFL with full Vietnamese coverage (checked with `check_fonts.py --lang vi`).
-`python scripts/fetch_fonts.py --style <pack> --out WORK/fonts --install --check vi` fetches static TTFs
+`python3 scripts/fetch_fonts.py --style <pack> --out WORK/fonts --install --check vi` fetches static TTFs
 (npm registry first, then google/fonts) and installs them for rendering.
 
 ## 2. Using and changing a pack

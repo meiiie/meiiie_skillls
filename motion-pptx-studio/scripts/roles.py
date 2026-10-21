@@ -6,7 +6,7 @@ adds !!hl (glow panel) under the highlighted role, scales that role 1.15
 separate morphing object can stand in for it.
 
 Usage:
-  python roles.py PPT_DIR SLIDE.xml --template TEMPLATE.xml [--highlight 1|2|3]
+  python3 roles.py PPT_DIR SLIDE.xml --template TEMPLATE.xml [--highlight 1|2|3]
       [--page TEXT] [--title TEXT] [--kick TEXT] [--desc N=TEXT]
       [--instrument-layers NAME,NAME] [--string-layers NAME,NAME]
 

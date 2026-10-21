@@ -1,16 +1,16 @@
 """One command per step, so the loop is: edit deck.json -> build -> look -> fix.
 
-  python studio.py new WORK --kind product --style noir-product [--title "Tên deck"] [--fonts]
+  python3 studio.py new WORK --kind product --style noir-product [--title "Tên deck"] [--fonts]
       gates.py init + design/style.json + a 5-slide starter deck.json (title, highlight walk, bar grow)
       that already uses the style's chrome, grounds, roles and components. --fonts fetches and
       installs the style's fonts into WORK/fonts and writes design/font-check.txt.
-  python studio.py build WORK [--deck WORK/deck.json] [--group g1] [--no-render] [--strict]
+  python3 studio.py build WORK [--deck WORK/deck.json] [--group g1] [--no-render] [--strict]
       build_deck -> unpack -> motion -> pack -> render (renders/<group>-N, a new folder every
       round) -> check_deck with the renders (contrast and pixel checks need them).
       Prints the layout warnings, the audit result and the contact sheets to open.
-  python studio.py compare WORK RENDER_DIR [--ref catru|PATH] [--out WORK/design/compare-1.jpg]
+  python3 studio.py compare WORK RENDER_DIR [--ref catru|PATH] [--out WORK/design/compare-1.jpg]
       your contact sheet above the reference deck's, at the same width: the critic's view.
-  python studio.py fonts WORK --style noir-product
+  python3 studio.py fonts WORK --style noir-product
       fetch_fonts + install + check_fonts --lang vi -> WORK/fonts, design/font-check.txt
 
 Exit code: build returns the check_deck result (1 when the audit finds an ERROR; with --strict
@@ -94,7 +94,7 @@ def cmd_new(a):
         ad.write_text(f'- style: {a.style} (design/style.json; edit that copy, not the pack)\n' + txt, encoding='utf-8')
     if a.fonts:
         cmd_fonts(argparse.Namespace(work=str(work), style=a.style))
-    print(f'new project {work} with style {a.style}: edit deck.json, then python {HERE / "studio.py"} build {work}')
+    print(f'new project {work} with style {a.style}: edit deck.json, then python3 {HERE / "studio.py"} build {work}')
     return 0
 
 
@@ -110,6 +110,27 @@ def cmd_fonts(a):
 def next_round(renders, group):
     nums = [int(m.group(1)) for p in renders.glob(f'{group}-*') if (m := re.fullmatch(rf'{re.escape(group)}-(\d+)', p.name))]
     return renders / f'{group}-{max(nums, default=0) + 1}'
+
+
+def group_positions(spec, group):
+    """1-based deck positions that belong to GROUP, or None for the whole deck.
+
+    A slide's "group" key holds until the next slide that sets one; a deck-level
+    "groups": {"g1": [first, last], ...} (inclusive positions) wins when present."""
+    slides = spec.get('slides', [])
+    if not group or group in ('all', 'final'):
+        return None
+    rng = (spec.get('groups') or {}).get(group)
+    if rng:
+        lo, hi = int(rng[0]), int(rng[-1])
+        return [i for i in range(1, len(slides) + 1) if lo <= i <= hi]
+    cur, out, tagged = None, [], False
+    for i, s in enumerate(slides, 1):
+        if 'group' in s:
+            cur, tagged = s['group'], True
+        if cur == group:
+            out.append(i)
+    return out if tagged else None
 
 
 def cmd_build(a):
@@ -131,6 +152,18 @@ def cmd_build(a):
         if c:
             print(o)
             return c
+    spec = json.loads(deck.read_text(encoding='utf-8')) if deck.is_file() else {}
+    keep = group_positions(spec, a.group)
+    if keep is not None:   # v5.3: a group build is that group only, page numbers stay the full deck's
+        if not keep:
+            print(f'group {a.group!r}: no slide has "group": "{a.group}" and deck.json has no "groups" entry for it')
+            return 1
+        for args in (['ooxml.py', 'sequence', up, *[f'slide{i}.xml' for i in keep]], ['ooxml.py', 'clean', up]):
+            c, o = run([HERE / args[0], *map(str, args[1:])])
+            if c:
+                print(o)
+                return c
+        print(f'group {a.group}: {len(keep)} of {len(spec.get("slides", []))} slides (positions {keep[0]}-{keep[-1]})')
     preview = ddir / f'preview-{a.group}.pptx'
     c, o = run([HERE / 'ooxml.py', 'pack', up, preview])
     if c:
@@ -153,7 +186,7 @@ def cmd_build(a):
     if renders:
         sheets = sorted(renders.glob('contact*.jpg'))
         print('LOOK at:', ', '.join(str(s) for s in sheets))
-        print(f'then: python {HERE / "studio.py"} compare {work} {renders}')
+        print(f'then: python3 {HERE / "studio.py"} compare {work} {renders}')
     return c or (1 if a.strict and warned else 0)
 
 

@@ -1,7 +1,7 @@
 """Check that a font really covers the text you will put on slides (e.g. every Vietnamese diacritic).
 
 Usage:
-  python check_fonts.py FONT [FONT ...] [--lang vi] [--text "Hỏi trước, rồi mới làm."] [--text-file notes.md]
+  python3 check_fonts.py FONT [FONT ...] [--lang vi] [--text "Hỏi trước, rồi mới làm."] [--text-file notes.md]
                         [--png sample.png]
 FONT is a .ttf/.otf path or a family name resolved with fc-match (Linux/macOS with fontconfig).
 --lang vi adds the full Vietnamese alphabet in both cases with all five tone marks.

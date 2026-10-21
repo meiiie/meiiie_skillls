@@ -5,7 +5,7 @@ minority of slides; they lean on Fade/Push transitions, Fly/Float/Fade entrances
 text, hyperlink menus and GIF/audio. Award-level decks pick **2–4 signature techniques per deck** and repeat them
 with intent. Write them under `## Motion vocabulary` in `design/art-direction.md` (Gate 3).
 
-## 1. Transitions (`"transition"` on a slide; `python motion.py --list`)
+## 1. Transitions (`"transition"` on a slide; `python3 motion.py --list`)
 `"transition": "push"` or `{"type": "push", "dir": "l", "ms": 800}`; default `morph` (byObject; `"morph": "byChar"`).
 
 | Family | Names | XML | Plays in |
@@ -69,7 +69,7 @@ for the number that matters, letter/word text. `safe` writes exactly that; still
 `anim` on a shape always wins (shapes with an authored entrance or path are left alone).
 Support: Keynote and LibreOffice play paths, zoom, fade, fly, wipe, letter-by-letter; **Google Slides keeps
 fade/fly/zoom/spin and drops motion paths** (the shape then simply appears at its end place, which still reads).
-Build: `python make_deck.py safe` → `deck-safe.json` → `studio.py build WORK --deck deck-safe.json`
+Build: `python3 make_deck.py safe` → `deck-safe.json` → `studio.py build WORK --deck deck-safe.json`
 (see `examples/phin-multistyle/build-safe.sh`).
 
 ## 5. Verify

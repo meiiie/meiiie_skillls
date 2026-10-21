@@ -5,7 +5,7 @@ of the product, walks the three steps beside the screen and shrinks back into a 
 end (a circular close). "Diều" is a fictional product; its numbers are illustrative and the
 deck says so.
 
-  python make_screens.py && python make_deck.py && python ../../scripts/studio.py build .
+  python3 make_screens.py && python3 make_deck.py && python3 ../../scripts/studio.py build .
 """
 import json
 from pathlib import Path

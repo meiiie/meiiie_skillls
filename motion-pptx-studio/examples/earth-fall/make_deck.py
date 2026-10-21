@@ -1,6 +1,6 @@
 """TRÁI ĐẤT · Rơi về nhà — a 21-slide scale journey from 6 billion km to the centre of the Earth, then into deep time.
 Four sub-styles (cosmos, atlas, inferno, deeptime), one signature (the altitude/depth gauge), dual compat.
-python make_deck.py  ->  deck.json"""
+python3 make_deck.py  ->  deck.json"""
 import json, math, copy
 from pathlib import Path
 

@@ -4,7 +4,7 @@ A product deck lives or dies by its screens. When the product is real, use real 
 (with version labels). This example product, "Diều", does not exist, so its three screens are
 drawn here in the style pack's colours and fonts, and the deck labels them as illustrations.
 
-  python make_screens.py   -> assets/screen_live.png, screen_summary.png, screen_phone.png
+  python3 make_screens.py   -> assets/screen_live.png, screen_summary.png, screen_phone.png
 """
 import sys
 from pathlib import Path

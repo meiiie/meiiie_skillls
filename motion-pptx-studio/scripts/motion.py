@@ -18,7 +18,7 @@ Naming contract (set the shape name in the selection pane or cNvPr/@name):
   effects on !! shapes) goes in motion.json "effects", which build_deck.py writes from "anim" keys.
 
 Usage:
-  python motion.py UNPACKED_DIR [--config motion.json] [--dur 12=2000,22=1800]
+  python3 motion.py UNPACKED_DIR [--config motion.json] [--dur 12=2000,22=1800]
                    [--keep-timing 50,51] [--default-ms 1300] [--stagger 220] [--dry-run]
 
 motion.json (keys are slide FILE numbers, slideN.xml -> "N"):
