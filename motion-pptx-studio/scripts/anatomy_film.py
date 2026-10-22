@@ -179,6 +179,8 @@ def main(argv=None):
     ap.add_argument('--anatomy')
     ap.add_argument('--poster-only', action='store_true')
     a = ap.parse_args(argv)
+    if not Path(a.figure).is_file():   # v5.7.1: say so instead of node's 'Cannot find module'
+        raise SystemExit(f'figure not found: {a.figure} (was the .mjs written?)')
     work = Path(a.work).resolve()
     out = work / 'assets' / 'film'
     tmp = out / a.name
@@ -224,6 +226,12 @@ def main(argv=None):
     for w in au['warnings']:
         print('WARN    ', w)
     print(f'film     {mp4 if not a.poster_only else "(poster only)"}')
+    if not a.poster_only:   # v5.7.1: the gate-6 motion rule, at render time
+        import film_check
+        ferr, fm = film_check.check(mp4, quiet=True)
+        meta['audit'].update(fm)
+        (tmp / 'film.json').write_text(json.dumps(meta, indent=1), encoding='utf-8')
+        print(f'motion   {fm["motion"]}/255 over {fm["seconds"]} s' + ('' if not ferr else '  FAIL: ' + '; '.join(ferr)))
     print(f'poster   {out / (a.name + ".poster.png")}')
     print(f'editable {out / (a.name + ".shapes.json")}  ({len(frag["shapes"])} native shapes, group {frag["name"]!r})')
     print(f'fit      x={meta["fit"]["x"]} y={meta["fit"]["y"]} w={meta["fit"]["w"]} h={meta["fit"]["h"]} in; anchors {meta["anchors_in"]} (slide inches: film.json "anchors_in"; "anchors" there are figure pixels)')

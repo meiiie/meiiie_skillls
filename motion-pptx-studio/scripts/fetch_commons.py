@@ -169,7 +169,16 @@ def cmd_search(a):
     found = json.loads(jpath.read_text(encoding='utf-8')) if jpath.is_file() else []
     known = {c['id'] for c in found}
     new = []
-    queries = [a.query] + ([fold(a.query)] if fold(a.query) != a.query else [])
+    queries = [a.query]
+    fq = fold(a.query)
+    if fq != a.query:
+        # v5.7.1: a short single folded word is a different word ("mít" -> "mit" = MIT): do not search it
+        if ' ' not in fq.strip() and len(fq.strip()) <= 5:
+            print(f'note: not searching the folded {fq!r} (a short word without diacritics means something else); '
+                  'search the scientific or English name too (e.g. "Artocarpus heterophyllus", "jackfruit")', file=sys.stderr)
+        else:
+            queries.append(fq)
+            print(f'note: also searching the diacritic-free {fq!r}; check that its results are the same subject', file=sys.stderr)
     res = []
     for src in a.source.split(','):
         for q in queries:
@@ -204,6 +213,8 @@ def cmd_search(a):
         except Exception as e:
             c['skip'] = f'thumbnail download failed: {e}'
         time.sleep(0.3)
+    for c in new:
+        c.setdefault('thumb_file', None)      # v5.7.1: every candidate has the key (None = skipped, no thumbnail)
     found += new
     jpath.write_text(json.dumps(found, ensure_ascii=False, indent=1), encoding='utf-8')
     for c in found:
@@ -278,6 +289,12 @@ def cmd_keep(a):
     name = ('_uncertain/' if a.uncertain else '') + target.name
     row = '| ' + ' | '.join(cell(x) for x in (name, a.subject or title, a.why, c['page'], author, c['license'], attr,
                                                f"{c['width']}×{c['height']}")) + ' |\n'
+    # v5.7.1: keeping the same file again REPLACES its row (it used to append a duplicate that gate 2 counted twice)
+    lines = credits.read_text(encoding='utf-8').splitlines(keepends=True)
+    dup = [l for l in lines if l.startswith('| ') and l.split('|')[1].strip() == name]
+    if dup:
+        credits.write_text(''.join(l for l in lines if l not in dup), encoding='utf-8')
+        print(f'replaced the existing CREDITS row for {name}')
     insert_row(credits, row)
     print('kept', target, '->', credits)
     if 'SA' in c['license'].upper():
@@ -298,7 +315,7 @@ def main(argv=None):
     s.add_argument('--allow-nc', action='store_true')
     s.add_argument('--loose', action='store_true', help='do not wrap multi-word Commons queries in quotes')
     s = sub.add_parser('keep')
-    s.add_argument('id')
+    s.add_argument('id', help='the candidate id, or its thumb_file name (e.g. 012_commons_Jackfruit.jpg) from candidates.json/tsv')
     s.add_argument('--as', dest='as_name', required=True)
     s.add_argument('--why', required=True, help='why this image is accurate, with the fact-file source tag')
     s.add_argument('--subject', default='')

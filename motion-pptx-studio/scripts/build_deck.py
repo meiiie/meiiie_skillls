@@ -9,7 +9,7 @@ the system once (a style pack), then write slides as compositions and keyframes.
 Units are inches on a 13.333 x 7.5 canvas.
 
 Top level
-  "style": "noir-product" | "path/to/style.json"   palette, fonts, type roles, grid, grounds, chrome, card...
+  "style": "path/to/style.json" (optional)   palette, fonts, type roles, grid, grounds, chrome, card...
   "palette" {key: "#RRGGBB"}  "fonts" {key: family}  "type" {role: {...}}  "grid" {...}  merged over the style
   "grounds": {"main": "assets/ground.jpg" | {recipe}}   "bg": default ground or colour for every slide
   "chrome": {"under": [shapes], "over": [shapes]}       replaces the style's chrome ("chrome_add" appends)
@@ -68,7 +68,7 @@ v5 motion and style keys
                 shapes for isometric solids, paper-cut layers, arrows and masks
 Keyframes: "from": "prev" copies the slide; "set" {name: {keys}} changes shapes and components by
 name; "drop" removes names; "add" appends; "front" moves names to the top. Unknown names are errors.
-After building: studio.py build (or ooxml.py unpack -> motion.py -> ooxml.py pack -> check_deck.py -> render.sh).
+After building: use build.py (build_deck -> unpack -> motion -> pack -> render -> film_check).
 """
 import argparse
 import copy
@@ -127,9 +127,11 @@ DEFAULT_TYPE = {
     'cardtitle': {'font': 'display', 'size': 24, 'bold': True, 'line': 1.0, 'color': 'head'},
     'pageno': {'font': 'text', 'size': 10, 'color': 'muted'},
 }
-DEFAULT_PALETTE = {'ground': '#101114', 'ground2': '#1B1D22', 'surface': '#1E2126', 'ink': '#ECEEF2', 'head': '#FFFFFF',
-                   'muted': '#9AA0A8', 'faint': '#30343B', 'accent': '#F5A524', 'accent2': '#6EE7F9', 'lit': '#FFFFFF',
-                   'veil': '#101114'}
+# Neutral greyscale fallback only, so a deck that sets no palette looks unfinished rather than "styled".
+# Every deck defines its own palette and fonts (principles/art-direction.md); nothing here is a house style.
+DEFAULT_PALETTE = {'ground': '#FFFFFF', 'ground2': '#F2F2F2', 'surface': '#F7F7F7', 'ink': '#222222', 'head': '#111111',
+                   'muted': '#777777', 'faint': '#DDDDDD', 'accent': '#444444', 'accent2': '#888888', 'lit': '#111111',
+                   'veil': '#FFFFFF'}
 DEFAULT_FONTS = {'display': 'DejaVu Sans', 'text': 'DejaVu Sans', 'label': 'DejaVu Sans'}
 DEFAULT_CARD = {'fill': 'surface', 'fill_alpha': 1.0, 'line': 'faint', 'line_width': 0.75, 'radius': 0.05,
                 'lit_fill': 'surface', 'lit_line': 'accent', 'rule': 'accent', 'dim_alpha': 0.66, 'shadow': None}
@@ -149,7 +151,7 @@ STYLE_KEYS = ('palette', 'fonts', 'type', 'grid', 'grounds', 'chrome', 'chrome_a
 
 
 def load_style(name):
-    """A style pack by name (assets/styles/<name>.json, then assets/styles-experimental) or path."""
+    """A style pack by path, or by name from assets/styles/ (empty by default: decks bring their own)."""
     p = Path(name)
     if not p.suffix:
         p = STYLES / f'{name}.json'
@@ -158,7 +160,7 @@ def load_style(name):
     if not p.is_file():
         known = sorted(x.stem for x in STYLES.glob('*.json'))
         raise SystemExit(f'style {name!r} not found. Known styles: {known} (or give a path to a style .json, or define it in '
-                         f'deck.json: "styles": {{"{name}": {{"extends": "paper-editorial", "palette": {{...}}}}}})')
+                         f'deck.json: "styles": {{"{name}": {{"palette": {{...}}, "fonts": {{...}}}}}})')
     return json.loads(p.read_text(encoding='utf-8'))
 
 
@@ -214,6 +216,7 @@ class Spec:
         self.motion = {**{'default_ms': 1300, 'stagger_ms': 220}, **st.get('motion', {}), **data.get('motion', {})}
         self.default_bg = data.get('bg', st.get('default_bg'))
         self.title = data.get('title', '')
+        self.raw = data
         self.root = root
         self.warnings = []
         self._ground_cache = {}
@@ -1160,17 +1163,17 @@ def add_video(shapes, sh, spec):
     p = spec.path(sh['path'])
     if not p.exists():
         raise SystemExit(f'video not found: {p}')
-    poster = sh.get('poster')
-    if poster:
-        poster = spec.path(poster)
-    else:
-        poster = p.with_suffix('.poster.png')
-        if not poster.exists():
-            import subprocess
-            r = subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', str(sh.get('poster_at', 0)), '-i', str(p),
-                                '-frames:v', '1', str(poster)], capture_output=True)
-            if r.returncode or not poster.exists():
-                raise SystemExit(f'video {p.name}: no poster given and ffmpeg could not grab one ({r.stderr[-200:]!r})')
+    poster = spec.path(sh['poster']) if sh.get('poster') else p.with_suffix('.poster.png')
+    if not poster.exists():
+        # v5.7.1: a missing poster (manim films have no poster step) is grabbed from the film instead of a
+        # python-pptx FileNotFoundError: the LAST frame by default (a film's end state is its editable picture),
+        # "poster_at": seconds for another one (film_check.grab_frame copes with manimgx's variable frame rate).
+        from film_check import grab_frame
+        at = sh.get('poster_at')
+        if not grab_frame(p, poster, at):
+            raise SystemExit(f'video {p.name}: no poster at {poster} and ffmpeg could not grab one')
+        spec.warnings.append(f'video {p.name}: poster {poster.name} was missing; grabbed the '
+                             f'{"frame at " + str(at) + " s" if at is not None else "last frame"} (look at it)')
     mov = shapes.add_movie(str(p), Inches(sh['x']), Inches(sh['y']), Inches(sh['w']), Inches(sh['h']),
                            poster_frame_image=str(poster), mime_type='video/mp4')
     return mov
@@ -1395,8 +1398,13 @@ def set_background(slide, spec, bg):
 def chrome_for(spec, s, n, total):
     keep = s.get('chrome', True)
     over = s.get('chrome_set', {})
+    # v5.7.1: {scene} is the audience-facing chapter name ("scene_title" on the slide, or deck "scene_titles":
+    # {id: name}); a bare internal id such as "S4" is never printed on a slide
+    sid = str(s.get('scene', '') or '')
+    scene_txt = s.get('scene_title') or (getattr(spec, 'raw', {}) or {}).get('scene_titles', {}).get(sid) or \
+        ('' if re.fullmatch(r'[A-Za-z]{0,3}\d+[a-z]?(?:[._-]\w+)?', sid) else sid)
     tokens = {'n': f'{n:02d}', 'total': f'{total:02d}', 'title': spec.title, 'source': s.get('source', ''),
-              'scene': s.get('scene', '')}
+              'scene': scene_txt}
     layers = {}
     for layer in ('under', 'over'):
         out = []
@@ -1409,6 +1417,7 @@ def chrome_for(spec, s, n, total):
                 txt = sh['text'] if isinstance(sh['text'], str) else sh['text']
                 if isinstance(txt, str):
                     txt = re.sub(r'\{(\w+)\}', lambda m: str(tokens.get(m.group(1), m.group(0))), txt)
+                    txt = re.sub(r'^(?:\s*[·|/–—-]\s*)+|(?:\s*[·|/–—-]\s*)+$', '', txt)   # a separator left by an empty token
                     if not txt.strip():
                         continue
                     sh['text'] = txt
