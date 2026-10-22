@@ -94,8 +94,8 @@ def main(argv=None):
     if a.deck:
         deck = Path(a.deck)
         vids = sorted(set(videos(json.loads(deck.read_text()), [])))
-        errs = [] if len(vids) >= a.min else [f'deck has {len(vids)} film(s), need {a.min}: make them (Manim, else canvas_film.py, '
-                                                f'else native motion paths) and say which route in "Principles used"']
+        errs = [] if len(vids) >= a.min else [f'deck has {len(vids)} film(s), need {a.min}: render them with ManimGX '
+                                                f'(principles/manimgx-first.md); if ManimGX cannot run, stop and tell the user']
         for v in vids:
             p = Path(v) if Path(v).is_absolute() else deck.parent / v
             errs += check(p)[0]

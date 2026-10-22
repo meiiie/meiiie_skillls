@@ -1,5 +1,46 @@
 # Changelog
 
+## 6.2.0 (2026-10-22)
+Anatomy is now as strict as ManimGX.
+
+### Added
+- **principles/anatomy-first.md:**
+  - when Anatomy is required (any structure or process: at least one Anatomy film per deck);
+  - install with `setup_anatomy.sh`, plus the GitHub-tarball route for sandboxes with no git access;
+  - the smoke test, how anatomy_film.py works, its flags and the figure recipe;
+  - the rule: stop and report, never skip silently.
+- **scripts/anatomy/smoke.mjs:** a 10-line figure that renders a 3-second test film.
+
+### Changed
+- **SKILL.md:** step 0 now sets up ManimGX AND Anatomy; the films step, index and description
+  are updated.
+- **film-is-the-core:** Anatomy is required for any structure or process.
+- **manimgx-first:** points to anatomy-first.
+- **setup_anatomy.sh:** documents the tarball route. Its failure message now says stop and report,
+  and no longer points to the deleted v5 diagram_video.py.
+- **anatomy_film.py:** dead links to the v5 signature-moments.md now point to anatomy-first.
+
+## 6.1.0 (2026-10-22)
+**Why.** In a ChatGPT test the agent built a 30-slide deck with no films and delivered it as a PDF.
+v6.0 treated Manim as optional and gave no install path. The agent ran `pip install manimgx` on
+Python 3.11 and got "no matching distribution" (ManimGX needs Python 3.13 or newer), so it quietly
+fell back.
+
+### Added
+- **principles/manimgx-first.md:**
+  - links to the docs and to llms.txt;
+  - three install routes (venv with Python 3.13+, uv tool, or the standalone offline binary);
+  - a 10-line smoke scene and the render flags;
+  - the rule: install and smoke-test first, and if ManimGX is impossible, stop and report it.
+- **Anatomy docs link** for isometric machine films.
+
+### Changed
+- **ManimGX is mandatory.** This is now in SKILL.md (a new step 0, step 5, the index), in
+  film-is-the-core and in the film_check message.
+- **canvas_film and native motion are reported fallbacks only.** They need the user to have been
+  told and the reason in NOTES.md.
+- **Deliverable:** a .pptx with the mp4 films embedded plus the mp4s alongside. Never a PDF only.
+
 ## 6.0.0 (2026-10-22)
 Rewritten as a compressed skill: principles first, tools second.
 

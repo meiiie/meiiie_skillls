@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Film route 2 (no Manim): a pure-Python film. Frames are drawn with Pillow and piped straight into ffmpeg
+"""Reported fallback only (ManimGX impossible AND the user told, see principles/manimgx-first.md): a pure-Python film. Frames are drawn with Pillow and piped straight into ffmpeg
 (no frame files on disk). Works in any harness that has python3 + Pillow + ffmpeg.
 
   python3 canvas_film.py FILM.py --out assets/film/NAME.mp4 [--w 1920 --h 810 --fps 30]

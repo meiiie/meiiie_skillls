@@ -14,7 +14,7 @@ still shows the machine in Google Slides, Keynote, print, LibreOffice, or when t
      WORK/assets/film/<name>.shapes.json    {"type": "group", "name": ..., "shapes": [poly...]} for deck.json
      WORK/assets/film/<name>/film.json      frames, fps, anchors (screen points the module exported, in
                                             inches on the slide after --region) for labels set as slide text
-Write the module by the recipe in references/signature-moments.md §2 (bench, stations, a clock, paint back
+Write the module by the recipe in principles/anatomy-first.md (bench, stations, a clock, paint back
 to front, words outside the drawing). Look at the contact strip it prints before you use the film.
 """
 import argparse
@@ -26,7 +26,7 @@ import sys
 from pathlib import Path
 
 # v5.3.1: encode BT.709 limited range and SAY so, or players guess (BT.601 vs 709) and a white or blue film
-# card no longer matches the page it sits on (references/signature-moments.md, "Film and page colour")
+# card no longer matches the page it sits on (film and page colour must match)
 COLOUR_TAGS = ['-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv']
 
 HERE = Path(__file__).resolve().parent
@@ -102,7 +102,7 @@ def to_fragment(shapes_doc, region, name, min_pt=0.35, max_shapes=4000):
     return {'type': 'group', 'name': name, 'shapes': kids}, (ox, oy, s)
 
 
-# v5.3.1 figure audit (references/signature-moments.md, "Density and contrast"). The VinFast proof's first battery pack
+# v5.3.1 figure audit (density and contrast). The VinFast proof's first battery pack
 # had 69 solids, filled ~45 % of its frame and read as dark-on-dark; these numbers make that visible at film time.
 MIN_SOLIDS, MIN_FILL_W, MIN_FILL_AREA = 120, 0.70, 0.40
 MIN_LINE_CONTRAST, MIN_FACE_CONTRAST = 4.5, 2.2   # WCAG ratios against the card (faces: dark cards only)
@@ -236,7 +236,7 @@ def main(argv=None):
     print(f'editable {out / (a.name + ".shapes.json")}  ({len(frag["shapes"])} native shapes, group {frag["name"]!r})')
     print(f'fit      x={meta["fit"]["x"]} y={meta["fit"]["y"]} w={meta["fit"]["w"]} h={meta["fit"]["h"]} in; anchors {meta["anchors_in"]} (slide inches: film.json "anchors_in"; "anchors" there are figure pixels)')
     print('NEXT: look at the .strip.jpg, then a video shape {"type":"video","path":..., "poster":...} at the fit box, '
-          'and the .shapes.json group on the editable keyframe (references/signature-moments.md §4)')
+          'and the .shapes.json group on the editable keyframe (principles/anatomy-first.md)')
 
 
 if __name__ == '__main__':
