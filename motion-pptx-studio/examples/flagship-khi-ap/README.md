@@ -1,6 +1,6 @@
 # Flagship example: "Khí áp 2026" (the world economy, October 2026, Vietnamese, 30 slides)
 
-Built in v5.6→5.7 under the "full creative authority" brief (SKILL.md §Full creative authority). Lightweight copy:
+Built in v5.6→5.7 (before v6). A yardstick for care, not a template: do not reuse its palette or layouts. Lightweight copy:
 recipes, boards, stills and the critique log. No films, decks or map data are committed (they regenerate).
 
 **Concept.** The 2026 economy as a synoptic weather chart, grounded in the numbers: growth isobars with an energy

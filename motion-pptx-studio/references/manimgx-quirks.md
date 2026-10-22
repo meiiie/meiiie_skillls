@@ -7,6 +7,7 @@ at x 0.6, y 1.62 on a 13.333 in slide; scene units 18.963 × 8.
 | Quirk | Symptom | Fix |
 |---|---|---|
 | **Fonts resolve by nameID 1** (the legacy family name), not by the full name | `Text(font='IBM Plex Sans Medium')` silently falls back | Use the nameID-1 names: `'IBM Plex Sans Medm'`, `'IBM Plex Sans SmBld'`, `'Source Serif Pro Semibold'`. Check with `fc-query -f '%{family}\n' font.ttf`. |
+| **Typst text engine reads typographic families** | `font='Fraunces SemiBold'` or `'Barlow Condensed'` silently falls back to a serif | Use family + weight: `font='Fraunces', weight='SEMIBOLD'`; a file named Barlow Condensed is family `'Barlow'` (+ `weight=BOLD`). Test-render one frame first. |
 | **No matplotlib in ManimGX's python** | `import matplotlib` (e.g. a contour helper) fails inside the render | Precompute geometry in the system python (contours, streamlines) to JSON (`pressure_geom.json`, `wind_xy.json`) and only load JSON in the film. |
 | **Output is VFR** | `ffmpeg -ss` stills land on the wrong frame | Grab stills by frame index (`select=eq(n\,N)`), see `examples/flagship-khi-ap/films/sheet.py`. |
 | **Stroke widths scale with the camera frame** | A camera push makes hairlines thick, a pull makes them vanish | Good for a real push (lines get closer). For pans where line weight must stay, use `kit.View` (moves the content, not the frame). |

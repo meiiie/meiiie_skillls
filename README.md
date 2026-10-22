@@ -9,7 +9,7 @@
 | [meiiie-interactive-webgl](meiiie-interactive-webgl/SKILL.md) | Available | Semantic 3D objects, reversible assembly, accessible controls and explicit render checks. |
 | [meiiie-operating-office](meiiie-operating-office/SKILL.md) | Available | Task-scoped coordination with one accountable lead, bounded specialist work and evidence-based review. |
 | [neko-wiii-product-studio](neko-wiii-product-studio/SKILL.md) | Available | Neko Core and Wiii ownership, shared contracts and integration acceptance. |
-| [motion-pptx-studio](motion-pptx-studio/SKILL.md) | Available | v5.7 designed, researched PowerPoint decks: full creative authority, semantic self-routing, a per-deck design genome, construction motion, signature films, and the Khí áp flagship reference. |
+| [motion-pptx-studio](motion-pptx-studio/SKILL.md) | Available | v6.0 principle-based PowerPoint decks: mandatory signature films, art direction, sourced numbers, and no house style. |
 | [heritage-visual-research](heritage-visual-research/SKILL.md) | Available | Sourced facts, true/wrong motif lists, anatomy checks and licensed images for cultural topics. |
 | [presentation-speech-craft](presentation-speech-craft/SKILL.md) | Available | Hook, anchor phrase, pauses, circular close, word budget and a speaker-script document. |
 
@@ -47,58 +47,23 @@ The accepted product direction and historical audit findings guide current inspe
 
 ## Motion PPTX Studio
 
-[Motion PPTX Studio](motion-pptx-studio/SKILL.md) (v5.7) builds a PowerPoint deck as a short film shot on one set: a
-style pack holds the system (material ground, chrome, grid, type roles), one signature object carries the deck, and
-each scene uses a chosen motion vocabulary — Morph keyframes when PowerPoint 365/2019+ will play them, otherwise
-classic transitions, entrances, paths and type. It covers product launches, pitches, business reviews and data stories,
-lectures, events and heritage topics with one pipeline, gated from brief to delivery (Gates 0–6 in
-[gates.py](motion-pptx-studio/scripts/gates.py)). The no-default-template rule is Gate 3: a written style
-choice (including a rejected pack) and at least two techniques beyond Morph.
+[Motion PPTX Studio](motion-pptx-studio/SKILL.md) (v6.0) is a short, principle-based workflow. Films are mandatory:
+Manim, then the pure-Python canvas, then an Anatomy isometric machine, each with an editable native fallback.
+There is no house style. Palette and fonts come from the deck. The default palette is neutral greyscale and the
+default fonts are DejaVu. Thirteen principles live in [principles/](motion-pptx-studio/principles/one-concept.md),
+including [art direction](motion-pptx-studio/principles/art-direction.md) and
+[examples are a yardstick, not a mold](motion-pptx-studio/principles/examples-are-a-yardstick-not-a-mold.md).
 
-- Eleven [style packs](motion-pptx-studio/references/styles.md): lacquer-heritage, noir-product, paper-editorial,
-  boardroom-data, studio-pop, kinetic-type, blueprint, swiss-blue, neo-brutal, retro-terminal, and
-  heritage-collage (aged paper, script, photogrid). Each pack is a layout grammar, with OFL fonts that cover
-  Vietnamese ([gallery](motion-pptx-studio/assets/reference/styles-gallery.jpg) of the first five). glass-tech,
-  papercut-collage and desktop-os now have their own grammar docs.
-- A [motion library](motion-pptx-studio/references/motion-library.md) of 49 transitions and 24 effects.
-  `compat` is `morph` (default), `safe` or `dual`: Morph is converted to classic animation automatically, and a
-  no-Morph render gate checks that safe mode leaves no Morph behind.
-- `studio.py new / build / compare`: a starter deck that proves the system, a one-command
-  build → motion → render → audit loop, and a side-by-side with the
-  [reference deck](motion-pptx-studio/references/reference-bar.md). `verify_motion.py` round-trips effects through
-  LibreOffice, `preview_motion.py` writes a labelled simulation, and `diagram_video.py` builds a diagram film
-  (Manim route or native shapes).
-- A deck engine with components (heading, card, stat, screen, timeline, bars, list, quote) and layout warnings
-  measured with the real font; an asset kit for grounds, foil drawings, layered parts and photo grading.
-- Audits that fail stuck keyframes, one-template decks and decks without a persistent system, and pass the accepted
-  reference deck. The v3 visual-audit gates are included. [Craft](motion-pptx-studio/references/craft.md),
-  [pro craft](motion-pptx-studio/references/pro-craft.md) and
-  [genre](motion-pptx-studio/references/genres.md) references. `check_deck.py --variety` measures technique,
-  transition and composition variety, and flags a repeated text-left/photo-right fingerprint.
-- v5.3 is a floor: at least two hand-built [signature moments](motion-pptx-studio/references/signature-moments.md)
-  (Anatomy or Manim films of the subject's own mechanism, with a Codex asset path for textures and grounds),
-  three [art directions](motion-pptx-studio/references/art-directions.md) before a style is chosen, and hard gates
-  only for facts, licences and render integrity. v5.3.1 adds a film audit (no label under a video, poster colour
-  against the page) and density and contrast floors for Anatomy posters.
-- v5.4 builds the full deck by default, adds a deck-level gate 5, a legibility audit, and the heritage-collage pack.
-  v5.5 routes each deck before design (`route.py`, gate 3), compiles a per-deck
-  [design genome](motion-pptx-studio/references/design-space.md), and builds diagrams with
-  [construction motion](motion-pptx-studio/references/construction-motion.md). A rejected family, such as heritage
-  collage for aerospace, fails the gate.
-- v5.6 routes by what the deck is about (topic weight, declared domains, tone vectors), not keyword hits.
-  v5.7 adds full creative authority: one data-grounded concept, a signature film per chapter, and a scored
-  visual self-critique. The flagship reference is
-  [Khí áp](motion-pptx-studio/examples/flagship-khi-ap/README.md). Hairline shapes drop the theme effect
-  shadow so LibreOffice does not paint grey bands. See
-  [manimgx-quirks.md](motion-pptx-studio/references/manimgx-quirks.md).
-  [Worked examples](motion-pptx-studio/examples/README.md) include the six-style phin deck, the earth-fall deck
-  and the Khí áp flagship.
+`python3 scripts/build.py` builds the deck, applies motion, packs, renders to a new `renders/rN` folder, and runs
+`film_check`. A deck with fewer than two films fails. Yardsticks, not templates:
+[Trái Đất](motion-pptx-studio/examples/reference-trai-dat/README.md),
+[Bưu điện ánh sáng](motion-pptx-studio/examples/space-buu-dien-anh-sang-v2/README.md), and
+[Khí áp](motion-pptx-studio/examples/flagship-khi-ap/README.md). The old paper-editorial pack remains only as an
+optional illustration inside the Khí áp example. See
+[deck-json.md](motion-pptx-studio/references/deck-json.md) and
+[manimgx-quirks.md](motion-pptx-studio/references/manimgx-quirks.md).
 
-Morph plays in PowerPoint 365 / 2019+. PowerPoint 2016, Google Slides, Keynote and LibreOffice need `compat: safe`
-or `dual`. Image search covers Wikimedia Commons and Openverse; museum sites stay manual. Installing the skill
-does not review a deck in PowerPoint, embed fonts or grant licences for images. Motion in this release was
-verified with LibreOffice; real PowerPoint playback is still unconfirmed. The examples use fictional products and illustrative numbers;
-the reference renders credit their CC BY-SA photos in [assets/reference](motion-pptx-studio/assets/reference/README.md).
+v5 gates, the design genome, the router, the style-pack library, and the test suites are removed.
 
 ## Heritage visual research
 
@@ -110,7 +75,7 @@ the reference renders credit their CC BY-SA photos in [assets/reference](motion-
 
 ## Install these three skills
 
-Copy the folders into the harness skill directory, then check the toolchain once per machine. Python 3.9+ (python-pptx, lxml, Pillow, numpy, fonttools, python-docx, cairosvg), LibreOffice, poppler (`pdftoppm`) and fontconfig are required. ffmpeg, yt-dlp, scipy, OpenCV and pymupdf are recommended. `setup.sh --install` installs the Python packages (pip `--user`, or a venv when pip is locked) and prints the system-package command for binaries. It does not run sudo.
+Copy the folders into the harness skill directory, then check the toolchain once per machine. Motion PPTX Studio v6 needs Python 3.9+, python-pptx, Pillow, LibreOffice, poppler, and ffmpeg. ManimGX, and Node plus Chrome for Anatomy, are optional. The companion skills still use their own scripts.
 
 ```bash
 # Claude Code
@@ -119,9 +84,6 @@ cp -r motion-pptx-studio heritage-visual-research presentation-speech-craft ~/.c
 cp -r motion-pptx-studio heritage-visual-research presentation-speech-craft ~/.agents/skills/
 # Cursor (~/.cursor/skills/ or .cursor/skills/; also reads .agents/skills and .claude/skills)
 cp -r motion-pptx-studio heritage-visual-research presentation-speech-craft ~/.cursor/skills/
-bash motion-pptx-studio/scripts/setup.sh
 ```
 
-A generic shell agent follows [motion-pptx-studio/SKILL.md](motion-pptx-studio/SKILL.md) directly. Per-harness differences are in [harness-adapters.md](motion-pptx-studio/references/harness-adapters.md). Optional external skills (Anthropic `pptx` / `docx`) are never required.
-
-`motion-pptx-studio/scripts/` is the canonical copy of the shared scripts. After editing one, run `bash motion-pptx-studio/sync_companions.sh`.
+A generic shell agent follows [motion-pptx-studio/SKILL.md](motion-pptx-studio/SKILL.md) directly. Optional external skills (Anthropic `pptx` / `docx`) are never required.

@@ -1,4 +1,0 @@
-# generated: python ../../scripts/make_assets_example.py --out assets ; python make_deck.py ; studio.py build .
-assets/
-deck/
-renders/
