@@ -1,17 +1,21 @@
 # film-is-the-core
-A deck without signature films has failed this skill, however good its text slides are.
-Never skip silently.
-- Plan 3-6 films (one per main chapter), 10-20 s each, 1920x810 (64:27) for the
+A deck without signature films fails this skill, however good its text slides are.
+- **Plan 3-6 films**, one per main chapter, each 10-20 s, at 1920x810 (64:27) to fill the
   full-width film window.
-- Route 1: Manim (`manimgx`, scripts/manim_kit.py: slide-point type, a 2-D camera,
-  pins). Route 2: no Manim -> scripts/canvas_film.py (pure Python + Pillow + ffmpeg, a
-  camera, piped frames). Route 2b: isometric machine -> scripts/anatomy_film.py (Node +
-  Chrome; gives an editable shapes.json too). Route 3: no ffmpeg -> native motion paths
-  + Morph across 2-3 slides that redraw the same picture. Write which route you used,
-  and why, in "Principles used".
-- A film must MOVE: a camera that pushes/tracks/pulls, parts that travel. `film_check.py
-  FILM` after every render.
-- Every film gets an editable native slide of its end state (same geometry module, two
-  renderers).
-- Look at a contact strip of each film (5+ frames) before it goes on a slide; fix
-  collisions, empty halves, tiny type.
+- **ManimGX is mandatory.** Install it and smoke-test it first (manimgx-first). Write the films
+  with scripts/manim_kit.py: slide-point type, a 2-D camera, pins.
+- **Anatomy is mandatory too** whenever the topic has any structure or process (architecture,
+  system, machine, pipeline, cycle): at least one film from scripts/anatomy_film.py (anatomy-first).
+  It also gives an editable shapes.json.
+- **Only if ManimGX or Anatomy cannot run AND the user has been told:**
+  - scripts/canvas_film.py (pure Python + Pillow + ffmpeg);
+  - else native motion paths with Morph across 2-3 slides.
+  - Write the reason in NOTES.md.
+- **A film must MOVE:** a camera that pushes, tracks or pulls, and parts that travel. Run
+  `film_check.py FILM` after every render.
+- **Every film gets an editable native slide of its end state.** Use the same geometry module
+  with two renderers.
+- **Look at a contact strip of each film (5+ frames)** before it goes on a slide. Fix collisions,
+  empty halves and tiny type.
+- **The deliverable is a .pptx with the mp4 films embedded,** plus the mp4s alongside it. Never
+  deliver a PDF only. A PDF is at most an extra handout.

@@ -1,4 +1,4 @@
-# ManimGX quirks and fixes (v5.7, learned on the "Khí áp" flagship, 6 films)
+# ManimGX quirks and fixes (learned on the "Khí áp" flagship, 6 films; install: principles/manimgx-first.md)
 
 Render: `manimgx render film.py Scene -r 2560x1080 --fps 30 -o assets/film/name.mp4`
 (tests: `-r 1280x540 --fps 15`, ~4x faster). A 64:27 film fills the 12.133 × 5.119 in film window

@@ -6,7 +6,8 @@
 #   bash setup_anatomy.sh            # check, clone if missing, print ANATOMY_HOME
 #   ANATOMY_HOME=/path bash setup_anatomy.sh
 # Needs: git, Node >= 20.10, Chrome/Chromium (google-chrome, chromium, or CHROME=/path).
-# As an agent skill (optional, for building figures interactively): npx skills add wheresryan22/anatomy
+# No GitHub access (ChatGPT-like sandboxes)? Fetch https://github.com/wheresryan22/anatomy/archive/refs/heads/main.tar.gz
+# (container.download or an upload), extract it, and set ANATOMY_HOME to the folder. Agent skill: npx skills add wheresryan22/anatomy
 set -u
 HOME_DIR="${ANATOMY_HOME:-$HOME/.local/share/anatomy}"
 ok=1
@@ -24,4 +25,4 @@ if [ -f "$HOME_DIR/kit/iso-kit.mjs" ]; then
   (cd "$HOME_DIR" && node examples/dial-indicator/build.mjs >/dev/null) && echo "OK   kit builds (examples/dial-indicator)" || { echo "FAIL kit build"; ok=0; }
 fi
 echo "export ANATOMY_HOME=$HOME_DIR"
-[ $ok = 1 ] || { echo "Anatomy unavailable: use scripts/diagram_video.py or ManimGX for signature moments (references/signature-moments.md §4)"; exit 2; }
+[ $ok = 1 ] || { echo "Anatomy unavailable: STOP and tell the user what is missing (principles/anatomy-first.md). Do not skip it silently."; exit 2; }
