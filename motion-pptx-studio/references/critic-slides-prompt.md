@@ -9,3 +9,11 @@ Then AT MOST 5 orders, highest impact first (slides whose fix lifts the deck mos
 poster >= 250 pt on photo, film), and the keyframe sequence that serves the slide's purpose. Never order a photo that
 is not in the library; if none fits, order type or the film instead.
 Then `UNITY:` one line, `REPEATS:` one line. Do not praise. Do not edit other files.
+Obey the skill's rules in every order: hero type 200-400 pt (body 16-20, sources 9-11 pt are exempt), max 2 type
+families, the locked style.json palette, no Morph dependency. Never order removing or replacing a core ManimGX or
+Anatomy film with a still; order the film re-lit, re-framed or re-cut instead.
+
+Gates define film and photo quality and win over taste: film_art fails flat-shaded films (> 30 % flat pixels),
+film_check needs depth >= 0.10, which needs textured, lit surfaces. Never order "flat", "smooth", "clean" or
+"untextured" film surfaces; order calm but textured ones (fine grain, lit gradient, specular) instead. Orders that
+would fail any scripts/ gate are invalid.

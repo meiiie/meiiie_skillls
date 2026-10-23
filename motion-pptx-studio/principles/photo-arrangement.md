@@ -14,7 +14,7 @@ A photo is a space the viewer enters, not a rectangle next to the text. The phot
 - **Find the subject and the quiet space before placing type:** `photo_layout.py analyze`.
   - Saliency can mistake paving or foliage for a subject, so check its box by eye. Pass `--focus` when it is wrong.
   - Crop the subject onto a third (`crop --subject-at`) and leave the opposite side for the words.
-- **Cut-outs:** `photo_layout.py cutout` (rembg, with GrabCut as fallback). Add a soft contact shadow in the
+- **Cut-outs:** `photo_layout.py cutout` (rembg -> rembg venv -> GrabCut; if rembg runs out of memory it falls back to GrabCut automatically: check the edge, or downscale to <= 2000 px first). Add a soft contact shadow in the
   ground's colour. Look at the edge at 2x.
 - **No photo for an idea?** Make a dark or bold slide instead. Use a numeral that bleeds off the frame, or a
   drawn object at hero scale. Never put a small icon in a large empty field.

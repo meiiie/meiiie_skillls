@@ -1,6 +1,8 @@
 # unity
 Duarte: unity is "consistent look and feel, image treatment, and placement". R11 container mixed documentary
 photos, glossy 3-D renders, UI checklists and iso blocks: four worlds, one deck, 7/10.
+- **Lock it before building in design/style.json:** `{"palette": [4-7 hex], "treatment": "grade, grain, crop, edge"}`.
+  style_check.py fails renders/diagrams off the palette and slides > 3 MAD off the deck's saturation/lightness.
 - **One image treatment for the whole deck**, written in design/treatment.md: grade/duotone, grain, crop logic,
   edge. Chapters may shift temperature, never the treatment.
 - **Renders and diagrams are drawn in that treatment or not at all**: same grain, palette, light direction and

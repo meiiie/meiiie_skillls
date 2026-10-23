@@ -48,22 +48,26 @@ def liveness(p, dur, thr=2.0):
     return live / (len(fr) - 1)
 
 
-def depth_move(p, n=10):
-    """Share of feature matches between frames that a 2-D pan/zoom cannot explain but a perspective
-    (homography) can: ~0 for a flat frame move, >= 0.1 for a real tilt/orbit (ThreeDScene camera)."""
+def depth_move(p, n=16, gap=0.4):
+    """Share of feature matches that a 2-D pan/zoom cannot explain but a perspective (homography) can:
+    ~0 for a flat move, >= 0.1 for a real tilt/orbit. v6.22: resolution- and fps-normalised (frames scaled to
+    640 px, pairs taken `gap` seconds apart at n evenly spaced times), ratio-tested matches (dense particle
+    fields give ambiguous matches; they are dropped) and the mean of the best 3 pairs instead of one max."""
     try:
         import cv2, numpy as np
     except ImportError:
         return None
-    cap = cv2.VideoCapture(str(p)); N = int(cap.get(7)); fr = []
+    cap = cv2.VideoCapture(str(p)); N = int(cap.get(7)); fps = cap.get(5) or 30; step = max(1, round(gap * fps))
+    def grab(i):
+        cap.set(1, i); ok, f = cap.read()
+        return cv2.cvtColor(cv2.resize(f, (640, int(640 * f.shape[0] / f.shape[1]))), cv2.COLOR_BGR2GRAY) if ok else None
+    orb = cv2.ORB_create(2000); bf = cv2.BFMatcher(cv2.NORM_HAMMING); vals = []
     for k in range(n):
-        cap.set(1, int(k * (N - 1) / (n - 1))); ok, f = cap.read()
-        if ok: fr.append(cv2.cvtColor(cv2.resize(f, (640, int(640 * f.shape[0] / f.shape[1]))), cv2.COLOR_BGR2GRAY))
-    orb = cv2.ORB_create(1500); bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True); best = 0.0
-    for a, b in zip(fr, fr[1:]):
+        i = int(k * max(N - 1 - step, 0) / max(n - 1, 1)); a, b = grab(i), grab(i + step)
+        if a is None or b is None: continue
         k1, d1 = orb.detectAndCompute(a, None); k2, d2 = orb.detectAndCompute(b, None)
         if d1 is None or d2 is None or len(k1) < 12 or len(k2) < 12: continue
-        m = bf.match(d1, d2)
+        m = [x[0] for x in bf.knnMatch(d1, d2, k=2) if len(x) == 2 and x[0].distance < 0.8 * x[1].distance]
         if len(m) < 12: continue
         P = np.float32([k1[x.queryIdx].pt for x in m]); Q = np.float32([k2[x.trainIdx].pt for x in m])
         if np.median(np.linalg.norm(P - Q, axis=1)) < 1: continue
@@ -71,8 +75,9 @@ def depth_move(p, n=10):
         Hh, _ = cv2.findHomography(P, Q, cv2.RANSAC, 2)
         if S is None or Hh is None: continue
         e = np.linalg.norm(cv2.transform(P[None], S)[0] - Q, axis=1); eh = np.linalg.norm(cv2.perspectiveTransform(P[None], Hh)[0] - Q, axis=1)
-        best = max(best, float(np.mean(e > 3) - np.mean(eh > 3)))
-    return best
+        vals.append(float(np.mean(e > 3) - np.mean(eh > 3)))
+    vals = sorted(vals, reverse=True)[:3]
+    return sum(vals) / len(vals) if vals else 0.0
 
 
 def occupancy(png):

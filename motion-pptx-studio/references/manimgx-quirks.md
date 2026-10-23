@@ -1,6 +1,6 @@
 # ManimGX quirks and fixes (learned on the "Khí áp" flagship, 6 films; install: principles/manimgx-first.md)
 
-Render: `manimgx render film.py Scene -r 2560x1080 --fps 30 -o assets/film/name.mp4`
+Render: `manimgx render film.py Scene -r 1920x1080 --fps 30 -o assets/film/name.mp4`
 (tests: `-r 1280x540 --fps 15`, ~4x faster). A 16:9 film is full-bleed (default, ds.FILM_ASPECT 16/9); a 64:27 film fills a 12.133 × 5.119 in band
 at x 0.6, y 1.62 on a 13.333 in slide; scene units 18.963 × 8.
 
@@ -26,3 +26,18 @@ themes then paint the theme's soft shadow under every hairline, which turns a ma
 grey bands. `build_deck.strip_theme_style()` (v5.7) removes `<p:style>` from every text-less drawn shape
 before saving; shapes with text keep it (their fontRef supplies the default text colour). For decks built
 with an older engine: `python3 examples/flagship-khi-ap/postfix.py deck.pptx`.
+
+
+## v6.21 notes (peer test)
+- ManimGX has `add_fixed_in_frame_mobjects` but no `remove_fixed_in_frame_mobjects`: `self.remove(mob)` it, or
+  fade its opacity to 0, then re-add a new one.
+- Lights: `SunLight`, `SpotLight`, `PointLight`, `EnvironmentLight`; surfaces take `set_material(Material(...))`.
+- Fonts: `embed_fonts.py DECK --font "Family=Regular.ttf,Bold.ttf,Italic.ttf"` (one --font per family). Variable
+  fonts (`[wght]`) do not embed reliably: download or instance static files first (fonttools `varLib.instancer`).
+- **Size:** every film renders `-r 1920x1080` (16:9, full-bleed); test at `-r 960x540 --fps 15`. film_check's
+  depth metric is resolution/fps-normalised, so a test render and the final measure alike.
+- `from manimgx import *` exports a geometry `Path` that shadows `pathlib.Path`: `import pathlib` and write
+  `pathlib.Path(...)` (or import pathlib after the star import as `from pathlib import Path as FPath`).
+- `ImageMobject` has no `set_height`/`set_width`: use `img.scale(h / img.get_height())` or `stretch_to_fit_height`.
+- Dense particle fields (> 5k dots) need some larger lit structure (planet, grid, ground texture) in frame so the
+  depth metric can track the camera.

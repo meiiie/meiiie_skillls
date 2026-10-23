@@ -68,6 +68,34 @@ def variety(ch, items):
         out.append(f'VARIETY chapter {ch!r}: {alike}/{len(pairs)} candidate pairs look alike (max 1/3): replace near-duplicates with other subjects')
     return out
 
+def plan(a):
+    """v6.20 design/hero-plan.md gate, run BEFORE writing make_deck.py. Rows: | slide | chapter | purpose | visual | source |
+    visual in photo|cutout|bleed|film|3d|poster|object|pair|sequence|mask|diagram ; source = a library file, a film
+    script or 'type'. Fails: a chapter without a hero row (photo/bleed/cutout/film/3d) whose source exists; a source
+    file missing; diagram rows > max(2, slides/8); a 'diagram' on a chapter's first slide; 'drawing' anywhere."""
+    import re as _re
+    root = Path(a.plan).parent.parent; rows, fails = [], []
+    for ln in open(a.plan, encoding='utf-8'):
+        c = [x.strip() for x in ln.strip().strip('|').split('|')]
+        if len(c) >= 5 and _re.match(r'^\d+$', c[0]): rows.append(c)
+    if not rows: sys.exit('FAIL    PLAN    no rows "| slide | chapter | purpose | visual | source |" in ' + a.plan)
+    ok = {'photo', 'cutout', 'bleed', 'film', '3d', 'poster', 'object', 'pair', 'sequence', 'mask', 'diagram'}
+    heroes, firsts, diag = {}, {}, []
+    for c in rows:
+        v = c[3].lower().split()[0] if c[3] else ''
+        if v not in ok: fails.append(f'PLAN    slide {c[0]}: visual {c[3]!r} not in {sorted(ok)} (flat drawings/cards are not visuals)')
+        src = c[4]
+        exists = src.lower() in ('type', '-') or any((root / src).exists() for root in (root, root.parent, Path('.')))
+        if not exists: fails.append(f'PLAN    slide {c[0]}: source {src!r} not found (a library file, film script or "type")')
+        firsts.setdefault(c[1], c)
+        if v == 'diagram': diag.append(c[0])
+        if v in ('photo', 'bleed', 'cutout', 'film', '3d') and exists and src.lower() != 'type': heroes[c[1]] = 1
+    for ch, c in firsts.items():
+        if ch not in heroes and not _re.match(r'(?i)^(nguồn|sources?|credits?|tài liệu|tham khảo|ghi chú)', ch): fails.append(f'PLAN    chapter {ch!r}: no hero row (photo/bleed/cutout/film/3d with a real source)')
+        if c[3].lower().startswith('diagram'): fails.append(f'PLAN    chapter {ch!r} opens on a diagram (slide {c[0]})')
+    if len(diag) > max(2, len(rows) // 8): fails.append(f'PLAN    {len(diag)} diagram slides {diag} (max {max(2, len(rows)//8)}): explain with a photo, object, 3-D still or film')
+    print('\n'.join('FAIL    ' + f for f in fails) or f'hero-plan: ok ({len(rows)} slides, {len(heroes)} chapters with a hero)'); sys.exit(1 if fails else 0)
+
 def check(a):
     fails, lib = [], load(a.lib); picks = {}
     for ch, items in lib.items():
@@ -75,6 +103,11 @@ def check(a):
         jobs = {it.get('job') for it in items if it.get('job', 'candidate') != 'candidate'}
         if 'hero' not in jobs or len(jobs) < 3: fails.append(f'LIB     chapter {ch!r}: picks have jobs {sorted(jobs)} (need a hero + 3 different jobs)')
         for it in items:
+            if it.get('job') == 'hero':   # v6.20 hero quality: big, real, not a thumbnail
+                try:
+                    im = Image.open(it['file'])
+                    if max(im.size) < 1600: fails.append(f"HERO    {it['file']}: {im.size[0]}x{im.size[1]} - a hero needs >= 1600 px long side (find the original)")
+                except Exception: pass
             if not it.get('licence') or not it.get('url'): fails.append(f"LIB     {it.get('file')}: licence/url missing")
             try:
                 if not real_photo(Image.open(it['file'])): fails.append(f"LIB     {it['file']}: not a real photograph (render/illustration)")
@@ -97,7 +130,7 @@ def check(a):
         if a.deck:
             sl = [x for x in json.load(open(a.deck)).get('slides', []) if not x.get('hidden')]
             for k, x in enumerate(sl):
-                t = json.dumps(x).lower()
+                t = json.dumps(x).lower() + ' ' + ' '.join(map(str, x.get('photo_from', []) if isinstance(x.get('photo_from'), list) else [x.get('photo_from', '')])).lower()   # v6.22: graded crops name their library source in "photo_from"
                 for st, ch in picks.items():
                     if st in t: per_ch.setdefault(ch, set()).add(k + 1)
         n = len(Presentation(a.pptx).slides); ph = {k for v in used.values() for k in v}
@@ -106,11 +139,13 @@ def check(a):
             for h, sl in d.items():
                 if len(sl) > 2: fails.append(f'REUSE   one {kind} on {len(sl)} slides {sorted(sl)} (max 2): pick another from the library')
         for ch in (lib if a.deck else []):
+            if __import__('re').match(r'(?i)^(nguồn|sources?|credits?|tài liệu|tham khảo)', str(ch)): continue
             if len(per_ch.get(ch, ())) < 2: fails.append(f'LIB     chapter {ch!r}: {len(per_ch.get(ch, ()))} slides use its library picks (need >= 2): write slides FROM the library')
     print('\n'.join('FAIL    ' + f for f in fails) or 'photo_library: ok'); sys.exit(1 if fails else 0)
 
 ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
 sp = ap.add_subparsers(dest='cmd', required=True)
 b = sp.add_parser('board'); b.add_argument('lib'); b.set_defaults(f=board)
+pl = sp.add_parser('plan'); pl.add_argument('plan'); pl.set_defaults(f=plan)
 c = sp.add_parser('check'); c.add_argument('lib'); c.add_argument('--deck'); c.add_argument('--pptx'); c.set_defaults(f=check)
 a = ap.parse_args(); a.f(a)

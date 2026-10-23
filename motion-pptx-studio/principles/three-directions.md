@@ -16,11 +16,4 @@ house style or from the examples.
   illustration-led, dense or airy, archival or contemporary.
 - **Reject the cliché first.** Write the obvious look down (coffee = cream and brown, space = navy
   and stars, finance = blue and green) and do not choose it unless you can say why it is right.
-- **Do not resemble earlier work.** Reject any direction that looks like examples/ or your own
-  earlier decks: their palettes, rails, postmarks, isobars or chapter colours.
-- **Recolour test:** the three must differ in COMPOSITION (title anchor, photo treatment, grid,
-  scale range), not only colour. If swapping palettes turns one sketch into another, redo it.
-  Draw each sketch by hand-placing its own layout, never one drawing function with colour arguments.
-- **Sketch all three** on one board PNG (a hero slide and a data slide each). Score each against
-  the audience and the yardstick.
-- **Pick one** and write in NOTES.md which direction won, why, and why the other two lost.
+- More: references/details/three-directions.md (commands, flags, edge cases).

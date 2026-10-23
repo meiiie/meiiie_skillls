@@ -17,5 +17,4 @@ Art direction is decided before slide 1, on a board, and every rule has a reason
   (lollipop trees, blocks, dots) are diagrams, not art.
 - **One recurring motif with meaning**, used quietly (a rail, a mark).
 - **Vary composition** per composition-range.
-- **Board, then critique.** Render palettes, type, motif and 30 wireframe tiles into one image.
-  Compare it with the best reference you have and fix the plan before building.
+- More: references/details/art-direction.md (commands, flags, edge cases).

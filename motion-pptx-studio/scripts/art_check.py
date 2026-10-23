@@ -9,6 +9,7 @@
 - chapter materials: the ground statistics of each slide; identical ground on every chapter is reported.
 Flags are prompts to look, not verdicts (a good deck can have a quiet flat page). --strict exits 1.
 """
+import re
 import sys, glob, argparse
 import numpy as np
 from PIL import Image, ImageFilter
@@ -46,9 +47,27 @@ def layouts(path):
     return out
 
 
+def text_extent(sh):
+    """v6.22: approximate inked box of a text frame (EMU): longest line x 0.55 em per char, lines x 1.2 em,
+    honouring centre/right alignment; never larger than the shape itself."""
+    lines, pt, al = [], 18.0, 1
+    for p_ in sh.text_frame.paragraphs:
+        sz = max([r.font.size.pt for r in p_.runs if r.font.size] or [pt]); pt = max(pt, sz) if lines else sz
+        lines += [(ln, sz) for ln in (p_.text or '').split('\v')]
+        if p_.alignment is not None: al = int(p_.alignment)
+    w = min(sh.width, int(max((len(t) * z * 0.55 for t, z in lines), default=0) * 12700) + 2 * 91440)
+    h = min(sh.height, int(sum(z * 1.2 for _, z in lines) * 12700) + 91440)
+    left = sh.left + ((sh.width - w) // 2 if al == 2 else (sh.width - w) if al == 3 else 0)
+    return left, sh.top, w, h
+
+
 def real_photo(im):
     """v6.11 photo vs rendered illustration: a photograph has many colours and almost no flat (noise-free) regions;
     a render or vector illustration has few colours and large flat areas. Tested on 12 past decks."""
+    try:   # v6.21: a camera photo of calm sky/sea/fog is flat but real - trust camera EXIF
+        ex = im.getexif()
+        if ex and (ex.get(271) or ex.get(272)): return True
+    except Exception: pass
     im = im.convert('RGBA'); im.thumbnail((256, 256))
     a = np.asarray(im)[..., 3] > 200; cover = a.mean()
     if cover < 0.05: return False
@@ -58,7 +77,7 @@ def real_photo(im):
     mx = np.asarray(Image.fromarray(g.astype(np.uint8)).filter(ImageFilter.MaxFilter(5)), float)
     mn = np.asarray(Image.fromarray(g.astype(np.uint8)).filter(ImageFilter.MinFilter(5)), float)
     flat = ((mx - mn) <= 6)[a].mean()
-    return bool(flat < 0.12 or (flat < 0.35 and cols >= 450 * max(cover, 0.3)))
+    return bool(flat < 0.12 or (flat < 0.35 and cols >= 450 * max(cover, 0.3)) or (flat < 0.75 and cols >= 1400 * max(cover, 0.3)))   # v6.21 smooth skies keep many colours
 
 def iso_score(im):
     """v6.13 share of edges at the isometric +-30 deg; >= 0.10 = an isometric block scene (default fallback)."""
@@ -139,15 +158,17 @@ def photo_read(pptx_path, render_dir, deck_json=None):
             for sh in slide.shapes:
                 if not sh.has_text_frame or len(sh.text_frame.text.strip()) < 3:
                     continue
+                tl, tt, tw_, th_ = text_extent(sh)   # v6.22: the inked text area, not the text-box width
                 for ph in photos:
-                    x0, y0 = max(sh.left, ph.left), max(sh.top, ph.top)
-                    x1, y1 = min(sh.left + sh.width, ph.left + ph.width), min(sh.top + sh.height, ph.top + ph.height)
+                    x0, y0 = max(tl, ph.left), max(tt, ph.top)
+                    x1, y1 = min(tl + tw_, ph.left + ph.width), min(tt + th_, ph.top + ph.height)
                     if x1 - x0 > 0 and y1 - y0 > 0:
                         box = tuple(int(v) for v in (x0 / W * rw, y0 / H * rh, x1 / W * rw, y1 / H * rh))
                         if box[2] - box[0] > 8 and box[3] - box[1] > 8:
                             sd = np.asarray(med.crop(box), float).std()
                             if sd > 28: busy.append(round(sd))
-        if k < len(renders) and iso_score(Image.open(renders[k])) >= 0.10: isos.append(k + 1)
+        has_pic = any(sh.shape_type in (13, 16) for sh in slide.shapes)
+        if k < len(renders) and has_pic and (k + 1) not in nphoto and iso_score(Image.open(renders[k])) >= 0.10: isos.append(k + 1)   # v6.21: not photos/text-only slides
         empty = 0.0
         if k < len(renders):
             g = Image.open(renders[k]).convert('L').resize((160, 90)).filter(ImageFilter.GaussianBlur(1.5))
@@ -161,7 +182,7 @@ def photo_read(pptx_path, render_dir, deck_json=None):
         srcslide = head.startswith(('nguồn', 'source', 'tài liệu', 'credits', 'tham khảo')) or \
             sum(alltxt.count(w) for w in ('http', 'wikimedia', 'cc by', 'cc0', 'public domain', 'nguồn')) >= 4
         card = not (srcslide or film or cut or big_pt >= POSTER_PT or (k + 1) in nphoto)
-        info.append({'src': src, 'bleed': bleed, 'cut': cut, 'busy': busy, 'empty': empty, 'card': card})
+        info.append({'film': film, 'src': src, 'bleed': bleed, 'cut': cut, 'busy': busy, 'empty': empty, 'card': card})
         if busy: fails.append(f'TEXT    slide {k+1}: text over a busy photo area (median-filtered sigma {busy}, need <= 28): '
                               'move it to the quiet side (photo_layout analyze) or add a light falloff')
     if len(header) > len(info) / 3:
@@ -174,7 +195,7 @@ def photo_read(pptx_path, render_dir, deck_json=None):
         g = np.asarray(Image.open(f).convert('L').resize((17, 16)), float)
         hashes.append((g[:, 1:] > g[:, :-1]).flatten())
     dup = [(i + 1, j + 1) for i in range(len(hashes)) for j in range(i + 1, min(len(hashes), i + 4))
-           if (hashes[i] != hashes[j]).mean() < 0.26 and not (info[i]['src'] and info[j]['src'])]
+           if (hashes[i] != hashes[j]).mean() < 0.26 and not (info[i]['src'] and info[j]['src']) and not (info[i]['film'] or info[j]['film'])]
     if dup:
         fails.append(f'DUPLICATE near-identical slides {dup}: a picture appears once; move the camera or change the idea (data-as-object)')
     cards = [k + 1 for k, i in enumerate(info) if i['card']]
@@ -191,6 +212,7 @@ def photo_read(pptx_path, render_dir, deck_json=None):
     for c in dict.fromkeys(chapters):
         idx = [k for k, x in enumerate(chapters[:len(info)]) if x == c]
         if len(idx) < 3 or not c: continue
+        if re.match(r'(?i)^(nguồn|sources?|credits?|tài liệu|tham khảo|ghi chú|end|kết)', c): continue   # v6.22 sources/credits chapter exempt
         if not any(info[k]['bleed'] for k in idx):
             fails.append(f'BLEED   chapter {c!r} (slides {idx[0]+1}-{idx[-1]+1}) has no full-bleed REAL photo or full-bleed film (photo-arrangement)')
         if not any(k + 1 in hero for k in idx):
@@ -243,7 +265,7 @@ def main():
         c = Counter(L).most_common(1)[0]
         print(f'layouts: {len(set(L))} distinct over {len(L)} slides; most common {c[0]} on {c[1]}')
         if c[1] > len(L) // 3: print('LAYOUT  one composition carries over a third of the deck: look')
-    flat = [k + 1 for k, s in enumerate(S) if s[1] < a.min_grain]
+    flat = [k + 1 for k, s in enumerate(S) if s[1] < a.min_grain - 0.5]   # v6.21: 0.5 hysteresis, tiny grain changes no longer flip it
     if flat:
         print(f'FLAT    {len(flat)}/{len(S)} slides have no visible material (fine sigma < {a.min_grain}): {flat}'); fail |= len(flat) > len(S) // 4
     g = [round(s[1]) for s in S]

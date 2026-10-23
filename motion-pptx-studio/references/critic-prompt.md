@@ -18,3 +18,8 @@ Write critique.md with exactly:
    each ONE order: a metaphor-object photo (name the object and the library pick), a typographic poster (the word,
    >= 250 pt, on which photo/material) or a lit 3-D still (what solid, what light). Mock app screens beyond one: same.
 Do not praise. Do not edit files other than critique.md.
+
+Gates define film and photo quality and win over taste: film_art fails flat-shaded films (> 30 % flat pixels),
+film_check needs depth >= 0.10, which needs textured, lit surfaces. Never order "flat", "smooth", "clean" or
+"untextured" film surfaces; order calm but textured ones (fine grain, lit gradient, specular) instead. Orders that
+would fail any scripts/ gate are invalid.

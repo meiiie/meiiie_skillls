@@ -250,5 +250,36 @@ Rewritten as a compressed skill: principles first, tools second.
 - CARDS (art_check) and VARIETY (photo_library) downgraded to WARN (gamed in R11); the per-slide critic is the bar.
 
 ## 6.19.0 (2026-10-23, stable)
-- Persistent art-director critic (R12 root cause: fresh critics re-invented metaphors, ~22 orders/loop, non-existent photos): DECK score + fixed PLAN, <= 5 orders tied to library files, follow-up sees before/after of ordered slides and marks DONE; re-issues undone orders verbatim. Keep the better render; stop when gain < 0.5.
 - Stable release. Sample contact sheets built by Codex using only this skill: `samples/r12-sanho.jpg` (coral reef, 8.0), `samples/r9-vf3b.jpg` (VinFast VF3, 8.5), `samples/r13-bachdang.jpg` (Bạch Đằng 1288), `samples/r11-tet.jpg` (Tết).
+- Persistent art-director critic (R12 root cause: fresh critics re-invented metaphors, ~22 orders/loop, non-existent photos): DECK score + fixed PLAN, <= 5 orders tied to library files, follow-up sees before/after of ordered slides and marks DONE; re-issues undone orders verbatim. Keep the better render; stop when gain < 0.5.
+
+## 6.20
+- Stronger first build (R13 critic loop-1 4.5-5): hero-plan principle + `photo_library.py plan design/hero-plan.md` gate (build.py): every slide visual + library source before code, each chapter opens on a real hero, explanation via photo/object/3-D/film, diagrams <= max(2, n/8), no drawing/card visuals.
+- Library: 12-15 candidates, hero >= 1600 px gate, products without photos -> real comparables + lit ManimGX/Anatomy renders, never flat drawings.
+
+## 6.21
+- cinematic-manimgx + scripts/film_art.py gate (flat-shaded subject > .30 = toy render FAIL; fill < .30 WARN). Calibrated: Khí áp/SpaceX/San hô films pass, R14 bike ride/machine + coffee cube banks fail.
+- unity: design/style.json locks palette (4-7) + treatment before building; scripts/style_check.py fails off-palette renders/diagrams and >15 % slides off the deck treatment.
+- layout-rhythm: deck.json "layout" per slide, none > 3x, a full-bleed/detail-crop/type-on-photo/film in every 4 slides (style_check.py).
+- Peer-test (Hạ Long) fixes: Anatomy smoke PASS criteria + 4000-shape cap documented; real_photo accepts camera-EXIF and smooth many-colour calm sky/sea/fog photos (renders still rejected); ISO render check skips photo and text-only slides; DUPLICATE ignores film end-state pairs; FLAT 0.5 hysteresis; samples auto --min-films 0; critics must obey type scale (200-400 pt), max 2 families, palette, never remove core films; follow-up matches renumbered slides by content, re-issues only undone orders; slide numbers stable in loops (CUT = hidden); manimgx-quirks: no remove_fixed_in_frame_mobjects, lights/materials, embed_fonts --font syntax + static fonts; sources 9-11 pt exempt from the scale.
+
+## 6.22.0 (2026-10-23)
+Contradiction/gap fixes from the SpaceX and Hạ Long peer tests and R16 (SpaceX rebuild lost to the reference on charts).
+- Gates win over taste: every critic prompt and cinematic-manimgx say film quality is defined by film_art/film_check;
+  no "flat/smooth/clean" film orders; a gate-failing order is closed as `DONE: conflict`.
+- film_check depth: resolution/fps-normalised (640 px, pairs 0.4 s apart at 16 times), ratio-tested ORB matches
+  (dense particles), mean of best 3 pairs instead of one max. Peer films: duongve .30, lopvo .14, karst .23,
+  tide .25 pass; synthetic 2-D pan .00.
+- One film size: 1920x1080 everywhere (manimgx-first, quirks, web-film, example README note).
+- build_deck: slide-level `"hidden": true` drops the slide (CUT keeps the source; per-slide-critic updated).
+- photo_library: LIB matching also reads `photo_from` (graded/cropped copies); sources/credits chapters exempt
+  from hero rows and per-chapter use; art_check HERO/BLEED skip sources chapters.
+- art_check TEXT-over-photo measures the inked text extent (alignment-aware), not the text-box width.
+- build.py: project root = nearest ancestor with design/ or samples/; pick.md, library, hero-plan and style.json
+  are looked up only inside it; samples skip the photo-count/library/hero-plan gates and need no films.
+- Sample/pick step not skippable: any full deck needs >= 3 built samples and a critic-signed pick.md newer than them.
+- photo_layout cutout: rembg -> venv -> GrabCut on any failure incl. out-of-memory (documented).
+- manimgx-quirks: star import's `Path` shadows pathlib; ImageMobject has no set_height (scale /
+  stretch_to_fit_height); dense particle fields need a lit structure for depth.
+- style_check CHART + layout-rhythm data rhythm: a chapter stating >= 3 quantities needs >= 1 real chart.
+- Principles kept at 10-20 lines; overflow moved to references/details/.

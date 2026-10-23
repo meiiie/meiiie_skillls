@@ -13,8 +13,6 @@ A mood board promises; three rendered chapters prove. Decide the look on real sl
 - **pick.md + the winning slides are the binding style sheet** (style.md): grid, type sizes, palette,
   image strategy, the 5-7 compositions with their order. Every later slide cites one of them; changes go
   through style.md, never ad hoc. The winning sample slides go into the deck, the losers do not.
-- **Sandboxed (critic.sh cannot start):** spawn a fresh subagent with references/critic-pick-prompt.md and the
-  images; it ends pick.md with `<!-- signed: critic.sh subagent -->`. Never edit build.py or copy it to pass the gate.
-- **Hard stop.** build.py refuses any deck over 8 slides without a pick.md signed by critic.sh. If the
-  critic cannot start, END YOUR TURN: tell the user the three samples are ready for an independent pick.
-  Writing or signing pick.md yourself is forbidden.
+- **Hard stop, not skippable (v6.22).** build.py refuses any full deck until samples/ holds >= 3 built chapters and
+  a critic-signed pick.md newer than them, inside this project. Sandboxed critic: see the details file.
+- More: references/details/sample-chapters.md (commands, flags, edge cases).

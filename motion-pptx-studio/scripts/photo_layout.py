@@ -75,23 +75,25 @@ def crop(path, aspect, out=None, subject_at=(0.5, 0.5), zoom=1.0, detail=False, 
 
 def cutout(path, out, feather=2):
     im = Image.open(path).convert('RGB')
+    res = None   # v6.22: rembg -> rembg venv -> GrabCut; any failure (ImportError, MemoryError, OOM-killed venv) falls through
     try:
         from rembg import remove
         res = remove(im)
-    except ImportError:
+    except Exception as e:
         venv = '/workspace/venv-rembg/bin/python'
-        if os.path.exists(venv) and subprocess.run([venv, '-c', 'import rembg'], capture_output=True).returncode == 0:
-            subprocess.run([venv, '-c', f'from rembg import remove;from PIL import Image;remove(Image.open({path!r})).save({out!r})'], check=True)
-            res = Image.open(out)
-        else:
-            import cv2
-            a = np.asarray(im)[:, :, ::-1].copy(); h, w = a.shape[:2]; b = analyze(path)['subject_box']
-            r = (int(b[0] * w), int(b[1] * h), int((b[2] - b[0]) * w), int((b[3] - b[1]) * h))
-            mask = np.zeros((h, w), np.uint8); bg, fg = np.zeros((1, 65)), np.zeros((1, 65))
-            cv2.grabCut(a, mask, r, bg, fg, 5, cv2.GC_INIT_WITH_RECT)
-            alpha = np.where((mask == 1) | (mask == 3), 255, 0).astype('uint8')
-            res = im.convert('RGBA'); res.putalpha(Image.fromarray(alpha))
-            print('cutout: rembg not found, used GrabCut (check the edge)', file=sys.stderr)
+        if os.path.exists(venv):
+            r_ = subprocess.run([venv, '-c', f'from rembg import remove;from PIL import Image;remove(Image.open({path!r})).save({out!r})'], capture_output=True)
+            if r_.returncode == 0 and os.path.exists(out): res = Image.open(out)
+            else: print(f'cutout: rembg failed (exit {r_.returncode}, often out of memory) -> GrabCut', file=sys.stderr)
+    if res is None:
+        import cv2
+        a = np.asarray(im)[:, :, ::-1].copy(); h, w = a.shape[:2]; b = analyze(path)['subject_box']
+        r = (int(b[0] * w), int(b[1] * h), int((b[2] - b[0]) * w), int((b[3] - b[1]) * h))
+        mask = np.zeros((h, w), np.uint8); bg, fg = np.zeros((1, 65)), np.zeros((1, 65))
+        cv2.grabCut(a, mask, r, bg, fg, 5, cv2.GC_INIT_WITH_RECT)
+        alpha = np.where((mask == 1) | (mask == 3), 255, 0).astype('uint8')
+        res = im.convert('RGBA'); res.putalpha(Image.fromarray(alpha))
+        print('cutout: used GrabCut (check the edge)', file=sys.stderr)
     if feather:
         al = res.getchannel('A').filter(ImageFilter.GaussianBlur(feather)); res.putalpha(al)
     bb = res.getchannel('A').point(lambda v: 255 if v > 20 else 0).getbbox()

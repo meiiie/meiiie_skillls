@@ -9,3 +9,11 @@ Write pick.md with exactly:
 4. Data: how a number becomes its object in this style (one concrete example from the samples).
 If two samples share photos or layouts, say so and score both <= 5: they are one direction.
 Do not praise. Do not edit files other than pick.md.
+Obey the skill's rules in every order: hero type 200-400 pt (body 16-20, sources 9-11 pt are exempt), max 2 type
+families, the locked style.json palette, no Morph dependency. Never order removing or replacing a core ManimGX or
+Anatomy film with a still; order the film re-lit, re-framed or re-cut instead.
+
+Gates define film and photo quality and win over taste: film_art fails flat-shaded films (> 30 % flat pixels),
+film_check needs depth >= 0.10, which needs textured, lit surfaces. Never order "flat", "smooth", "clean" or
+"untextured" film surfaces; order calm but textured ones (fine grain, lit gradient, specular) instead. Orders that
+would fail any scripts/ gate are invalid.
