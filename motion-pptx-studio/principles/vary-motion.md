@@ -1,7 +1,7 @@
 # vary-motion
 Motion explains; it is never wallpaper.
-- Morph between slides that share an object (same shape names) is the camera; fade is
-  the exception (<= 35 %).
+- The camera is the films plus classic motion paths and zooms on shared objects; Morph is an optional
+  extra (compat "dual") and never carries a moment (native-keyframes). Fade is the exception (<= 35 %).
 - Over a 30-slide deck use 5+ transition types and 10+ entrance/emphasis effects
   (`motion.py --list`), each chosen for a reason: wipe draws a line along its direction,
   rise stacks a list, zoom lands a hero number, path moves a thing.

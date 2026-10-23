@@ -31,6 +31,6 @@ Render settings:
 - **Check layout:** `manimgx inspect film.py` (exit 1 means problems).
 - **Time limit per call:** render one film per call, or run it in the background (`nohup`) and poll.
 **If every route fails, STOP and tell the user.** Report the exact error and what you need from them
-(an upload of the binary, or a Python 3.13 host). Only go on with canvas_film.py or native motion
+(an upload of the binary, or a Python 3.13 host). Only go on with the web-film tiers
 if the user agrees, and write the reason in NOTES.md. Never fall back silently.
 Set up Anatomy in the same step 0 (anatomy-first, https://skills.wheresryan.sh/anatomy).

@@ -24,6 +24,18 @@ def run(args):
         raise SystemExit(f'FAILED: {Path(str(args[0])).name} (exit {r.returncode})')
 
 
+def gate(out, args):
+    """v6.10: a failed gate leaves no deliverable. The deck is renamed NAME.UNFINISHED.pptx; fix and rebuild,
+    or tell the user plainly which gate failed and why. Never hand over an UNFINISHED file as done."""
+    try:
+        run(args)
+    except SystemExit:
+        bad = out.with_name(out.stem + '.UNFINISHED.pptx')
+        if out.exists():
+            out.replace(bad)
+        raise SystemExit(f'GATE FAILED: {Path(str(args[0])).name}. Deck moved to {bad.name}: not deliverable until it passes.')
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('deck')
@@ -32,6 +44,13 @@ def main():
     ap.add_argument('--min-films', type=int, default=2)
     a = ap.parse_args()
     deck, out = Path(a.deck).resolve(), Path(a.out).resolve()
+    import json
+    n_sl = len([x for x in json.load(open(deck)).get('slides', []) if not x.get('hidden')])
+    picks = [p for p in deck.parent.parent.glob('**/pick.md') if '.agents' not in str(p)] + list(deck.parent.glob('**/pick.md'))
+    if n_sl > 8 and not any('<!-- signed: critic.sh' in p.read_text(errors='ignore') for p in picks):
+        raise SystemExit('REFUSED: no critic-signed pick.md. Build the 3 sample chapters (<= 8 slides each), run '
+                         '`scripts/critic.sh --pick samples`; if it cannot start, STOP here and tell the user the samples '
+                         'are ready for an independent pick (principles/sample-chapters.md). Never write pick.md yourself.')
     out.parent.mkdir(parents=True, exist_ok=True)
     built = out.with_name(out.stem + '.build.pptx')
     up = out.with_name(out.stem + '.unpacked')
@@ -49,7 +68,20 @@ def main():
         while (root / f'r{n}').exists():
             n += 1
         run([HERE / 'render.sh', out, root / f'r{n}'])
-    run([HERE / 'film_check.py', '--deck', deck, '--min', a.min_films])
+        # v6.7: photo reading is a gate (text over busy areas, empty fields, chapter without bleed / cut-out)
+        gate(out, [HERE / 'art_check.py', root / f'r{n}', '--pptx', out, '--deck', deck])
+        if n_sl > 8:   # v6.16: image-led from the chapter photo library
+            libs = [p for p in deck.parent.glob('**/library.json') if '.agents' not in str(p)] + \
+                   [p for p in deck.parent.parent.glob('library/library.json')]
+            if not libs:
+                bad = out.with_name(out.stem + '.UNFINISHED.pptx'); out.replace(bad)
+                raise SystemExit('GATE FAILED: no library/library.json - build the chapter photo library first (principles/photo-library-first.md)')
+            gate(out, [HERE / 'photo_library.py', 'check', libs[0], '--deck', deck, '--pptx', out])
+    gate(out, [HERE / 'film_check.py', '--deck', deck, '--min', a.min_films])
+    gate(out, [HERE / 'anim_check.py', out, '--deck', deck])   # v6.18 every component keyframed, purpose per slide
+    if not any(deck.parent.glob('**/directions.md')):
+        print('WARN     no directions.md: write three radically different directions and pick one BEFORE building '
+              '(principles/three-directions.md)')
 
 
 if __name__ == '__main__':

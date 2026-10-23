@@ -116,13 +116,13 @@ W, H = 13.333, 7.5
 DEFAULT_GRID = {'cols': 12, 'left': 0.9, 'right': 0.9, 'top': 0.8, 'bottom': 0.8, 'gutter': 0.25, 'safe': 0.4}
 DEFAULT_TYPE = {
     'kicker': {'font': 'label', 'size': 12, 'bold': True, 'spacing': 3, 'caps': True, 'color': 'accent'},
-    'display': {'font': 'display', 'size': 88, 'bold': True, 'line': 0.9, 'color': 'head'},
+    'display': {'font': 'display', 'size': 120, 'bold': True, 'line': 0.9, 'color': 'head'},
     'title': {'font': 'display', 'size': 44, 'bold': True, 'line': 0.95, 'color': 'head'},
     'subtitle': {'font': 'text', 'size': 24, 'line': 1.2, 'color': 'muted'},
     'body': {'font': 'text', 'size': 16, 'line': 1.3, 'color': 'ink'},
     'caption': {'font': 'text', 'size': 10, 'color': 'muted'},
     'label': {'font': 'label', 'size': 10, 'bold': True, 'spacing': 1.5, 'caps': True, 'color': 'muted'},
-    'numeral': {'font': 'display', 'size': 150, 'bold': True, 'line': 0.85, 'color': 'accent'},
+    'numeral': {'font': 'display', 'size': 260, 'bold': True, 'line': 0.85, 'color': 'accent'},
     'quote': {'font': 'display', 'size': 32, 'italic': True, 'line': 1.1, 'color': 'head'},
     'cardtitle': {'font': 'display', 'size': 24, 'bold': True, 'line': 1.0, 'color': 'head'},
     'pageno': {'font': 'text', 'size': 10, 'color': 'muted'},
@@ -284,14 +284,16 @@ class Spec:
             return p
         if name in self._ground_cache:
             return self._ground_cache[name]
-        import make_assets
+        import surface                                  # recipe grounds: scripts/surface.py (principles/surface-and-depth.md)
         key = f'{self.style_name}-{name}'
         out = self.root / 'assets' / 'grounds' / f'{key}.jpg'
         if not out.exists():
             out.parent.mkdir(parents=True, exist_ok=True)
-            rec = dict(g)
-            rec['vignette_amt'] = rec.pop('vignette', 0.4)
-            make_assets.ground(**rec).save(out, quality=90)
+            rec = {k: (tuple(v) if isinstance(v, list) else v) for k, v in g.items()}
+            base = rec.pop('base')
+            base = base if str(base).startswith('#') else self.pal[base]
+            rec['light'] = [tuple(x) for x in rec.get('light', [])]
+            surface.ground(rec.pop('w', 2400), rec.pop('h', 1350), base, rec.pop('seed', 1), **rec).save(out, quality=88)
         self._ground_cache[name] = out
         return out
 
@@ -1631,7 +1633,7 @@ def build(data, root, base=None):
 
 def motion_config(data, slides, spec, out):
     """motion.json next to the output when the deck declares motion; WORK/motion.json values sit underneath."""
-    declares = 'motion' in data or data.get('compat', 'morph') != 'morph' or any(k in s for s in slides for k in ('ms', 'morph', 'keep_timing', 'transition')) \
+    declares = 'motion' in data or data.get('compat', 'safe') != 'morph' or any(k in s for s in slides for k in ('ms', 'morph', 'keep_timing', 'transition')) \
         or any(s.get('_anims') or s.get('_media') for s in slides)
     if not declares:
         return None
@@ -1725,7 +1727,7 @@ def main(argv=None):
         print('WARN', w)
     if seen:
         print(f'{len(seen)} layout warning(s): fix them now, they show up on screen')
-    print('NEXT: studio.py build WORK (or ooxml.py unpack -> motion.py -> pack -> check_deck.py -> render.sh), then LOOK')
+    print('NEXT: build.py runs the rest (ooxml unpack -> motion.py -> pack -> render.sh -> film_check), then LOOK')
     return 0
 
 

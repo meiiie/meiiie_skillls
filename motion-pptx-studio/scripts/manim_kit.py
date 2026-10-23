@@ -1,7 +1,7 @@
 """Copy to WORK/design/films/kit.py (it imports WORK/design/ds.py and reads fonts from WORK/fonts/).
 Shared film kit (manimgx): type in slide points, a 2-D camera that keeps strokes and type
-at screen size, pins and ledgers. Every film is 2560x1080 (64:27) and sits on the slide in the
-film window ds.FILM_* so a 13 pt label in a film reads as 13 pt on the slide."""
+at screen size, pins and ledgers. A film is full-bleed 16:9 by default (ds.FILM_W = 13.333) or a 64:27 band
+(ds.FILM_ASPECT = 64/27) and sits on the slide at ds.FILM_* so a 13 pt label in a film reads as 13 pt on the slide."""
 import sys, json
 from pathlib import Path
 import numpy as np
@@ -11,7 +11,8 @@ import ds
 from manimgx import *
 
 FONTS = [str(HERE.parents[1] / 'fonts')]
-FW, FH = 8.0 * 2560 / 1080, 8.0
+ASPECT = getattr(ds, 'FILM_ASPECT', 16 / 9)   # v6.8: full-bleed 16:9 by default (render -r 1920x1080); 64/27 = band
+FW, FH = 8.0 * ASPECT, 8.0
 UPI = FW / ds.FILM_W                    # scene units per slide inch
 
 # Families come from YOUR ds.py (chosen per topic); the fallbacks are neutral ManimGX-shipped faces, not a style.

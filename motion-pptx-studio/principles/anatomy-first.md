@@ -34,7 +34,14 @@ Anatomy film in addition to its ManimGX films.
   - paint back to front with `depthOf`;
   - frame(t) is a pure function of t;
   - no words in the drawing (labels are slide text at `anchors`);
-  - palette from your ds.py via `tokens`.
+  - palette from your ds.py via `tokens`;
+  - **hero shot (film_check FAILS otherwise):** 80+ parts, edges >= 4.5:1 against the ground, the machine fills
+    >= 50 % of the poster, and the medium visibly flows in >= 60 % of the middle seconds. The camera
+    moves too: push in, or re-fit the projection over t;
+  - **a visible flowing medium** (water, grains, signal, people) travels through the machine for most of the film;
+  - **show the process, not only the build:** after a short assembly (<= 1/3 of the runtime),
+    the machine works: particles/drops travel along a path as a function of t, levels fill,
+    a dial turns, a lit part moves station to station (film-language).
 
 **If Anatomy cannot run, STOP and tell the user** the exact missing piece (node, chrome or the
 archive). Never skip it silently or swap in a diagram without their agreement and a reason in NOTES.md.
