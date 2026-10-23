@@ -1,4 +1,4 @@
-# Motion PPTX Studio 6.19.0
+# Motion PPTX Studio 6.22.0
 
 Principle-based PowerPoint decks. ManimGX and Anatomy are mandatory: install and smoke-test both before design, and do not fall back silently. The workflow is in [SKILL.md](SKILL.md).
 
@@ -8,6 +8,7 @@ These contact sheets were built by Codex using only this skill. Each sheet shows
 
 | Deck | Contact sheet | Score |
 | --- | --- | --- |
+| SpaceX "Tên lửa biết quay về", independent peer test (22 slides, 3 films) | [samples/spacex-peer.jpg](samples/spacex-peer.jpg) | 6.0 |
 | Rạn san hô (coral reef), round 12 | [samples/r12-sanho.jpg](samples/r12-sanho.jpg) | 8.0 |
 | VinFast VF3, round 9 | [samples/r9-vf3b.jpg](samples/r9-vf3b.jpg) | 8.5 |
 | Bạch Đằng 1288, round 13 | [samples/r13-bachdang.jpg](samples/r13-bachdang.jpg) | |

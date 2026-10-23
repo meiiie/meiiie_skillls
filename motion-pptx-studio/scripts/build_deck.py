@@ -27,6 +27,7 @@ Slide keys
   "chrome": true|false|[names]  "chrome_set": {name: {...}}  "source": "Nguồn: ..." (fills {source})
   "ms": 2000  "morph": "byObject"|"byWord"|"byChar"  "keep_timing": true   -> written to motion.json
   "notes": speaker notes
+Slide keys also: "hidden": true drops the slide from the pptx but keeps it in deck.json (critic CUT).
 Shapes (every shape: type, name, x, y, w, h | "col": [start, span] on the grid, rot, alpha, hidden, shadow)
   text     text (str | [paragraph | {text, size, color, ...}]), role (kicker, display, title, subtitle, body,
            caption, label, numeral, quote, cardtitle, pageno...), font, size, bold, italic, color, align l|c|r,
@@ -1563,7 +1564,7 @@ def build(data, root, base=None):
     if not base:
         prs.slide_width, prs.slide_height = Inches(W), Inches(H)
     layout = prs.slide_layouts[6] if len(prs.slide_layouts) > 6 else prs.slide_layouts[-1]
-    slides = resolve(data['slides'])
+    slides = [s for s in resolve(data['slides']) if not s.get('hidden')]   # v6.22: slide-level "hidden": true = CUT (kept in deck.json)
     total = len(slides)
     made, links = {}, []
     for n, s in enumerate(slides, 1):

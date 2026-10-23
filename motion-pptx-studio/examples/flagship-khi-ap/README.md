@@ -26,7 +26,10 @@ IBM Plex, 7 type sizes, a 64:27 film window.
 | `stills/S1–S6_contact.jpg`, `contact.jpg` | film contact sheets and the deck contact sheet |
 | `critique-log.md` | every version with its score, what was weak and the fix |
 
-Render a film: `manimgx render films/drum.py Drum -r 2560x1080 --fps 30 -o assets/film/drum.mp4` (test at
+Render a film: `manimgx render films/drum.py Drum -r 1920x1080 --fps 30 -o assets/film/drum.mp4` (test at
 `-r 1280x540 --fps 15`); the Anatomy film: `python3 $S/anatomy_film.py anatomy/chipline.mjs --name chipline --work WORK
 --region 0.6,1.62,12.133,5.119 --fps 25 --scale 1.6`. Quirks: `references/manimgx-quirks.md`.
 The scene class names are the `class … (Scene)` in each file.
+
+Note (v6.22): these example film scripts were drawn for the older 64:27 band (2560x1080 frame maths). New films are
+always 1920x1080 16:9 full-bleed; do not copy the band size.

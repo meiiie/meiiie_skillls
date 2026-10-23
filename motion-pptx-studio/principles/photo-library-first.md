@@ -1,21 +1,18 @@
 # photo-library-first
-The 8.5 decks were image-led: the photo came first and the slide was built around it. Text-led decks fall
-back to cards and repeated drawings. So collect the pictures before you write a single slide.
-- **Right after facts + concept, before samples:** per chapter 8-15 real photo candidates in
-  library/CH/, from Commons, Openverse, Unsplash, Pexels, NASA/ESA, government and museum archives, press
-  kits (fetch_commons.py search ... in Vietnamese AND English). Each entry in library/library.json:
-  file, url, licence, author, subject (what it physically shows, a plain noun phrase), job.
-- **4+ different subjects per chapter.** Eight server halls are one subject. Mix place, object, people, detail,
-  document/archive. `check` fails a chapter with < 4 distinct subjects or > 1/3 look-alike candidate pairs.
-- **Abstract topics: map each concept to a physical thing first** (inflation -> a market price board, a
-  wallet; privacy -> a phone in a hand, a CCTV mast, a server hall; blockchain -> a ledger book, a mining
-  rig, a Bitcoin ATM). Write that map in library/README.md, then photograph-search it.
-- **Board, look, pick:** `photo_library.py board library/library.json` -> board-CH.jpg. Pick per chapter
-  a hero (full-bleed), a detail or texture (macro), a wide (context) and, where it tells a process, a
-  sequence; set those jobs, leave the rest "candidate".
-- **Write slides FROM the library:** each slide names its pick and the job it does; text goes in the
-  quiet area. Sample chapters use DIFFERENT picks from the same library, so the samples test directions,
-  not photos. Drawings and diagrams fill in only where no photo can show it.
-- **Gate:** `photo_library.py check library/library.json --deck deck.json --pptx deck.pptx` (build.py runs it
-  for decks over 8 slides): >= 8 real candidates/chapter, hero + 3 jobs, licence + url, >= 2 slides per
-  chapter from its picks, real photos on >= half the slides, one photo or drawing on <= 2 slides.
+The best decks (8-8.5) were image-led: the photo came first, the slide was built around it.
+- **Right after facts + concept, before samples:** 12-15 real candidates per chapter in library/CH/ (Commons,
+  Openverse, Unsplash, Pexels, NASA/ESA, archives, press kits; fetch_commons.py, Vietnamese AND English). library.json
+  entry: file, url, licence, author, subject (plain noun phrase), job.
+- **Hero quality:** each chapter's hero is a real photo >= 1600 px long side (the original, not a thumbnail).
+- **4+ different subjects per chapter:** place, object, people, detail, archive. Eight server halls are one subject.
+- **No photo of the exact thing** (unreleased product, concept): real comparable objects and contexts (a real
+  e-bike of the class, the dock, the commuter street, the battery cell, a hand on the bar) plus a ManimGX/Anatomy
+  render of it lit like a photo. Never flat vector drawings.
+- **Abstract: concept -> physical thing first** (inflation -> a price board; privacy -> a phone in a hand), mapped
+  in library/README.md, then searched.
+- **Board, look, pick:** `photo_library.py board` -> board-CH.jpg; jobs hero, detail, wide, sequence; rest "candidate".
+- **Write slides FROM the library** via design/hero-plan.md; samples use different picks.
+- **Gate:** `photo_library.py check ... --deck --pptx` (build.py): >= 8 real candidates, hero >= 1600 px, hero + 3
+  jobs, licence + url, >= 2 slides/chapter from picks, photos on >= half the slides, one photo on <= 2 slides.
+- Graded or cropped copies (assets/img/sNN.jpg) name their library file in the slide's `"photo_from": ["library/..."]`;
+  the LIB gate matches through it.

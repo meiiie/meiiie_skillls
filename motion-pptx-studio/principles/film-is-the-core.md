@@ -17,5 +17,4 @@ A deck without signature films fails this skill, however good its text slides ar
   with two renderers.
 - **Look at a contact strip of each film (5+ frames)** before it goes on a slide. Fix collisions,
   empty halves and tiny type.
-- **The deliverable is a .pptx with the mp4 films embedded,** plus the mp4s alongside it. Never
-  deliver a PDF only. A PDF is at most an extra handout.
+- More: references/details/film-is-the-core.md (commands, flags, edge cases).

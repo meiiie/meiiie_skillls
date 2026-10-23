@@ -13,3 +13,4 @@ One type scale per deck, built as a RATIO from the deck's hero size. It is not a
 - Body text is 40 words or fewer per slide; the rest goes in the notes.
 - A label never sits on a line, a stamp or another label. Check the renders, not the JSON.
 - art_check FAILS a deck where more than a third of the slides share the small top-left headline.
+- Sources/credits lines (9-11 pt) sit outside the scale; they are never a reason to shrink the hero.

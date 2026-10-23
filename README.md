@@ -9,7 +9,7 @@
 | [meiiie-interactive-webgl](meiiie-interactive-webgl/SKILL.md) | Available | Semantic 3D objects, reversible assembly, accessible controls and explicit render checks. |
 | [meiiie-operating-office](meiiie-operating-office/SKILL.md) | Available | Task-scoped coordination with one accountable lead, bounded specialist work and evidence-based review. |
 | [neko-wiii-product-studio](neko-wiii-product-studio/SKILL.md) | Available | Neko Core and Wiii ownership, shared contracts and integration acceptance. |
-| [motion-pptx-studio](motion-pptx-studio/SKILL.md) | Available | v6.19.0 principle-based PowerPoint decks: ManimGX and Anatomy are mandatory, install first, and never fall back silently. Codex sample decks are in [samples/](motion-pptx-studio/samples/). |
+| [motion-pptx-studio](motion-pptx-studio/SKILL.md) | Available | v6.22.0 principle-based PowerPoint decks: ManimGX and Anatomy are mandatory, install first, and never fall back silently. Codex sample decks are in [samples/](motion-pptx-studio/samples/). |
 | [heritage-visual-research](heritage-visual-research/SKILL.md) | Available | Sourced facts, true/wrong motif lists, anatomy checks and licensed images for cultural topics. |
 | [presentation-speech-craft](presentation-speech-craft/SKILL.md) | Available | Hook, anchor phrase, pauses, circular close, word budget and a speaker-script document. |
 
@@ -47,7 +47,7 @@ The accepted product direction and historical audit findings guide current inspe
 
 ## Motion PPTX Studio
 
-[Motion PPTX Studio](motion-pptx-studio/SKILL.md) (v6.19.0) is a short, principle-based workflow. Step 0 installs
+[Motion PPTX Studio](motion-pptx-studio/SKILL.md) (v6.22.0) is a short, principle-based workflow. Step 0 installs
 and smoke-tests [ManimGX](motion-pptx-studio/principles/manimgx-first.md) and
 [Anatomy](motion-pptx-studio/principles/anatomy-first.md) before any design. If either cannot run, stop and
 report it. Web-film, canvas, and native motion are fallbacks only after the user has been told and the reason is in
@@ -83,7 +83,7 @@ v5 gates, the design genome, the router, the style-pack library, and the test su
 
 ## Install these three skills
 
-Copy the folders into the harness skill directory, then check the toolchain once per machine. Motion PPTX Studio v6.19.0 needs Python 3.9+ (Python 3.13+ for ManimGX), python-pptx, Pillow, LibreOffice, poppler, and ffmpeg. ManimGX and Anatomy (Node 20.10+ and Chrome) are required; install and smoke-test both before building. The companion skills still use their own scripts.
+Copy the folders into the harness skill directory, then check the toolchain once per machine. Motion PPTX Studio v6.22.0 needs Python 3.9+ (Python 3.13+ for ManimGX), python-pptx, Pillow, LibreOffice, poppler, and ffmpeg. ManimGX and Anatomy (Node 20.10+ and Chrome) are required; install and smoke-test both before building. The companion skills still use their own scripts.
 
 ```bash
 # Claude Code
