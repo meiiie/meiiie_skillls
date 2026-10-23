@@ -1,7 +1,7 @@
 # ManimGX quirks and fixes (learned on the "Khí áp" flagship, 6 films; install: principles/manimgx-first.md)
 
 Render: `manimgx render film.py Scene -r 2560x1080 --fps 30 -o assets/film/name.mp4`
-(tests: `-r 1280x540 --fps 15`, ~4x faster). A 64:27 film fills the 12.133 × 5.119 in film window
+(tests: `-r 1280x540 --fps 15`, ~4x faster). A 16:9 film is full-bleed (default, ds.FILM_ASPECT 16/9); a 64:27 film fills a 12.133 × 5.119 in band
 at x 0.6, y 1.62 on a 13.333 in slide; scene units 18.963 × 8.
 
 | Quirk | Symptom | Fix |

@@ -1,17 +1,17 @@
 # film-is-the-core
 A deck without signature films fails this skill, however good its text slides are.
-- **Plan 3-6 films**, one per main chapter, each 10-20 s, at 1920x810 (64:27) to fill the
-  full-width film window.
+- **Plan 3-6 films**, one per main chapter, each 10-20 s. Make them **full-bleed 16:9** (1920x1080) by
+  default, with the slide's type set over the film's quiet area. A 64:27 band under a headline is the exception.
 - **ManimGX is mandatory.** Install it and smoke-test it first (manimgx-first). Write the films
-  with scripts/manim_kit.py: slide-point type, a 2-D camera, pins.
+  with scripts/manim_kit.py (slide-point type, pins) inside a ThreeDScene: at least one 3-D camera move (film-language).
 - **Anatomy is mandatory too** whenever the topic has any structure or process (architecture,
   system, machine, pipeline, cycle): at least one film from scripts/anatomy_film.py (anatomy-first).
   It also gives an editable shapes.json.
-- **Only if ManimGX or Anatomy cannot run AND the user has been told:**
-  - scripts/canvas_film.py (pure Python + Pillow + ffmpeg);
-  - else native motion paths with Morph across 2-3 slides.
-  - Write the reason in NOTES.md.
-- **A film must MOVE:** a camera that pushes, tracks or pulls, and parts that travel. Run
+- **Only if ManimGX or Anatomy cannot run AND the user has been told,** go down the tiers in web-film:
+  scripts/web_film.mjs (HTML/SVG/Canvas in headless Chrome), then canvas_film.py, then native Morph.
+  Write the tier and the reason in NOTES.md.
+- **A film must MOVE:** a camera that pushes, tracks or pulls, and parts that travel. A bar
+  growing or a dot sliding along a timeline is a chart animation, not a signature film. Run
   `film_check.py FILM` after every render.
 - **Every film gets an editable native slide of its end state.** Use the same geometry module
   with two renderers.

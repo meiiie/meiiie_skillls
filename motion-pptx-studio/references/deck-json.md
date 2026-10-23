@@ -15,6 +15,8 @@ Top level
   "style": "path/to/style.json" (optional)   palette, fonts, type roles, grid, grounds, chrome, card...
   "palette" {key: "#RRGGBB"}  "fonts" {key: family}  "type" {role: {...}}  "grid" {...}  merged over the style
   "grounds": {"main": "assets/ground.jpg" | {recipe}}   "bg": default ground or colour for every slide
+            recipe = surface.py ground layers: {"base": "#hex"|palette key, "mottle": [0.07, 500], "tooth": 0.08,
+            "light": [[0.2, 0.1, 0.9, 0.07]], "vignette": [0.2], "grain": 0.035, "seed": 3} -> assets/grounds/<name>.jpg
   "chrome": {"under": [shapes], "over": [shapes]}       replaces the style's chrome ("chrome_add" appends)
   "title": "Deck title"  (fills {title} in chrome)      "motion": {"default_ms": 1300, "stagger_ms": 220}
   "compat": "morph"|"safe"|"dual"   no-Morph safe mode (compat.py): safe rebuilds every Morph as classic
@@ -23,6 +25,7 @@ Top level
 Slide keys
   "id", "from": "prev"|id, "set", "drop", "add", "front"   keyframes (see below)
   "bg": ground name | palette key | "#hex" | {"image": path}   "scene": "S3" (slide name, for audits)
+  "chapter": "2"    the chapter this slide belongs to: art_check needs it (each chapter: a full-bleed photo + a cut-out)
   "bookend": true   a declared circular close: this slide may return to the opening image (check_deck allows
                     it on at most 2 slides instead of counting it as image reuse)
   "still": true     a deliberately still page (a printed chapter, a quiet opener): not counted in the moving-depth
@@ -73,3 +76,6 @@ Keyframes: "from": "prev" copies the slide; "set" {name: {keys}} changes shapes 
 name; "drop" removes names; "add" appends; "front" moves names to the top. Unknown names are errors.
 After building: use build.py (build_deck -> unpack -> motion -> pack -> render -> film_check).
 ```
+
+- `"purpose"` (v6.18, required per slide): one line, what the audience must get and feel; from design/story.md. anim_check fails a slide without it.
+- `"compat"` default "safe" since v6.18 (no Morph; classic effects). "dual" = optional Morph for 365.

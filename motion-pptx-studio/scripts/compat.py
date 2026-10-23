@@ -5,8 +5,8 @@ Google Slides, Keynote and LibreOffice take the mc:Fallback branch, which v5 wro
 shared !! shapes then jump from their old place to the new one instead of travelling.
 
 deck.json "compat" (written to motion.json, read by motion.py and check_deck.py --compat):
-  "morph"  default. Morph as authored, fade fallback.
-  "safe"   no Morph anywhere. Every Morph slide gets a classic transition (fade unless
+  "morph"  Morph as authored, fade fallback (opt-in; Morph needs PowerPoint 365/2019+).
+  "safe"   DEFAULT since v6.18: no Morph anywhere. Every Morph slide gets a classic transition (fade unless
            "safe_transition" names another core one) and the Morph is rebuilt as classic effects:
              shared !! shape that moved   -> appear (zoom when also resized) + motion path from its old place
              shared !! shape resized only -> zoom entrance
@@ -39,7 +39,7 @@ SIZE_MIN = 0.10      # relative size change that counts as a resize
 
 
 def check_mode(mode):
-    mode = mode or 'morph'
+    mode = mode or 'safe'
     if mode not in MODES:
         raise ValueError(f'compat must be one of {MODES}, got {mode!r}')
     return mode

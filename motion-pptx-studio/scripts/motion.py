@@ -102,7 +102,7 @@ def load_config(unpacked, path):
         if path:
             raise SystemExit('config not found: ' + str(c))
     return {'default_ms': DEFAULT_MS, 'dur': {}, 'option': {}, 'keep_timing': set(), 'stagger': STAGGER_MS,
-            'transition': {}, 'effects': {}, 'media': {}, 'compat': 'morph', 'safe_transition': None, 'source': None}
+            'transition': {}, 'effects': {}, 'media': {}, 'compat': 'safe', 'safe_transition': None, 'source': None}
 
 
 def strip_transitions(root):
@@ -207,7 +207,7 @@ def apply(unpacked, cfg, dry=False):
         raise SystemExit('no slides directory: ' + str(slides))
     report, warnings = [], []
     files = sorted(slides.glob('slide*.xml'), key=file_num)
-    mode = cfg.get('compat', 'morph')
+    mode = cfg.get('compat', 'safe')
     geo = {file_num(f): compat.shapes(etree.parse(str(f)).getroot()) for f in files} if mode != 'morph' else {}
     nums = [file_num(f) for f in files]
     rebuilt = 0
