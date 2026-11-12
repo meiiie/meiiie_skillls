@@ -1,0 +1,4 @@
+interface:
+  display_name: "Việt ngữ toàn thư"
+  short_description: "Biên tập tiếng Việt, giữ nghĩa và tôn trọng biến thể"
+  default_prompt: "Dùng $viet-ngu-toan-thu để rà tiếng Việt trong văn bản này, giữ nguyên ý nghĩa và giọng người viết."
