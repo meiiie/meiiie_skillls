@@ -1,0 +1,109 @@
+[
+  {
+    "label": "edit-lint",
+    "args": [
+      "lint",
+      "nguon.txt"
+    ],
+    "exit": 1,
+    "elapsed_ms": 48,
+    "stdout": "{\n  \"diagnostics\": [\n    {\n      \"code\": \"space_before_punctuation\",\n      \"column\": 13,\n      \"line\": 1,\n      \"message\": \"Space before punctuation: review typography.\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "edit-diff",
+    "args": [
+      "diff",
+      "nguon.txt",
+      "ban-sua.txt"
+    ],
+    "exit": 0,
+    "elapsed_ms": 188,
+    "stdout": "{\n  \"changed\": true,\n  \"human_review_required\": true,\n  \"limitations\": \"Heuristic surface checks can miss meaning, names, scope, and reordered claims. No semantic proof.\",\n  \"risks\": [],\n  \"unified_diff\": \"--- before\\n+++ after\\n@@ -1 +1 @@\\n-Theo bà Hạnh , chưa có bằng chứng cho thấy việc mở đường khiến giếng cạn; hai việc chỉ xảy ra trong cùng tháng. Không phải mọi hộ dân đều phản đối dự án.\\n\\\\ No newline at end of file\\n+Theo bà Hạnh, chưa có bằng chứng cho thấy việc mở đường khiến giếng cạn; hai việc chỉ xảy ra trong cùng tháng. Không phải mọi hộ dân đều phản đối dự án.\\n\\\\ No newline at end of file\\n\"\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "edit-check",
+    "args": [
+      "check",
+      "nguon.txt",
+      "ban-sua.txt",
+      "--record",
+      "edit-record.json",
+      "--reviewer",
+      "Independent AI evaluator",
+      "--review",
+      "Removed only the space before comma; attribution, no-evidence-yet, temporal coincidence and not-all scope remain unchanged."
+    ],
+    "exit": 1,
+    "elapsed_ms": 79,
+    "stdout": "{\n  \"attestation_only\": true,\n  \"findings\": true,\n  \"human_review_required\": true,\n  \"record_written\": true\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "edit-verify",
+    "args": [
+      "verify",
+      "nguon.txt",
+      "ban-sua.txt",
+      "--record",
+      "edit-record.json"
+    ],
+    "exit": 0,
+    "elapsed_ms": 48,
+    "stdout": "{\n  \"attestation_only\": true,\n  \"human_review_required\": true,\n  \"meaning_certified\": false,\n  \"valid\": true,\n  \"warning\": \"Checksum is not authentication. A rewritten record can be rehashed.\"\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "compose-check",
+    "args": [
+      "check",
+      "de-bai.txt",
+      "ban-cuoi.txt",
+      "--mode",
+      "compose",
+      "--record",
+      "compose-record.json",
+      "--reviewer",
+      "Independent AI evaluator",
+      "--review",
+      "Two sentences describe a fictional sunrise beside a river and a concrete rowing sound. Prompt is material, not a draft."
+    ],
+    "exit": 0,
+    "elapsed_ms": 53,
+    "stdout": "{\n  \"attestation_only\": true,\n  \"findings\": false,\n  \"human_review_required\": true,\n  \"record_written\": true\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "compose-verify",
+    "args": [
+      "verify",
+      "de-bai.txt",
+      "ban-cuoi.txt",
+      "--mode",
+      "compose",
+      "--record",
+      "compose-record.json"
+    ],
+    "exit": 0,
+    "elapsed_ms": 53,
+    "stdout": "{\n  \"attestation_only\": true,\n  \"human_review_required\": true,\n  \"meaning_certified\": false,\n  \"valid\": true,\n  \"warning\": \"Checksum is not authentication. A rewritten record can be rehashed.\"\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "compose-stale-rejected",
+    "args": [
+      "verify",
+      "de-bai.txt",
+      "ban-cuoi.txt",
+      "--mode",
+      "compose",
+      "--record",
+      "compose-record.json"
+    ],
+    "exit": 1,
+    "elapsed_ms": 48,
+    "stdout": "{\n  \"reason\": \"Record differs from current files, schema, checks, or checksum.\",\n  \"valid\": false\n}\n",
+    "stderr": ""
+  }
+]
