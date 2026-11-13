@@ -25,6 +25,8 @@ Give each specialist a bounded work package with inputs, expected artifact, acce
 
 Distinguish roles proposed from workers actually started. Use available execution tools; if delegation is unavailable, perform feasible work directly and say so when material. Never present a role label or simulated conversation as completed independent work.
 
+When importing a team workflow across clients, read [harness-portability.md](references/harness-portability.md). Check worker execution, model/provider inheritance, logging, tool availability and shared resource limits in the actual runtime. Keep task context small and return artifacts rather than duplicating bulk output in the lead.
+
 ## Choose the domain playbook
 
 Read only the playbooks needed for the assignment:
